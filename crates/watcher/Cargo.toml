@@ -1,0 +1,13 @@
+[package]
+name = "lighty-watcher"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lighty-config = { path = "../config" }
+lighty-cache = { path = "../cache" }
+lighty-filesystem = { path = "../filesystem" }
+notify = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }

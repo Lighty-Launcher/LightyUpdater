@@ -1,6 +1,5 @@
 # Ignore everything by default
-*
-*/
+/*
 
 # Whitelist specific files and directories (use ! to add)
 !.gitignore
@@ -10,11 +9,10 @@
 !Cargo.lock
 
 # Whitelist directories
-!.github/
+!.github/**
 !crates/
-!docs
-!src
-
+!docs/
+!src/
 
 # Exceptions: Always ignore these patterns even if whitelisted
 **/.DS_Store

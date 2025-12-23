@@ -1,0 +1,15 @@
+[package]
+name = "lighty-config"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lighty-filesystem = { path = "../filesystem" }
+lighty-events = { path = "../events" }
+serde = { workspace = true }
+toml = { workspace = true }
+toml_edit = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }

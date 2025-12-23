@@ -1,0 +1,26 @@
+[package]
+name = "lighty-cache"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lighty-models = { path = "../models" }
+lighty-config = { path = "../config" }
+lighty-events = { path = "../events" }
+lighty-scanner = { path = "../scanner" }
+lighty-filesystem = { path = "../filesystem" }
+moka = { workspace = true }
+dashmap = { workspace = true }
+parking_lot = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+bytes = { workspace = true }
+sha1 = { workspace = true }
+rayon = { workspace = true }
+walkdir = { workspace = true }
+notify = { workspace = true }
+futures = "0.3"
+chrono = { workspace = true }
+mime_guess = "2.0"

@@ -1,0 +1,10 @@
+[package]
+name = "lighty-utils"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sha1 = { workspace = true }
+hex = { workspace = true }
+anyhow = { workspace = true }
+tokio = { workspace = true }

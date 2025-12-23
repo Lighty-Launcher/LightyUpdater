@@ -12,8 +12,8 @@
 # Whitelist directories
 !.github/
 !crates/
-!docs/
-!src/
+!docs
+!src
 
 
 # Exceptions: Always ignore these patterns even if whitelisted

@@ -1,0 +1,87 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/models",
+    "crates/events",
+    "crates/utils",
+    "crates/filesystem",
+    "crates/config",
+    "crates/scanner",
+    "crates/cache",
+    "crates/watcher",
+    "crates/api",
+    "crates",
+]
+
+[package]
+name = "lighty-server"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "lighty-server"
+path = "src/main.rs"
+
+[dependencies]
+# Internal crates
+lighty-api = { path = "crates/api" }
+lighty-cache = { path = "crates/cache" }
+lighty-config = { path = "crates/config" }
+lighty-events = { path = "crates/events" }
+lighty-watcher = { path = "crates/watcher" }
+lighty-filesystem = { path = "crates/filesystem" }
+
+# Async runtime
+tokio = { workspace = true }
+
+# Web framework
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1.42.0", features = ["full"] }
+
+# Web framework
+axum = "0.7.9"
+tower = { version = "0.5.2", features = ["limit"] }
+tower-http = { version = "0.6.2", features = ["compression-full", "cors", "limit", "timeout"] }
+
+# Serialization
+serde = { version = "1.0.217", features = ["derive"] }
+toml = "0.8.19"
+toml_edit = "0.22.22"
+bytes = "1.9.0"
+
+# Date/Time
+chrono = { version = "0.4.39", features = ["serde"] }
+
+# Caching & Concurrency
+moka = { version = "0.12.8", features = ["future"] }
+dashmap = "6.1.0"
+parking_lot = "0.12.3"
+rayon = "1.10.0"
+
+# File operations
+walkdir = "2.5.0"
+notify = "7.0.0"
+
+# Hashing
+sha1 = "0.10.6"
+hex = "0.4.3"
+
+# Logging
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+colored = "2.2.0"
+
+# Error handling
+anyhow = "1.0.95"

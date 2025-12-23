@@ -1,0 +1,28 @@
+# Ignore everything by default
+*
+*/
+
+# Whitelist specific files and directories (use ! to add)
+!.gitignore
+!README.md
+!LICENSE
+!Cargo.toml
+!Cargo.lock
+
+# Whitelist directories
+!.github/
+!crates/
+!docs/
+!src/
+
+
+# Exceptions: Always ignore these patterns even if whitelisted
+**/.DS_Store
+**/Thumbs.db
+**/.idea/
+**/.vscode/
+**/*.swp
+**/*.swo
+**/*~
+**/config.toml
+**/target/

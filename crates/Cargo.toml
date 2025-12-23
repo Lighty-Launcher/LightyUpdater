@@ -1,0 +1,19 @@
+[package]
+name = "lighty"
+version = "0.1.0"
+edition = "2021"
+description = "Unified interface for LightyUpdater - Minecraft distribution server"
+
+[lib]
+path = "lib.rs"
+
+[dependencies]
+lighty-models = { path = "models" }
+lighty-events = { path = "events" }
+lighty-utils = { path = "utils" }
+lighty-filesystem = { path = "filesystem" }
+lighty-config = { path = "config" }
+lighty-scanner = { path = "scanner" }
+lighty-cache = { path = "cache" }
+lighty-watcher = { path = "watcher" }
+lighty-api = { path = "api" }

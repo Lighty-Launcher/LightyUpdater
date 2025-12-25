@@ -93,7 +93,7 @@ sequenceDiagram
 ## Configuration Comparison
 
 ```mermaid
-flowchart TD
+graph TD
     Start[New config loaded] --> PauseRescan[pause_rescan]
     PauseRescan --> ReadOld[Read old servers]
 
@@ -216,7 +216,7 @@ sequenceDiagram
 ## File Existence Verification
 
 ```mermaid
-flowchart TD
+graph TD
     Event[File event received] --> Debounce[Wait debounce period]
     Debounce --> Check{File exists?}
 
@@ -284,7 +284,7 @@ sequenceDiagram
 ## Complete Reload Cycle
 
 ```mermaid
-flowchart TD
+graph TD
     Start[File modified] --> Debounce[Debounce wait]
     Debounce --> Exists{File exists?}
 

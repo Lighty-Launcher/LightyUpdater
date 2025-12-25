@@ -8,11 +8,11 @@ Le systeme de scan est concu comme une architecture modulaire avec des composant
 
 ```mermaid
 graph TB
-    subgraph "Entry Point"
+    subgraph Entry_Point
         SS[ServerScanner]
     end
 
-    subgraph "Specialized Scanners"
+    subgraph Specialized_Scanners
         CS[ClientScanner]
         LS[LibraryScanner]
         MS[ModScanner]
@@ -20,18 +20,18 @@ graph TB
         AS[AssetScanner]
     end
 
-    subgraph "Generic Scanners"
+    subgraph Generic_Scanners
         JS[JarScanner]
         FP[scan_files_parallel]
     end
 
-    subgraph "Utilities"
+    subgraph Utilities
         Hash[SHA1 Computer]
         Path[Path Normalizer]
         Maven[Maven Converter]
     end
 
-    subgraph "External Services"
+    subgraph External_Services
         Storage[Storage Backend]
         Models[VersionBuilder]
     end
@@ -127,7 +127,7 @@ Scan du fichier client JAR unique.
 
 **Algorithme**:
 ```mermaid
-flowchart TD
+graph TD
     Start[Start scan_client] --> CheckDir{client/ exists?}
     CheckDir -->|No| ReturnNone[Return None]
     CheckDir -->|Yes| ReadDir[Read directory]
@@ -219,7 +219,7 @@ natives/
 
 **Algorithme**:
 ```mermaid
-flowchart TD
+graph TD
     Start[Start scan_natives] --> CheckDir{natives/ exists?}
     CheckDir -->|No| ReturnEmpty[Return empty Vec]
     CheckDir -->|Yes| InitVec[Initialize all_natives Vec]
@@ -287,22 +287,22 @@ assets/
 
 ```mermaid
 graph TB
-    subgraph "Main Thread"
+    subgraph Main_Thread
         Collect[Collect file paths<br/>sync]
     end
 
-    subgraph "Semaphore Pool"
+    subgraph Semaphore_Pool
         Sem[Semaphore<br/>max = batch_size]
     end
 
-    subgraph "Parallel Tasks"
+    subgraph Parallel_Tasks
         T1[Task 1: Hash file 1]
         T2[Task 2: Hash file 2]
         T3[Task 3: Hash file 3]
         Tn[Task N: Hash file N]
     end
 
-    subgraph "Result Collection"
+    subgraph Result_Collection
         Stream[futures::stream]
         Buffer[buffer_unordered]
         Collect2[Collect results]
@@ -381,7 +381,7 @@ Le calcul de SHA1 est CPU-intensif et pourrait bloquer le runtime async.
 Utilisation de tokio pour calcul asynchrone avec buffer:
 
 ```mermaid
-flowchart TD
+graph TD
     Start[File path] --> OpenFile[tokio::fs::File::open]
     OpenFile --> CreateBuf[Create buffer buffer_size]
     CreateBuf --> LoopRead{Read chunk}

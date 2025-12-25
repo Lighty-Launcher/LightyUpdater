@@ -8,18 +8,18 @@ The API is built with Axum and follows a layered architecture with clear separat
 
 ```mermaid
 graph TB
-    subgraph "HTTP Layer"
+    subgraph HTTP_Layer
         Router[Axum Router]
         Middleware[Middleware Stack]
     end
 
-    subgraph "Handler Layer"
+    subgraph Handler_Layer
         ServersH[Servers Handler]
         FilesH[Files Handler]
         RescanH[Rescan Handler]
     end
 
-    subgraph "File Serving Pipeline"
+    subgraph File_Serving_Pipeline
         Parser[Path Parser]
         Validator[Security Validator]
         Resolver[URL Resolver]
@@ -27,13 +27,13 @@ graph TB
         DiskServe[Disk Server]
     end
 
-    subgraph "State"
+    subgraph State
         AppState[AppState]
         CacheRef[CacheManager Ref]
         Config[Base URL/Path]
     end
 
-    subgraph "External"
+    subgraph External
         Cache[Cache Manager]
         FS[File System]
     end
@@ -95,7 +95,7 @@ Shared state structure across all handlers.
 ### File Serving Pipeline
 
 ```mermaid
-flowchart TD
+graph TD
     Request[HTTP Request] --> Parse[Parser]
     Parse --> Validate[Validator]
     Validate --> Resolve[Resolver]
@@ -148,7 +148,7 @@ flowchart TD
 ### Path Validation
 
 ```mermaid
-flowchart TD
+graph TD
     Path[User path input] --> Check1{Contains '..'?}
     Check1 -->|Yes| Reject[Return 400 Bad Request]
     Check1 -->|No| Check2{Contains null bytes?}

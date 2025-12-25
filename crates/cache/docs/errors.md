@@ -232,7 +232,7 @@ The cache system is designed to be resilient:
 ### Error Propagation
 
 ```mermaid
-flowchart TD
+graph TD
     Error[Error occurs] --> Check{Error type?}
 
     Check -->|Critical| Propagate[Propagate to caller]

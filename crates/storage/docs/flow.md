@@ -247,7 +247,7 @@ sequenceDiagram
 ### Retry with exponential backoff
 
 ```mermaid
-flowchart TD
+graph TD
     Start[Upload file] --> Attempt[Attempt upload]
     Attempt --> Success{Success?}
 

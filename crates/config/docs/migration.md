@@ -7,7 +7,7 @@ The migration system allows configuration evolution without manual intervention.
 ## Migration Process
 
 ```mermaid
-flowchart TD
+graph TD
     Start[migrate_config_if_needed] --> Read[Read config file]
     Read --> Parse[Parse as DocumentMut]
 
@@ -49,7 +49,7 @@ max_concurrent_requests = 1000
 Detects if an old `[security]` section exists:
 
 ```mermaid
-flowchart TD
+graph TD
     Check{security section exists?}
     Check -->|Yes| Extract[Extract allowed_origins]
     Extract --> Move[Move to server section]
@@ -157,7 +157,7 @@ All fields have defaults.
 **Per-Server Migration**:
 
 ```mermaid
-flowchart TD
+graph TD
     Start[For each server] --> CheckEnabled{enabled exists?}
     CheckEnabled -->|No| AddEnabled[Add enabled = true]
     CheckEnabled -->|Yes| Skip[Skip]
@@ -180,7 +180,7 @@ enabled = true  # Added if missing
 ### Removing [metrics]
 
 ```mermaid
-flowchart TD
+graph TD
     Check{metrics section exists?}
     Check -->|Yes| Remove[Remove metrics section]
     Remove --> Record[Record: removed deprecated metrics]

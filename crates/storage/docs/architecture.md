@@ -8,21 +8,21 @@ The storage system is designed as a multi-backend abstraction allowing support f
 
 ```mermaid
 graph TB
-    subgraph "Abstraction Layer"
+    subgraph Abstraction_Layer
         SB[StorageBackend Trait]
     end
 
-    subgraph "Backend Implementations"
+    subgraph Backend_Implementations
         LB[LocalBackend]
         S3B[S3Backend]
     end
 
-    subgraph "External Services"
+    subgraph External_Services
         FS[File System]
         S3API[S3 API<br/>Cloudflare R2 / AWS S3 / MinIO]
     end
 
-    subgraph "Client Services"
+    subgraph Client_Services
         Cache[Cache Manager]
         Scanner[Scanner Service]
     end

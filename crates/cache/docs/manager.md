@@ -10,13 +10,13 @@ The `CacheManager` is the main entry point of the cache crate. It coordinates al
 
 ```mermaid
 graph TB
-    subgraph "CacheManager"
+    subgraph CacheManager
         Core[Core Logic]
         Tasks[Task Registry]
         Shutdown[Shutdown Handler]
     end
 
-    subgraph "Components"
+    subgraph Components
         Cache[Version Cache<br/>DashMap]
         FCM[FileCacheManager]
         RO[RescanOrchestrator]
@@ -24,7 +24,7 @@ graph TB
         LastUpd[Last Updated<br/>DashMap]
     end
 
-    subgraph "External"
+    subgraph External
         Config[Config RwLock]
         Events[Event Bus]
         Storage[Storage Backend]

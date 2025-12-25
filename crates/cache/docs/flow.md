@@ -146,7 +146,7 @@ sequenceDiagram
 ## Flow 4: Granular Change Detection (FileDiff)
 
 ```mermaid
-flowchart TD
+graph TD
     Start[Start: compute diff] --> CheckOld{Old version exists?}
 
     CheckOld -->|No| AddAll[add_all_files: Mark all as added]
@@ -158,7 +158,7 @@ flowchart TD
     DiffTypes --> DiffNatives[diff_natives]
     DiffTypes --> DiffAssets[diff_assets]
 
-    subgraph "diff_libraries (similar for mods/assets)"
+    subgraph diff_libraries_similar_for_mods_assets
         DiffLibs --> BuildMaps[Build old_map & new_map]
         BuildMaps --> IterNew[Iterate new_map]
         IterNew --> InOld{Exists in old?}
@@ -267,7 +267,7 @@ sequenceDiagram
 ## Flow 7: Incremental URL Map Update
 
 ```mermaid
-flowchart TD
+graph TD
     Start[FileDiff computed] --> CheckNew{Is first scan?}
 
     CheckNew -->|Yes| FullBuild[builder.build_url_map]

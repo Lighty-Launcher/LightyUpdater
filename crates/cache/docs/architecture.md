@@ -8,26 +8,26 @@ The cache system is designed as a multi-layer architecture with clear separation
 
 ```mermaid
 graph TB
-    subgraph "Cache Layer"
+    subgraph Cache_Layer
         CM[CacheManager]
         FCM[FileCacheManager]
         RO[RescanOrchestrator]
         SPC[ServerPathCache]
     end
 
-    subgraph "Detection Layer"
+    subgraph Detection_Layer
         FD[FileDiff]
         CD[ChangeDetector]
     end
 
-    subgraph "External Services"
+    subgraph External_Services
         Scanner[Scanner Service]
         Storage[Storage Backend]
         CF[Cloudflare Client]
         Events[Event Bus]
     end
 
-    subgraph "Data Stores"
+    subgraph Data_Stores
         VCache[(Version Cache<br/>DashMap)]
         FCache[(File Cache<br/>Moka LRU)]
         LastUpdate[(Last Updated<br/>DashMap)]

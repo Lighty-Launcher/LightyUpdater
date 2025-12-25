@@ -8,16 +8,16 @@ The resolution system converts HTTP URLs to physical file paths via a pre-built 
 
 ```mermaid
 graph TB
-    subgraph "VersionBuilder"
+    subgraph VersionBuilder
         URLMap[url_to_path_map<br/>HashMap String, String]
     end
 
-    subgraph "Construction"
+    subgraph Construction
         Scanner[Scanner]
         Builder[build_url_map]
     end
 
-    subgraph "Resolution"
+    subgraph Resolution
         Request[HTTP Request URL]
         Resolver[resolve_file_path]
         Result[Actual file path]
@@ -35,7 +35,7 @@ graph TB
 The mapping is built during initial scan and rescans:
 
 ```mermaid
-flowchart TD
+graph TD
     Scan[Scan server files] --> Build[Build VersionBuilder]
     Build --> Client[Add client URL/path]
     Build --> Libs[Add libraries URLs/paths]
@@ -138,7 +138,7 @@ sequenceDiagram
 The mapping can be updated incrementally during rescans:
 
 ```mermaid
-flowchart TD
+graph TD
     Rescan[Rescan triggered] --> Diff[Compute FileDiff]
 
     Diff --> Added[Added files]

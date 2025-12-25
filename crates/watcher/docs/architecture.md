@@ -8,24 +8,24 @@ The monitoring system is designed to detect and react to configuration file chan
 
 ```mermaid
 graph TB
-    subgraph "Watcher Layer"
+    subgraph Watcher_Layer
         CW[ConfigWatcher]
         FW[File Watcher<br/>notify::RecommendedWatcher]
         Channel[MPSC Channel]
     end
 
-    subgraph "Detection Layer"
+    subgraph Detection_Layer
         Detector[Change Detector]
         Comparator[Config Comparator]
     end
 
-    subgraph "Action Layer"
+    subgraph Action_Layer
         CacheManager[Cache Manager]
         FileSystem[File System]
         ConfigStore[Config Store<br/>Arc RwLock Config]
     end
 
-    subgraph "External"
+    subgraph External
         ConfigFile[config.toml]
         Events[Event Bus]
     end
@@ -101,7 +101,7 @@ Configuration change detection logic.
 **Algorithm:**
 
 ```mermaid
-flowchart TD
+graph TD
     Start[Configuration change detected] --> LoadNew[Load new config]
     LoadNew --> GetOld[Get old server list]
     GetOld --> GetOldConfigs[Get old server configs]
@@ -201,7 +201,7 @@ sequenceDiagram
 ### Server Comparison
 
 ```mermaid
-flowchart TD
+graph TD
     OldServers[Old server names] --> SetOld[HashSet old_servers]
     NewServers[New server names] --> SetNew[HashSet new_servers]
 
@@ -363,13 +363,13 @@ sequenceDiagram
 
 ```mermaid
 graph TB
-    subgraph "Read Operations"
+    subgraph Read_Operations
         R1[Get current config]
         R2[Check server existence]
         R3[Read server list]
     end
 
-    subgraph "Write Operations"
+    subgraph Write_Operations
         W1[Update config]
         W2[Rebuild cache]
         W3[Force rescan]

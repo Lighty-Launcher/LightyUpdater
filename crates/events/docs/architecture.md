@@ -4,12 +4,12 @@
 
 ```mermaid
 graph TB
-    subgraph "Event System"
+    subgraph Event_System
         EventBus[EventBus]
         AppEvent[AppEvent Enum]
     end
 
-    subgraph "Event Sources"
+    subgraph Event_Sources
         Config[Config Loader]
         Cache[Cache Manager]
         Scanner[Scanner]
@@ -17,7 +17,7 @@ graph TB
         API[API Layer]
     end
 
-    subgraph "Output"
+    subgraph Output
         Console[Console Output]
         Logs[Tracing Logs]
     end

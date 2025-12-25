@@ -8,13 +8,13 @@ The configuration system is designed to be robust, flexible and maintainable wit
 
 ```mermaid
 graph TB
-    subgraph "Loading Layer"
+    subgraph Loading_Layer
         Loader[Config Loader]
         Migration[Migration System]
         Parser[TOML Parser]
     end
 
-    subgraph "Configuration Structures"
+    subgraph Configuration_Structures
         Config[Config]
         Server[ServerSettings]
         Cache[CacheSettings]
@@ -23,12 +23,12 @@ graph TB
         Servers[Vec ServerConfig ]
     end
 
-    subgraph "Defaults"
+    subgraph Defaults
         Defaults[Default Values]
         Template[Config Template]
     end
 
-    subgraph "Runtime"
+    subgraph Runtime
         RwLock[Arc RwLock Config ]
         Watcher[ConfigWatcher]
         Events[Event Bus]
@@ -189,7 +189,7 @@ pub struct ServerConfig {
 ### Migration Architecture
 
 ```mermaid
-flowchart TD
+graph TD
     Start[Load config file] --> Exists{File exists?}
     Exists -->|No| Create[Create default config]
     Exists -->|Yes| Read[Read file content]

@@ -64,7 +64,7 @@ graph TB
 When there is no previous version, all files are marked as "added":
 
 ```mermaid
-flowchart LR
+graph LR
     Start[Old version = None] --> AddAll[add_all_files]
 
     AddAll --> Client[Add client.jar]
@@ -95,7 +95,7 @@ Compares each file type separately with an optimized algorithm.
 The client JAR is unique, three possible cases:
 
 ```mermaid
-flowchart TD
+graph TD
     Start[Compare client] --> Check{Old & New?}
 
     Check -->|None → Some| Added[Add to 'added']
@@ -118,7 +118,7 @@ flowchart TD
 Libraries are compared via HashMap for O(1) lookups:
 
 ```mermaid
-flowchart TD
+graph TD
     Start[Compare libraries] --> BuildMaps[Build HashMaps]
 
     BuildMaps --> OldMap[old_map: path → Library]
@@ -174,7 +174,7 @@ let new_map: HashMap<_, _> = new.mods.iter().map(|m| (&m.name, m)).collect();
 Special case: can be `None`, `Some(Vec)`, or transition from one to the other:
 
 ```mermaid
-flowchart TD
+graph TD
     Start[Compare natives] --> Check{Old & New state?}
 
     Check -->|None → Some| AllAdded[All new natives → 'added']
@@ -212,7 +212,7 @@ let new_map: HashMap<_, _> = new.assets.iter().map(|a| (&a.path, a)).collect();
 Instead of completely rebuilding the URL map (O(n)), we only apply changes (O(k) where k = number of changes).
 
 ```mermaid
-flowchart TD
+graph TD
     Start[FileDiff computed] --> CheckFirst{First scan?}
 
     CheckFirst -->|Yes| FullBuild[builder.build_url_map]

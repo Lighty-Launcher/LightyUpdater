@@ -77,7 +77,7 @@ pub enum ApiError {
 ## Response Strategy
 
 ```mermaid
-flowchart TD
+graph TD
     Error[ApiError] --> Match{Type?}
 
     Match -->|ServerNotFound| JSON404[404 + JSON + available list]

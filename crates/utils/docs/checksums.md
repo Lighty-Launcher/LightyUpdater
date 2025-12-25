@@ -3,7 +3,7 @@
 ## Streaming Algorithm
 
 ```mermaid
-flowchart TD
+graph TD
     Start[Open file] --> Init[Initialize SHA1 hasher]
     Init --> Buffer[Allocate 8KB buffer]
 

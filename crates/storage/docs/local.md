@@ -8,16 +8,16 @@ The `LocalBackend` is an implementation of the `StorageBackend` trait optimized 
 
 ```mermaid
 graph TB
-    subgraph "LocalBackend"
+    subgraph LocalBackend
         Config[Configuration<br/>base_url, base_path]
         URLGen[URL Generator]
     end
 
-    subgraph "File System"
+    subgraph File_System
         Disk[Files on Disk]
     end
 
-    subgraph "HTTP Server"
+    subgraph HTTP_Server
         API[API Handler]
         Static[Static File Serving]
     end
@@ -93,7 +93,7 @@ The scanner and cache manage file lifecycle. When a file is deleted from the ser
 ### URL Generation
 
 ```mermaid
-flowchart LR
+graph LR
     Input["remote_key<br/>'server/mods/mod.jar'"] --> Concat[Concatenation]
     BaseURL["base_url<br/>'http://localhost:8080'"] --> Concat
     Concat --> Output["Complete URL<br/>'http://localhost:8080/server/mods/mod.jar'"]
@@ -110,7 +110,7 @@ URL generation is a simple concatenation:
 ### Backend Type Verification
 
 ```mermaid
-flowchart TD
+graph TD
     Call[is_remote?] --> Check{LocalBackend?}
     Check -->|Yes| ReturnFalse[Return false]
     Check -->|No| ReturnTrue[Return true]

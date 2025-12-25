@@ -167,7 +167,7 @@ sequenceDiagram
 **Debouncing algorithm**:
 
 ```mermaid
-flowchart TD
+graph TD
     Start[Event received] --> CheckPause{Paused?}
     CheckPause -->|Yes| Skip[Skip event]
     CheckPause -->|No| FindServer[Find server via ServerPathCache]
@@ -238,7 +238,7 @@ sequenceDiagram
 ### update_cache_if_changed Algorithm
 
 ```mermaid
-flowchart TD
+graph TD
     Start[New VersionBuilder scanned] --> GetOld[Get old version from cache]
     GetOld --> ComputeDiff[FileDiff::compute old vs new]
 

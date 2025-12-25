@@ -1,4 +1,5 @@
-use super::models::{AppState, ApiError};
+use super::models::AppState;
+use crate::errors::ApiError;
 use crate::models::{ServerListResponse, ServerInfo};
 use lighty_models::VersionBuilder;
 use axum::{

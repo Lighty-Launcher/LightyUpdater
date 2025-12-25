@@ -9,5 +9,5 @@ lighty-cache = { path = "../cache" }
 lighty-filesystem = { path = "../filesystem" }
 notify = { workspace = true }
 tokio = { workspace = true }
-anyhow = { workspace = true }
+thiserror = { workspace = true }
 tracing = { workspace = true }

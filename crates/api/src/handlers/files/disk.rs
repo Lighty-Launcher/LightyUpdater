@@ -1,4 +1,4 @@
-use crate::handlers::models::ApiError;
+use crate::errors::ApiError;
 use axum::{
     body::Body,
     http::StatusCode,

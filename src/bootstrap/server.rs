@@ -17,14 +17,14 @@ pub async fn initialize_folders(config: &Config, events: &Arc<EventBus>) -> Resu
 
         let path = format!("{}/{}", config.server.base_path, &server_config.name);
         events.emit(AppEvent::ServerFolderInit {
-            name: server_config.name.clone(),
+            name: server_config.name.to_string(),
             path: path.clone(),
         });
 
-        FileSystem::ensure_server_structure(&config.server.base_path, &server_config.name).await?;
+        FileSystem::ensure_server_structure(config.server.base_path.as_ref(), server_config.name.as_ref()).await?;
 
         events.emit(AppEvent::ServerFolderCreated {
-            name: server_config.name.clone(),
+            name: server_config.name.to_string(),
         });
     }
 

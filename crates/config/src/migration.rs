@@ -1,18 +1,23 @@
+use super::errors::ConfigError;
 use std::path::Path;
 use std::sync::Arc;
 use toml_edit::{Array, DocumentMut, Item, Table, Value};
+
+type Result<T> = std::result::Result<T, ConfigError>;
 
 /// Migrates config file to latest format if needed
 pub async fn migrate_config_if_needed<P: AsRef<Path>>(
     path: P,
     events: Option<&Arc<lighty_events::EventBus>>,
-) -> anyhow::Result<()> {
+) -> Result<()> {
     let content = tokio::fs::read_to_string(path.as_ref()).await?;
     let mut doc = content.parse::<DocumentMut>()?;
     let mut added_fields = Vec::new();
 
     migrate_server_section(&mut doc, &mut added_fields)?;
     migrate_cache_section(&mut doc, &mut added_fields)?;
+    migrate_storage_section(&mut doc, &mut added_fields)?;
+    migrate_cloudflare_section(&mut doc, &mut added_fields)?;
     migrate_servers_array(&mut doc, &mut added_fields)?;
 
     // Remove deprecated [metrics] section
@@ -38,7 +43,7 @@ pub async fn migrate_config_if_needed<P: AsRef<Path>>(
 fn migrate_server_section(
     doc: &mut DocumentMut,
     added_fields: &mut Vec<String>,
-) -> anyhow::Result<()> {
+) -> Result<()> {
     // Ensure [server] section exists
     if !doc.contains_key("server") {
         let mut table = Table::new();
@@ -56,7 +61,7 @@ fn migrate_server_section(
     // Ensure server fields
     let server = doc["server"]
         .as_table_mut()
-        .ok_or_else(|| anyhow::anyhow!("Invalid [server] section in config"))?;
+        .ok_or_else(|| ConfigError::InvalidConfig("Invalid [server] section in config".to_string()))?;
     ensure_field(
         server,
         "host",
@@ -122,7 +127,7 @@ fn migrate_server_section(
 fn migrate_cache_section(
     doc: &mut DocumentMut,
     added_fields: &mut Vec<String>,
-) -> anyhow::Result<()> {
+) -> Result<()> {
     // Ensure [cache] section
     if !doc.contains_key("cache") {
         let mut table = Table::new();
@@ -133,7 +138,7 @@ fn migrate_cache_section(
 
     let cache = doc["cache"]
         .as_table_mut()
-        .ok_or_else(|| anyhow::anyhow!("Invalid [cache] section in config"))?;
+        .ok_or_else(|| ConfigError::InvalidConfig("Invalid [cache] section in config".to_string()))?;
     ensure_field(cache, "enabled", Value::from(true), added_fields);
     ensure_field(cache, "auto_scan", Value::from(true), added_fields);
     ensure_field(cache, "rescan_interval", Value::from(30), added_fields);
@@ -161,6 +166,18 @@ fn migrate_cache_section(
         Value::from(8192),
         added_fields,
     );
+    ensure_field(
+        cache,
+        "hash_concurrency",
+        Value::from(100),
+        added_fields,
+    );
+    ensure_field(
+        cache,
+        "config_reload_channel_size",
+        Value::from(100),
+        added_fields,
+    );
 
     // Migrate deprecated scan_batch_size to cache.batch.*
     let old_batch_size = if let Some(Item::Value(Value::Integer(val))) = cache.get("scan_batch_size") {
@@ -185,7 +202,7 @@ fn migrate_cache_section(
 
     let batch = cache["batch"]
         .as_table_mut()
-        .ok_or_else(|| anyhow::anyhow!("Invalid [cache.batch] section in config"))?;
+        .ok_or_else(|| ConfigError::InvalidConfig("Invalid [cache.batch] section in config".to_string()))?;
     let default_batch = old_batch_size.unwrap_or(100);
     ensure_field(batch, "client", Value::from(default_batch), added_fields);
     ensure_field(batch, "libraries", Value::from(default_batch), added_fields);
@@ -196,10 +213,78 @@ fn migrate_cache_section(
     Ok(())
 }
 
+fn migrate_storage_section(
+    doc: &mut DocumentMut,
+    added_fields: &mut Vec<String>,
+) -> Result<()> {
+    // Ensure [storage] section exists
+    if !doc.contains_key("storage") {
+        let mut table = Table::new();
+        table.set_implicit(true);
+        doc["storage"] = Item::Table(table);
+        added_fields.push("storage".to_string());
+    }
+
+    let storage = doc["storage"]
+        .as_table_mut()
+        .ok_or_else(|| ConfigError::InvalidConfig("Invalid [storage] section in config".to_string()))?;
+
+    ensure_field(storage, "backend", Value::from("local"), added_fields);
+    ensure_field(storage, "keep_local_backup", Value::from(true), added_fields);
+    ensure_field(storage, "auto_upload", Value::from(true), added_fields);
+
+    // Ensure [storage.s3] section
+    if !storage.contains_key("s3") {
+        let mut s3_table = Table::new();
+        s3_table.set_implicit(true);
+        storage["s3"] = Item::Table(s3_table);
+        added_fields.push("storage.s3".to_string());
+    }
+
+    let s3 = storage["s3"]
+        .as_table_mut()
+        .ok_or_else(|| ConfigError::InvalidConfig("Invalid [storage.s3] section in config".to_string()))?;
+
+    ensure_field(s3, "enabled", Value::from(false), added_fields);
+    ensure_field(s3, "endpoint_url", Value::from(""), added_fields);
+    ensure_field(s3, "region", Value::from("auto"), added_fields);
+    ensure_field(s3, "access_key_id", Value::from(""), added_fields);
+    ensure_field(s3, "secret_access_key", Value::from(""), added_fields);
+    ensure_field(s3, "bucket_name", Value::from("lighty-updater"), added_fields);
+    ensure_field(s3, "public_url", Value::from(""), added_fields);
+    ensure_field(s3, "bucket_prefix", Value::from(""), added_fields);
+
+    Ok(())
+}
+
+fn migrate_cloudflare_section(
+    doc: &mut DocumentMut,
+    added_fields: &mut Vec<String>,
+) -> Result<()> {
+    // Ensure [cloudflare] section exists
+    if !doc.contains_key("cloudflare") {
+        let mut table = Table::new();
+        table.set_implicit(true);
+        doc["cloudflare"] = Item::Table(table);
+        added_fields.push("cloudflare".to_string());
+    }
+
+    let cloudflare = doc["cloudflare"]
+        .as_table_mut()
+        .ok_or_else(|| ConfigError::InvalidConfig("Invalid [cloudflare] section in config".to_string()))?;
+
+    ensure_field(cloudflare, "enabled", Value::from(false), added_fields);
+    ensure_field(cloudflare, "zone_id", Value::from(""), added_fields);
+    ensure_field(cloudflare, "api_token", Value::from(""), added_fields);
+    ensure_field(cloudflare, "purge_on_update", Value::from(true), added_fields);
+
+    Ok(())
+}
+
 fn migrate_servers_array(
     doc: &mut DocumentMut,
     added_fields: &mut Vec<String>,
-) -> anyhow::Result<()> {
+) -> Result<()> {
     // Only migrate existing servers array - don't create empty one
     // This prevents "servers = []" from being added to the config file
     if let Some(servers_array) = doc

@@ -31,4 +31,4 @@ mime_guess = "2.0"
 tracing = { workspace = true }
 
 # Error handling
-anyhow = { workspace = true }
+thiserror = { workspace = true }

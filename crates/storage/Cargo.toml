@@ -1,0 +1,26 @@
+[package]
+name = "lighty-storage"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = []
+s3 = ["aws-sdk-s3", "aws-config", "aws-credential-types"]
+
+[dependencies]
+# Internal
+lighty-config = { path = "../config" }
+
+# S3 / Cloud Storage (optional - requires cmake)
+aws-sdk-s3 = { version = "1.15", optional = true }
+aws-config = { version = "1.1", optional = true }
+aws-credential-types = { version = "1.1", optional = true }
+
+# Async
+tokio = { workspace = true }
+bytes = { workspace = true }
+
+# Utils
+thiserror = { workspace = true }
+tracing = { workspace = true }
+async-trait = "0.1"

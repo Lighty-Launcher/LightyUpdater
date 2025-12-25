@@ -1,16 +1,20 @@
 use super::utils::JarScanner;
+use super::errors::ScanError;
 use lighty_models::Library;
+use lighty_storage::StorageBackend;
 use lighty_utils::path_to_maven_name;
-use anyhow::Result;
 use std::path::Path;
+use std::sync::Arc;
 
-pub async fn scan_libraries(path: &Path, server: &str, base_url: &str, batch_size: usize) -> Result<Vec<Library>> {
+type Result<T> = std::result::Result<T, ScanError>;
+
+pub async fn scan_libraries(path: &Path, server: &str, storage: &Arc<dyn StorageBackend>, batch_size: usize, buffer_size: usize) -> Result<Vec<Library>> {
     let libraries_dir = path.join("libraries");
 
     let scanner = JarScanner::new(
         libraries_dir,
         server.to_string(),
-        base_url.to_string(),
+        Arc::clone(storage),
         batch_size,
     );
 
@@ -25,6 +29,6 @@ pub async fn scan_libraries(path: &Path, server: &str, base_url: &str, batch_siz
                 sha1: Some(info.sha1),
                 size: Some(info.size),
             })
-        })
+        }, buffer_size)
         .await
 }

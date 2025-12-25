@@ -1,7 +1,9 @@
-use anyhow::Result;
+use super::errors::CacheError;
 use bytes::Bytes;
 use std::path::Path;
 use super::models::FileCache;
+
+type Result<T> = std::result::Result<T, CacheError>;
 
 impl FileCache {
     pub fn from_file_sync(path: &Path) -> Result<Self> {

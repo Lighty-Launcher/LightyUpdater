@@ -1,11 +1,15 @@
 use super::utils::scan_files_parallel;
+use super::errors::ScanError;
 use lighty_models::Native;
-use anyhow::Result;
+use lighty_storage::StorageBackend;
 use std::path::Path;
+use std::sync::Arc;
+
+type Result<T> = std::result::Result<T, ScanError>;
 
 const NATIVE_OS_TYPES: &[&str] = &["windows", "linux", "macos"];
 
-pub async fn scan_natives(path: &Path, server: &str, base_url: &str) -> Result<Vec<Native>> {
+pub async fn scan_natives(path: &Path, server: &str, storage: &Arc<dyn StorageBackend>, concurrency: usize, buffer_size: usize) -> Result<Vec<Native>> {
     let natives_dir = path.join("natives");
 
     if !natives_dir.exists() {
@@ -25,7 +29,7 @@ pub async fn scan_natives(path: &Path, server: &str, base_url: &str) -> Result<V
         let natives = scan_files_parallel(
             os_dir,
             server.to_string(),
-            base_url.to_string(),
+            Arc::clone(storage),
             |path| path.is_file(), // Accept all files
             move |info| {
                 Ok(Native {
@@ -37,6 +41,8 @@ pub async fn scan_natives(path: &Path, server: &str, base_url: &str) -> Result<V
                     os: os_str.clone(),
                 })
             },
+            concurrency,
+            buffer_size,
         )
         .await?;
 

@@ -9,15 +9,3 @@ pub struct AppState {
     pub(super) base_path: Arc<String>,
     pub(super) streaming_threshold_bytes: u64,
 }
-
-/// API error types
-#[derive(Debug)]
-pub enum ApiError {
-    ServerNotFound {
-        server: String,
-        available: Vec<String>,
-    },
-    NotFound,
-    InternalError(String),
-    InvalidPath(String),
-}

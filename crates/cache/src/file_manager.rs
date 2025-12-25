@@ -1,13 +1,15 @@
+use super::models::{FileCacheManager, FileCache};
+use super::errors::CacheError;
 use lighty_config::ServerConfig;
 use lighty_filesystem::FileSystem;
-use anyhow::Result;
 use dashmap::DashMap;
 use moka::future::Cache;
 use std::sync::Arc;
 use std::sync::atomic::AtomicUsize;
 use tokio::sync::broadcast;
 use walkdir::WalkDir;
-use super::models::{FileCacheManager, FileCache};
+
+type Result<T> = std::result::Result<T, CacheError>;
 
 impl FileCacheManager {
     /// Creates a new FileCacheManager with specified capacity in GB (0 = unlimited)

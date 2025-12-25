@@ -1,10 +1,14 @@
+use super::errors::ScanError;
 use lighty_models::Client;
-use lighty_utils::compute_sha1;
-use anyhow::{Context, Result};
+use lighty_storage::StorageBackend;
+use lighty_utils::compute_sha1_with_size;
 use std::path::Path;
+use std::sync::Arc;
 use tokio::fs;
 
-pub async fn scan_client(path: &Path, server: &str, base_url: &str) -> Result<Option<Client>> {
+type Result<T> = std::result::Result<T, ScanError>;
+
+pub async fn scan_client(path: &Path, server: &str, storage: &Arc<dyn StorageBackend>, buffer_size: usize) -> Result<Option<Client>> {
     let client_dir = path.join("client");
 
     if !client_dir.exists() {
@@ -30,17 +34,18 @@ pub async fn scan_client(path: &Path, server: &str, base_url: &str) -> Result<Op
 
     let file_name = client_path
         .file_name()
-        .context("Failed to get client jar filename")?
+        .ok_or_else(|| ScanError::InvalidMetadata("Failed to get client jar filename".to_string()))?
         .to_string_lossy()
         .to_string();
 
-    let sha1 = compute_sha1(&client_path).await?;
-    let metadata = fs::metadata(&client_path).await?;
-    let size = metadata.len();
+    let (sha1, size) = compute_sha1_with_size(&client_path, buffer_size).await?;
+
+    let remote_key = format!("{}/{}", server, file_name);
+    let url = storage.get_url(&remote_key);
 
     Ok(Some(Client {
         name: "client".to_string(),
-        url: format!("{}/{}/{}", base_url, server, file_name),
+        url,
         path: file_name,
         sha1,
         size,

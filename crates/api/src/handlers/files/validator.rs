@@ -1,4 +1,4 @@
-use crate::handlers::models::ApiError;
+use crate::errors::ApiError;
 
 /// Validates a path component to prevent path traversal attacks
 pub fn validate_path_component(component: &str) -> Result<(), ApiError> {

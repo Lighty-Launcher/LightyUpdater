@@ -1,36 +1,55 @@
 use super::models::{CacheManager, FileCacheManager, RescanOrchestrator, FileCache, CacheUpdater, CacheStore};
+use super::errors::CacheError;
 use lighty_config::{Config, ServerConfig};
 use lighty_events::{AppEvent, EventBus};
 use lighty_models::VersionBuilder;
-use anyhow::Result;
 use dashmap::DashMap;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use tokio::sync::{RwLock, broadcast};
 
+type Result<T> = std::result::Result<T, CacheError>;
+
 impl CacheManager {
-    pub async fn new(config: Arc<RwLock<Config>>, events: Arc<EventBus>) -> Self {
+    pub async fn new(
+        config: Arc<RwLock<Config>>,
+        events: Arc<EventBus>,
+        storage: Option<Arc<dyn lighty_storage::StorageBackend>>,
+        cloudflare: Option<Arc<super::cloudflare::CloudflareClient>>,
+    ) -> Self {
         let (shutdown_tx, _) = broadcast::channel(1);
 
         // Create cache store (implements CacheUpdater trait)
         let (cache_store, cache) = CacheStore::new();
         let last_updated = Arc::new(DashMap::new());
 
-        // Read cache capacity from config (0 = unlimited)
-        let max_cache_gb = {
+        // Read cache capacity, base path, and servers from config
+        let (max_cache_gb, base_path, servers) = {
             let config_read = config.read().await;
-            config_read.cache.max_memory_cache_gb
+            (
+                config_read.cache.max_memory_cache_gb,
+                std::path::PathBuf::from(config_read.server.base_path.as_ref()),
+                config_read.servers.clone(),
+            )
         };
 
         // Create file cache manager with configured capacity
         let file_cache_manager = Arc::new(FileCacheManager::new(max_cache_gb, shutdown_tx.clone()));
 
-        // Create rescan orchestrator (uses trait instead of direct DashMap access)
+        // Create and initialize server path cache for O(1) lookups
+        let server_path_cache = Arc::new(super::server_path_cache::ServerPathCache::new());
+        server_path_cache.rebuild(&servers, &base_path.to_string_lossy());
+
+        // Create rescan orchestrator with storage and cloudflare
         let rescan_orchestrator = Arc::new(RescanOrchestrator::new(
             Arc::new(cache_store),
             Arc::clone(&last_updated),
             Arc::clone(&config),
             Arc::clone(&events),
+            storage,
+            cloudflare,
+            base_path,
+            Arc::clone(&server_path_cache),
         ));
 
         Self {
@@ -38,6 +57,7 @@ impl CacheManager {
             file_cache_manager,
             last_updated,
             rescan_orchestrator,
+            server_path_cache,
             config,
             events,
             shutdown_tx,
@@ -54,6 +74,16 @@ impl CacheManager {
     /// Resume the auto-rescan loop
     pub fn resume_rescan(&self) {
         self.rescan_orchestrator.resume();
+    }
+
+    /// Rebuild server path cache (call after config reload)
+    pub async fn rebuild_server_cache(&self) {
+        let (servers, base_path) = {
+            let config = self.config.read().await;
+            (config.servers.clone(), config.server.base_path.clone())
+        };
+        self.server_path_cache.rebuild(&servers, base_path.as_ref());
+        tracing::debug!("Server path cache rebuilt after config reload");
     }
 
     /// Signals graceful shutdown to all background tasks
@@ -97,7 +127,7 @@ impl CacheManager {
 
             self.events.emit(AppEvent::InitialScanStarted);
             self.rescan_orchestrator.scan_all_servers().await?;
-            self.file_cache_manager.load_all_servers(&servers, &base_path).await?;
+            self.file_cache_manager.load_all_servers(&servers, base_path.as_ref()).await?;
         }
 
         Ok(())
@@ -144,13 +174,13 @@ impl CacheManager {
         config.servers
             .iter()
             .filter(|s| s.enabled)
-            .map(|s| s.name.clone())
+            .map(|s| s.name.to_string())
             .collect()
     }
 
     pub async fn get_server_config(&self, name: &str) -> Option<Arc<ServerConfig>> {
         let config = self.config.read().await;
-        config.servers.iter().find(|s| s.name == name).map(Arc::clone)
+        config.servers.iter().find(|s| s.name.as_ref() == name).map(Arc::clone)
     }
 
     pub async fn get_version(&self, name: &str) -> Option<Arc<VersionBuilder>> {

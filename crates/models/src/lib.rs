@@ -127,4 +127,18 @@ impl VersionBuilder {
 
         self.url_to_path_map = map;
     }
+
+    /// Incrementally add a URL mapping
+    pub fn add_url_mapping(&mut self, url: String, path: String) {
+        if !url.is_empty() {
+            self.url_to_path_map.insert(url, path);
+        }
+    }
+
+    /// Incrementally remove a URL mapping
+    pub fn remove_url_mapping(&mut self, url: &str) {
+        if !url.is_empty() {
+            self.url_to_path_map.remove(url);
+        }
+    }
 }

@@ -1,4 +1,6 @@
+use lighty_storage::StorageBackend;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 /// Main server scanner struct
 pub struct ServerScanner;
@@ -7,7 +9,7 @@ pub struct ServerScanner;
 pub struct JarScanner {
     pub base_dir: PathBuf,
     pub server: String,
-    pub base_url: String,
+    pub storage: Arc<dyn StorageBackend>,
     pub batch_size: usize,
 }
 

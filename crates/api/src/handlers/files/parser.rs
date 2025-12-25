@@ -1,4 +1,4 @@
-use crate::handlers::models::ApiError;
+use crate::errors::ApiError;
 use super::models::ParsedRequest;
 use super::validator::validate_path_component;
 

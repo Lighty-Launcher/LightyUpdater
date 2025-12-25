@@ -1,12 +1,15 @@
 use super::defaults::DEFAULT_CONFIG_TEMPLATE;
 use super::migration::migrate_config_if_needed;
 use super::models::Config;
+use super::errors::ConfigError;
 use std::path::Path;
 use std::sync::Arc;
 
+type Result<T> = std::result::Result<T, ConfigError>;
+
 impl Config {
     /// Loads configuration from a file
-    pub async fn from_file<P: AsRef<Path>>(path: P) -> anyhow::Result<Self> {
+    pub async fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
         Self::from_file_with_events(path, None).await
     }
 
@@ -14,7 +17,7 @@ impl Config {
     pub async fn from_file_with_events<P: AsRef<Path>>(
         path: P,
         events: Option<&Arc<lighty_events::EventBus>>,
-    ) -> anyhow::Result<Self> {
+    ) -> Result<Self> {
         let path = path.as_ref();
 
         // Create default config if it doesn't exist
@@ -34,7 +37,7 @@ impl Config {
 }
 
 /// Creates a default configuration file
-async fn create_default_config<P: AsRef<Path>>(path: P) -> anyhow::Result<()> {
+async fn create_default_config<P: AsRef<Path>>(path: P) -> Result<()> {
     tokio::fs::write(path, DEFAULT_CONFIG_TEMPLATE).await?;
     Ok(())
 }

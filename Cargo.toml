@@ -8,6 +8,7 @@ members = [
     "crates/config",
     "crates/scanner",
     "crates/cache",
+    "crates/storage",
     "crates/watcher",
     "crates/api",
     "crates",
@@ -17,6 +18,10 @@ members = [
 name = "lighty-server"
 version = "0.1.0"
 edition = "2021"
+
+[features]
+default = []
+s3 = ["lighty-storage/s3"]
 
 [[bin]]
 name = "lighty-server"
@@ -28,6 +33,7 @@ lighty-api = { path = "crates/api" }
 lighty-cache = { path = "crates/cache" }
 lighty-config = { path = "crates/config" }
 lighty-events = { path = "crates/events" }
+lighty-storage = { path = "crates/storage" }
 lighty-watcher = { path = "crates/watcher" }
 lighty-filesystem = { path = "crates/filesystem" }
 
@@ -45,6 +51,7 @@ tracing-subscriber = { workspace = true }
 
 # Error handling
 anyhow = { workspace = true }
+thiserror = { workspace = true }
 
 [workspace.dependencies]
 # Async runtime
@@ -69,6 +76,7 @@ moka = { version = "0.12.8", features = ["future"] }
 dashmap = "6.1.0"
 parking_lot = "0.12.3"
 rayon = "1.10.0"
+futures = "0.3"
 
 # File operations
 walkdir = "2.5.0"
@@ -85,3 +93,4 @@ colored = "2.2.0"
 
 # Error handling
 anyhow = "1.0.95"
+thiserror = "2.0"

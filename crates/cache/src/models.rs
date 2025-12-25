@@ -56,6 +56,7 @@ pub struct CacheManager {
     pub(super) file_cache_manager: Arc<FileCacheManager>,
     pub(super) last_updated: Arc<DashMap<String, String>>,
     pub(super) rescan_orchestrator: Arc<RescanOrchestrator>,
+    pub(super) server_path_cache: Arc<super::server_path_cache::ServerPathCache>,
     pub config: Arc<RwLock<Config>>,
     pub(super) events: Arc<EventBus>,
     pub(super) shutdown_tx: broadcast::Sender<()>,
@@ -92,4 +93,8 @@ pub struct RescanOrchestrator {
     pub(super) config: Arc<RwLock<Config>>,
     pub(super) events: Arc<EventBus>,
     pub(super) paused: Arc<AtomicBool>,
+    pub(super) storage: Option<Arc<dyn lighty_storage::StorageBackend>>,
+    pub(super) cloudflare: Option<Arc<super::cloudflare::CloudflareClient>>,
+    pub(super) base_path: std::path::PathBuf,
+    pub(super) server_path_cache: Arc<super::server_path_cache::ServerPathCache>,
 }

@@ -1,4 +1,5 @@
-use super::models::{AppState, ApiError};
+use super::models::AppState;
+use crate::errors::ApiError;
 use axum::{
     extract::{Path as AxumPath, State},
     response::Json,

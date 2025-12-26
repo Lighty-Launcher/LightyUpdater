@@ -1,111 +1,38 @@
 # LightyUpdater
 
-High-performance Minecraft distribution server built with Rust and Axum. Serves game files (client, libraries, mods, natives, assets) via REST API with O(1) file resolution, RAM caching, hot-reload, and automatic scanning.
+High-performance Minecraft distribution server built with Rust and Axum. Serves game files (client, libraries, mods, natives, assets) via REST API with fast file resolution, RAM caching, hot-reload, S3/Cloudflare integration, and automatic scanning.
 
 [![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ![LightyUpdater Banner](docs/img/banner.png)
+
 ## Features
 
-- **O(1) File Resolution** - HashMap-based lookup providing instant file path resolution
+### Core Features
+- **Fast File Resolution** - HashMap-based lookup providing instant file path resolution
 - **Zero-Copy Serving** - Files cached in RAM using `Bytes` (Arc-based sharing)
-- **Hot-Reload** - Configuration and file changes detected automatically
+- **Hot-Reload** - Configuration and file changes detected automatically with debouncing
 - **Smart Caching** - Configurable LRU eviction with streaming support for large files
 - **Auto-Migration** - Configuration automatically updated with new fields
-- **Production-Ready** - Async/await, graceful shutdown, configurable compression
+- **Parallel Scanning** - All server components scanned concurrently for maximum speed
+
+### Storage & CDN
+- **S3 Storage Backend** - Optional AWS S3 integration for remote file storage
+- **Cloudflare Integration** - Automatic cache purging with retry mechanism (3 attempts, exponential backoff)
+- **Local Storage** - Default local filesystem backend with HTTP serving
+
+### Performance Optimizations
+- **Optimized Lookups** - HashMap-based server and file comparisons
+- **Atomic Operations** - Lock-free operations where possible (Relaxed ordering for flags)
+- **Efficient Path Matching** - Sorted path cache for fast server identification
+- **Incremental Updates** - Only changed files processed during rescans
+
+### Production Ready
+- **Async/Await** - Fully asynchronous with Tokio runtime
+- **Graceful Shutdown** - Clean task termination and resource cleanup
+- **Configurable Compression** - Optional response compression
 - **Modular Architecture** - Clean separation of concerns with 11 specialized crates
-
----
-
-## Project Structure
-
-```
-LightyUpdater/
-├── src/                    # Server binary source code
-│   ├── main.rs            # Application entry point
-│   └── bootstrap/         # Server initialization modules
-│       ├── config.rs      # Configuration loading
-│       ├── logging.rs     # Tracing setup
-│       ├── router.rs      # HTTP routing
-│       └── server.rs      # Server lifecycle
-│
-├── crates/                 # Library crates
-│   ├── lib.rs             # Unified facade (lighty crate)
-│   ├── Cargo.toml         # Facade manifest
-│   │
-│   ├── models/            # Domain models
-│   │   └── src/
-│   │       └── lib.rs     # VersionBuilder, Library, Mod, etc.
-│   │
-│   ├── events/            # Event bus system
-│   │   └── src/
-│   │       ├── lib.rs
-│   │       ├── bus.rs     # EventBus implementation
-│   │       └── models.rs  # AppEvent enum
-│   │
-│   ├── utils/             # Shared utilities
-│   │   └── src/
-│   │       ├── lib.rs
-│   │       ├── checksum.rs # SHA1 calculation
-│   │       └── path.rs     # Path normalization
-│   │
-│   ├── filesystem/        # File system operations
-│   │   └── src/
-│   │       ├── lib.rs
-│   │       ├── models.rs
-│   │       └── operations.rs
-│   │
-│   ├── config/            # Configuration management
-│   │   └── src/
-│   │       ├── lib.rs
-│   │       ├── models.rs     # Config structs
-│   │       ├── defaults.rs   # Default values
-│   │       ├── loader.rs     # TOML loading
-│   │       └── migration.rs  # Auto-migration
-│   │
-│   ├── scanner/           # File scanning
-│   │   └── src/
-│   │       ├── lib.rs
-│   │       ├── server.rs     # ServerScanner
-│   │       ├── client.rs     # Client JAR scanning
-│   │       ├── libraries.rs  # Maven library scanning
-│   │       ├── mods.rs       # Mod scanning
-│   │       ├── natives.rs    # Native library scanning
-│   │       ├── assets.rs     # Asset scanning
-│   │       └── utils/        # JAR utilities
-│   │
-│   ├── cache/             # Caching layer
-│   │   └── src/
-│   │       ├── lib.rs
-│   │       ├── manager.rs           # CacheManager
-│   │       ├── file_cache.rs        # RAM cache (Moka)
-│   │       ├── file_manager.rs      # File cache operations
-│   │       ├── change_detector.rs   # Diff detection
-│   │       └── rescan_orchestrator.rs # Auto-rescan
-│   │
-│   ├── watcher/           # File watching
-│   │   └── src/
-│   │       ├── lib.rs
-│   │       ├── config.rs     # ConfigWatcher
-│   │       └── models.rs
-│   │
-│   └── api/               # HTTP handlers
-│       └── src/
-│           ├── lib.rs
-│           ├── handlers/
-│           │   ├── files/       # File serving
-│           │   ├── servers.rs   # Server metadata
-│           │   ├── rescan.rs    # Force rescan
-│           │   └── state.rs     # AppState
-│           └── models.rs
-│
-├── Cargo.toml              # Workspace + server binary manifest
-├── Cargo.lock              # Dependency lock file
-├── config.toml             # Server configuration
-├── LICENSE                 # MIT License
-└── README.md
-```
 
 ---
 
@@ -136,13 +63,14 @@ allowed_origins = ["*"]
 # Core settings
 enabled = true
 auto_scan = true
-rescan_interval = 30
+rescan_interval = 0  # 0 = file watcher mode, >0 = polling interval in seconds
 max_memory_cache_gb = 0
 
 # Performance
 checksum_buffer_size = 8192
+config_reload_channel_size = 10
 
-# Batch processing
+# Batch processing (concurrent file scanning)
 [cache.batch]
 client = 100
 libraries = 100
@@ -158,6 +86,25 @@ debounce_ms = 300
 [hot-reload.files]
 enabled = true
 debounce_ms = 300
+
+# Storage backend configuration
+[storage]
+backend = "local"  # "local" or "s3"
+
+# S3 configuration (if backend = "s3")
+[storage.s3]
+endpoint = "https://<account-id>.r2.cloudflarestorage.com"
+region = "auto"
+bucket = "my-bucket"
+access_key = "your-access-key"
+secret_key = "your-secret-key"
+public_url = "https://pub-<hash>.r2.dev"
+
+# Cloudflare cache purging (optional)
+[cloudflare]
+enabled = false
+zone_id = "your-zone-id"
+api_token = "your-api-token"
 
 [[servers]]
 name = "survival"
@@ -290,28 +237,38 @@ Facade:
 
 1. HTTP request arrives at Axum router
 2. Request routed to appropriate handler (api crate)
-3. Handler validates path and resolves file using HashMap (O(1))
+3. Handler validates path and resolves file using HashMap lookup
 4. Cache checked for file in RAM (Moka LRU)
 5. If cache miss, file loaded from disk
 6. Response streamed back to client (zero-copy if in cache)
 
 ### Background Tasks
 
-- **Config Watcher**: Monitors config.toml for changes, triggers reload
-- **File Watcher**: Monitors server directories, triggers rescan on changes
-- **Auto-Rescan**: Periodic rescan at configurable intervals
+- **Config Watcher**: Monitors config.toml for changes, triggers hot-reload with debouncing
+- **File Watcher**: Monitors server directories, triggers rescan on changes (when `rescan_interval = 0`)
+- **Auto-Rescan**: Periodic rescan at configurable intervals (when `rescan_interval > 0`)
 - **Cache Eviction**: LRU eviction when memory limit reached
+- **Cloud Sync**: Automatic S3 upload/delete on file changes (if S3 enabled)
+- **Cloudflare Purge**: Automatic cache purging with retry on updates (if Cloudflare enabled)
 
 ---
 
 ## Performance Characteristics
 
-- **O(1) File Resolution**: HashMap-based URL to path mapping
+### Core Performance
+- **Fast File Resolution**: HashMap-based URL to path mapping
 - **Zero-Copy Serving**: Arc-based Bytes sharing, no data duplication
-- **Parallel Scanning**: Rayon-based parallel file system traversal
+- **Parallel Scanning**: All components (client, libraries, mods, natives, assets) scanned concurrently
 - **Async I/O**: All I/O operations use Tokio async runtime
-- **Lock-Free Cache**: DashMap for concurrent access without locks
+- **Lock-Free Operations**: DashMap for concurrent access, atomic flags where possible
+
+### Optimizations
+- **Efficient Comparisons**: HashMap-based lookups for server and file comparisons
+- **Sorted Path Cache**: Server paths sorted by length for accurate prefix matching
+- **Incremental Updates**: Only changed files updated in cache
 - **Memory Efficient**: Configurable cache size with LRU eviction
+- **Relaxed Atomics**: Optimized memory ordering for flag checks
+- **Cloudflare Resilience**: 3 retry attempts with exponential backoff, 10s timeout
 
 ---
 

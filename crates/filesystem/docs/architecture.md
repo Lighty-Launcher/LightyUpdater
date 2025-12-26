@@ -1,20 +1,17 @@
 # File System Architecture
 
-## Class Structure
+## FileSystem Structure
 
-```mermaid
-classDiagram
-    class FileSystem {
-        <<utility struct>>
-        +ensure_server_structure(base_path, server_folder)$
-        +build_server_path(base_path, server_folder)$
-        +get_absolute_path_string(path)$
-        -create_directory(path, description)$
-        -get_absolute_path(path)$
-    }
-```
+**FileSystem** is an empty struct serving as a namespace for utility functions.
 
-FileSystem is an empty struct serving as a namespace for utility functions.
+**Public Methods**:
+- `ensure_server_structure(base_path, server_folder)`: Create complete server directory structure
+- `build_server_path(base_path, server_folder)`: Build server path
+- `get_absolute_path_string(path)`: Get absolute path as String
+
+**Private Methods**:
+- `create_directory(path, description)`: Create single directory
+- `get_absolute_path(path)`: Convert to absolute PathBuf
 
 ## Structure Creation Flow
 

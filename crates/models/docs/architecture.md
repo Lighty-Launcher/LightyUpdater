@@ -3,84 +3,33 @@
 ## Structure Hierarchy
 
 ```mermaid
-classDiagram
-    class VersionBuilder {
-        +MainClass main_class
-        +JavaVersion java_version
-        +Arguments arguments
-        +Vec~Library~ libraries
-        +Vec~Mod~ mods
-        +Option~Vec~Native~~ natives
-        +Option~Client~ client
-        +Vec~Asset~ assets
-        +HashMap url_to_path_map
-        +build_url_map()
-        +add_url_mapping()
-        +remove_url_mapping()
-    }
-
-    class MainClass {
-        +String main_class
-    }
-
-    class JavaVersion {
-        +u8 major_version
-    }
-
-    class Arguments {
-        +Vec~String~ game
-        +Vec~String~ jvm
-    }
-
-    class Library {
-        +String name
-        +Option~String~ url
-        +Option~String~ path
-        +Option~String~ sha1
-        +Option~u64~ size
-    }
-
-    class Mod {
-        +String name
-        +Option~String~ url
-        +Option~String~ path
-        +Option~String~ sha1
-        +Option~u64~ size
-    }
-
-    class Native {
-        +String name
-        +String url
-        +String path
-        +String sha1
-        +u64 size
-        +String os
-    }
-
-    class Client {
-        +String name
-        +String url
-        +String path
-        +String sha1
-        +u64 size
-    }
-
-    class Asset {
-        +String hash
-        +u64 size
-        +Option~String~ url
-        +Option~String~ path
-    }
-
-    VersionBuilder --> MainClass
-    VersionBuilder --> JavaVersion
-    VersionBuilder --> Arguments
-    VersionBuilder --> Library
-    VersionBuilder --> Mod
-    VersionBuilder --> Native
-    VersionBuilder --> Client
-    VersionBuilder --> Asset
+graph TB
+    VB[VersionBuilder] --> MC[MainClass]
+    VB --> JV[JavaVersion]
+    VB --> Args[Arguments]
+    VB --> Lib[Libraries]
+    VB --> Mods[Mods]
+    VB --> Nat[Natives]
+    VB --> Cli[Client]
+    VB --> Ast[Assets]
+    VB --> URLMap[URL to Path Map]
 ```
+
+**VersionBuilder** contains:
+- `main_class`: MainClass
+- `java_version`: JavaVersion
+- `arguments`: Arguments
+- `libraries`: Vec\<Library\>
+- `mods`: Vec\<Mod\>
+- `natives`: Option\<Vec\<Native\>\>
+- `client`: Option\<Client\>
+- `assets`: Vec\<Asset\>
+- `url_to_path_map`: HashMap\<String, String\>
+
+**Methods**:
+- `build_url_map()`: Build complete URL mapping
+- `add_url_mapping()`: Add single URL entry
+- `remove_url_mapping()`: Remove URL entry
 
 ## Format JSON
 

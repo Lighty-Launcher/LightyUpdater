@@ -7,7 +7,7 @@
 ## Architecture
 
 ```mermaid
-graph TB
+flowchart TB
     Input[Directory with JARs] --> Collect[Collect JAR paths<br/>sync]
     Collect --> Create[Create Semaphore<br/>batch_size]
     Create --> Stream[futures::stream::iter]

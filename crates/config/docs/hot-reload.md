@@ -13,7 +13,7 @@ Both can be enabled or disabled independently via configuration.
 ## Architecture
 
 ```mermaid
-graph TB
+flowchart TB
     File[config.toml] --> Watcher[ConfigWatcher]
     Watcher --> Notify[notify library]
     Notify --> Debounce[Debouncing]
@@ -153,7 +153,7 @@ Text editors can generate multiple events:
 ### Solution
 
 ```mermaid
-graph TD
+flowchart TD
     Event1[Event 1: Modify] --> Start[Start timer 300ms]
     Event2[Event 2: Modify] --> Reset[Reset timer]
     Event3[Event 3: Modify] --> Reset2[Reset timer]

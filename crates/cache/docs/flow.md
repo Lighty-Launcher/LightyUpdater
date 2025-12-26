@@ -148,7 +148,7 @@ sequenceDiagram
 ## Flow 4: Granular Change Detection (FileDiff)
 
 ```mermaid
-graph TD
+flowchart TD
     Start[Start: compute diff] --> CheckOld{Old version exists?}
 
     CheckOld -->|No| AddAll[add_all_files: Mark all as added]
@@ -160,19 +160,17 @@ graph TD
     DiffTypes --> DiffNatives[diff_natives]
     DiffTypes --> DiffAssets[diff_assets]
 
-    subgraph diff_libraries_similar_for_mods_assets
-        DiffLibs --> BuildMaps[Build old_map & new_map]
-        BuildMaps --> IterNew[Iterate new_map]
-        IterNew --> InOld{Exists in old?}
-        InOld -->|Yes| CheckSHA1{SHA1 changed?}
-        InOld -->|No| AddToAdded[Add to 'added']
-        CheckSHA1 -->|Yes| AddToModified[Add to 'modified']
-        CheckSHA1 -->|No| Skip[Skip - unchanged]
-        BuildMaps --> IterOld[Iterate old_map]
-        IterOld --> InNew{Exists in new?}
-        InNew -->|No| AddToRemoved[Add to 'removed']
-        InNew -->|Yes| SkipOld[Skip]
-    end
+    DiffLibs --> BuildMaps[Build old_map & new_map]
+    BuildMaps --> IterNew[Iterate new_map]
+    IterNew --> InOld{Exists in old?}
+    InOld -->|Yes| CheckSHA1{SHA1 changed?}
+    InOld -->|No| AddToAdded[Add to 'added']
+    CheckSHA1 -->|Yes| AddToModified[Add to 'modified']
+    CheckSHA1 -->|No| Skip[Skip - unchanged]
+    BuildMaps --> IterOld[Iterate old_map]
+    IterOld --> InNew{Exists in new?}
+    InNew -->|No| AddToRemoved[Add to 'removed']
+    InNew -->|Yes| SkipOld[Skip]
 
     DiffClient --> Return[Return FileDiff]
     DiffLibs --> Return
@@ -269,7 +267,7 @@ sequenceDiagram
 ## Flow 7: Incremental URL Map Update
 
 ```mermaid
-graph TD
+flowchart TD
     Start[FileDiff computed] --> CheckNew{Is first scan?}
 
     CheckNew -->|Yes| FullBuild[builder.build_url_map]

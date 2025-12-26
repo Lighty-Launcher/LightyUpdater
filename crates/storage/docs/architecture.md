@@ -7,34 +7,15 @@ The storage system is designed as a multi-backend abstraction allowing support f
 ## Architecture Diagram
 
 ```mermaid
-graph TB
-    subgraph Abstraction_Layer
-        SB[StorageBackend Trait]
-    end
+flowchart TB
+    SB[StorageBackend Trait] --> LB[LocalBackend]
+    SB --> S3B[S3Backend]
 
-    subgraph Backend_Implementations
-        LB[LocalBackend]
-        S3B[S3Backend]
-    end
+    LB --> FS[File System]
+    S3B --> S3API[S3 API<br/>Cloudflare R2 / AWS S3 / MinIO]
 
-    subgraph External_Services
-        FS[File System]
-        S3API[S3 API<br/>Cloudflare R2 / AWS S3 / MinIO]
-    end
-
-    subgraph Client_Services
-        Cache[Cache Manager]
-        Scanner[Scanner Service]
-    end
-
-    SB --> LB
-    SB --> S3B
-
-    LB --> FS
-    S3B --> S3API
-
-    Cache --> SB
-    Scanner --> SB
+    Cache[Cache Manager] --> SB
+    Scanner[Scanner Service] --> SB
 ```
 
 ## Main Components

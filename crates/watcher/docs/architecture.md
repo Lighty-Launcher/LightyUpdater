@@ -7,38 +7,16 @@ The monitoring system is designed to detect and react to configuration file chan
 ## Diagramme d'architecture
 
 ```mermaid
-graph TB
-    subgraph Watcher_Layer
-        CW[ConfigWatcher]
-        FW[File Watcher<br/>notify::RecommendedWatcher]
-        Channel[MPSC Channel]
-    end
-
-    subgraph Detection_Layer
-        Detector[Change Detector]
-        Comparator[Config Comparator]
-    end
-
-    subgraph Action_Layer
-        CacheManager[Cache Manager]
-        FileSystem[File System]
-        ConfigStore[Config Store<br/>Arc RwLock Config]
-    end
-
-    subgraph External
-        ConfigFile[config.toml]
-        Events[Event Bus]
-    end
-
-    ConfigFile --> FW
-    FW --> Channel
-    Channel --> CW
-    CW --> Detector
-    Detector --> Comparator
-    Comparator --> CacheManager
-    Comparator --> FileSystem
-    Comparator --> ConfigStore
-    CW --> Events
+flowchart TB
+    ConfigFile[config.toml] --> FW[File Watcher<br/>notify::RecommendedWatcher]
+    FW --> Channel[MPSC Channel]
+    Channel --> CW[ConfigWatcher]
+    CW --> Detector[Change Detector]
+    Detector --> Comparator[Config Comparator]
+    Comparator --> CacheManager[Cache Manager]
+    Comparator --> FileSystem[File System]
+    Comparator --> ConfigStore[Config Store<br/>Arc RwLock Config]
+    CW --> Events[Event Bus]
 ```
 
 ## Main Components
@@ -101,7 +79,7 @@ Configuration change detection logic.
 **Algorithm:**
 
 ```mermaid
-graph TD
+flowchart TD
     Start[Configuration change detected] --> LoadNew[Load new config]
     LoadNew --> GetOld[Get old server list]
     GetOld --> GetOldConfigs[Get old server configs]
@@ -205,7 +183,7 @@ sequenceDiagram
 ### Server Comparison
 
 ```mermaid
-graph TD
+flowchart TD
     OldServers[Old server names] --> SetOld[HashSet old_servers]
     NewServers[New server names] --> SetNew[HashSet new_servers]
 
@@ -367,29 +345,15 @@ sequenceDiagram
 ### Used Locks
 
 ```mermaid
-graph TB
-    subgraph Read_Operations
-        R1[Get current config]
-        R2[Check server existence]
-        R3[Read server list]
-    end
+flowchart TB
+    R1[Get current config] --> ReadLock[Read Lock]
+    R2[Check server existence] --> ReadLock
+    R3[Read server list] --> ReadLock
+    ReadLock --> RwLock[Arc RwLock Config]
 
-    subgraph Write_Operations
-        W1[Update config]
-        W2[Rebuild cache]
-        W3[Force rescan]
-    end
-
-    RwLock[Arc RwLock Config]
-
-    R1 --> ReadLock[Read Lock]
-    R2 --> ReadLock
-    R3 --> ReadLock
-    ReadLock --> RwLock
-
-    W1 --> WriteLock[Write Lock - EXCLUSIVE]
-    W2 --> WriteLock
-    W3 --> WriteLock
+    W1[Update config] --> WriteLock[Write Lock - EXCLUSIVE]
+    W2[Rebuild cache] --> WriteLock
+    W3[Force rescan] --> WriteLock
     WriteLock --> RwLock
 ```
 

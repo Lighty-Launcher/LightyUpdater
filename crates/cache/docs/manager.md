@@ -9,42 +9,20 @@ The `CacheManager` is the main entry point of the cache crate. It coordinates al
 ## Architecture
 
 ```mermaid
-graph TB
-    subgraph CacheManager
-        Core[Core Logic]
-        Tasks[Task Registry]
-        Shutdown[Shutdown Handler]
-    end
+flowchart TB
+    Core[Core Logic] --> Cache[Version Cache<br/>DashMap]
+    Core --> FCM[FileCacheManager]
+    Core --> RO[RescanOrchestrator]
+    Core --> SPC[ServerPathCache]
+    Core --> LastUpd[Last Updated<br/>DashMap]
+    Core --> Config[Config RwLock]
+    Core --> Events[Event Bus]
 
-    subgraph Components
-        Cache[Version Cache<br/>DashMap]
-        FCM[FileCacheManager]
-        RO[RescanOrchestrator]
-        SPC[ServerPathCache]
-        LastUpd[Last Updated<br/>DashMap]
-    end
+    RO --> Storage[Storage Backend]
+    RO --> CF[Cloudflare API Client]
 
-    subgraph External
-        Config[Config RwLock]
-        Events[Event Bus]
-        Storage[Storage Backend]
-        CDN[CDN Client]
-        CF[Cloudflare API Client]
-    end
-
-    Core --> Cache
-    Core --> FCM
-    Core --> RO
-    Core --> SPC
-    Core --> LastUpd
-
-    Core --> Config
-    Core --> Events
-    RO --> Storage
-    RO --> CF
-
-    Tasks --> TaskHandles[JoinHandle Registry]
-    Shutdown --> BroadcastChan[Broadcast Channel]
+    Tasks[Task Registry] --> TaskHandles[JoinHandle Registry]
+    Shutdown[Shutdown Handler] --> BroadcastChan[Broadcast Channel]
 ```
 
 ## Internal Components

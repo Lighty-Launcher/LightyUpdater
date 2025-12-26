@@ -7,59 +7,31 @@ The scan system is designed as a modular architecture with specialized component
 ## Architecture Diagram
 
 ```mermaid
-graph TB
-    subgraph Entry_Point
-        SS[ServerScanner]
-    end
+flowchart TB
+    SS[ServerScanner] --> CS[ClientScanner]
+    SS --> LS[LibraryScanner]
+    SS --> MS[ModScanner]
+    SS --> NS[NativeScanner]
+    SS --> AS[AssetScanner]
 
-    subgraph Specialized_Scanners
-        CS[ClientScanner]
-        LS[LibraryScanner]
-        MS[ModScanner]
-        NS[NativeScanner]
-        AS[AssetScanner]
-    end
-
-    subgraph Generic_Scanners
-        JS[JarScanner]
-        FP[scan_files_parallel]
-    end
-
-    subgraph Utilities
-        Hash[SHA1 Computer]
-        Path[Path Normalizer]
-        Maven[Maven Converter]
-    end
-
-    subgraph External_Services
-        Storage[Storage Backend]
-        Models[VersionBuilder]
-    end
-
-    SS --> CS
-    SS --> LS
-    SS --> MS
-    SS --> NS
-    SS --> AS
-
-    LS --> JS
+    LS --> JS[JarScanner]
     MS --> JS
-    NS --> FP
+    NS --> FP[scan_files_parallel]
     AS --> FP
 
-    JS --> Hash
+    JS --> Hash[SHA1 Computer]
     FP --> Hash
-    JS --> Path
+    JS --> Path[Path Normalizer]
     FP --> Path
-    LS --> Maven
+    LS --> Maven[Maven Converter]
 
-    CS --> Storage
+    CS --> Storage[Storage Backend]
     LS --> Storage
     MS --> Storage
     NS --> Storage
     AS --> Storage
 
-    SS --> Models
+    SS --> Models[VersionBuilder]
 ```
 
 ## Main Components
@@ -130,7 +102,7 @@ Scans the single client JAR file.
 
 **Algorithm**:
 ```mermaid
-graph TD
+flowchart TD
     Start[Start scan_client] --> CheckDir{client/ exists?}
     CheckDir -->|No| ReturnNone[Return None]
     CheckDir -->|Yes| ReadDir[Read directory]
@@ -222,7 +194,7 @@ natives/
 
 **Algorithm**:
 ```mermaid
-graph TD
+flowchart TD
     Start[Start scan_natives] --> CheckDir{natives/ exists?}
     CheckDir -->|No| ReturnEmpty[Return empty Vec]
     CheckDir -->|Yes| InitVec[Initialize all_natives Vec]
@@ -289,41 +261,21 @@ assets/
 ### Concurrency architecture
 
 ```mermaid
-graph TB
-    subgraph Main_Thread
-        Collect[Collect file paths<br/>sync]
-    end
+flowchart TB
+    Collect[Collect file paths<br/>sync] --> Sem[Semaphore<br/>max = batch_size]
 
-    subgraph Semaphore_Pool
-        Sem[Semaphore<br/>max = batch_size]
-    end
+    Sem --> T1[Task 1: Hash file 1]
+    Sem --> T2[Task 2: Hash file 2]
+    Sem --> T3[Task 3: Hash file 3]
+    Sem --> Tn[Task N: Hash file N]
 
-    subgraph Parallel_Tasks
-        T1[Task 1: Hash file 1]
-        T2[Task 2: Hash file 2]
-        T3[Task 3: Hash file 3]
-        Tn[Task N: Hash file N]
-    end
-
-    subgraph Result_Collection
-        Stream[futures::stream]
-        Buffer[buffer_unordered]
-        Collect2[Collect results]
-    end
-
-    Collect --> Sem
-    Sem --> T1
-    Sem --> T2
-    Sem --> T3
-    Sem --> Tn
-
-    T1 --> Stream
+    T1 --> Stream[futures::stream]
     T2 --> Stream
     T3 --> Stream
     Tn --> Stream
 
-    Stream --> Buffer
-    Buffer --> Collect2
+    Stream --> Buffer[buffer_unordered]
+    Buffer --> Collect2[Collect results]
 ```
 
 ### Concurrency control
@@ -384,7 +336,7 @@ SHA1 computation is CPU-intensive and could block the async runtime.
 Using tokio for asynchronous computation with buffer:
 
 ```mermaid
-graph TD
+flowchart TD
     Start[File path] --> OpenFile[tokio::fs::File::open]
     OpenFile --> CreateBuf[Create buffer buffer_size]
     CreateBuf --> LoopRead{Read chunk}

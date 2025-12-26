@@ -119,7 +119,7 @@ MigrationError(String)
 ### During Loading
 
 ```mermaid
-graph TD
+flowchart TD
     Start[Config::from_file] --> Exists{File exists?}
 
     Exists -->|No| Create[Create default]

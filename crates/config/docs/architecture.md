@@ -7,52 +7,25 @@ The configuration system is designed to be robust, flexible and maintainable wit
 ## Architecture Diagram
 
 ```mermaid
-graph TB
-    subgraph Loading_Layer
-        Loader[Config Loader]
-        Migration[Migration System]
-        Parser[TOML Parser]
-    end
+flowchart TB
+    File[config.toml] --> Loader[Config Loader]
+    Loader --> Migration[Migration System]
+    Migration --> Parser[TOML Parser]
+    Parser --> Config[Config]
 
-    subgraph Configuration_Structures
-        Config[Config]
-        Server[ServerSettings]
-        Cache[CacheSettings]
-        HotReload[HotReloadSettings]
-        Storage[StorageSettings]
-        CF[CloudflareSettings]
-        Servers[Vec Arc ServerConfig]
-    end
+    Config --> Server[ServerSettings]
+    Config --> Cache[CacheSettings]
+    Config --> HotReload[HotReloadSettings]
+    Config --> Storage[StorageSettings]
+    Config --> CF[CloudflareSettings]
+    Config --> Servers[Vec Arc ServerConfig]
 
-    subgraph Defaults
-        DefaultValues[Default Values]
-        Template[Config Template]
-    end
+    DefaultValues[Default Values] --> Migration
+    Template[Config Template] --> Loader
 
-    subgraph Runtime
-        RwLock[Arc RwLock Config]
-        Watcher[ConfigWatcher]
-        Events[Event Bus]
-    end
-
-    File[config.toml] --> Loader
-    Loader --> Migration
-    Migration --> Parser
-    Parser --> Config
-
-    Config --> Server
-    Config --> Cache
-    Config --> HotReload
-    Config --> Storage
-    Config --> CF
-    Config --> Servers
-
-    DefaultValues --> Migration
-    Template --> Loader
-
-    Config --> RwLock
-    RwLock --> Watcher
-    Watcher --> Events
+    Config --> RwLock[Arc RwLock Config]
+    RwLock --> Watcher[ConfigWatcher]
+    Watcher --> Events[Event Bus]
 ```
 
 ## Main Components
@@ -83,7 +56,7 @@ pub struct Config {
 HTTP server configuration.
 
 ```mermaid
-graph LR
+flowchart LR
     SS[ServerSettings] --> Network[Network<br/>host, port]
     SS --> URLs[URLs<br/>base_url, base_path]
     SS --> Perf[Performance<br/>tcp_nodelay, timeout]
@@ -177,7 +150,7 @@ debounce_ms = 300       # Debounce time in milliseconds
 Storage backend configuration.
 
 ```mermaid
-graph TB
+flowchart TB
     Storage[StorageSettings] --> Backend{Backend Type}
     Backend -->|Local| LocalPath[base_path]
     Backend -->|S3| S3Config[S3Settings]
@@ -230,7 +203,7 @@ pub struct ServerConfig {
 ### Migration Architecture
 
 ```mermaid
-graph TD
+flowchart TD
     Start[Load config file] --> Exists{File exists?}
     Exists -->|No| Create[Create default config]
     Exists -->|Yes| Read[Read file content]
@@ -343,7 +316,7 @@ fn deserialize_arc_servers<'de, D>(deserializer: D) -> Result<Vec<Arc<ServerConf
 ### Architecture
 
 ```mermaid
-graph TB
+flowchart TB
     Defaults[defaults.rs] --> Functions[Default Functions]
     Functions --> Simple[Simple Values<br/>tcp_nodelay, timeout, ...]
     Functions --> Complex[Complex Values<br/>batch_config, storage_settings, ...]
@@ -391,7 +364,7 @@ port = 8080
 ### Shared State with RwLock
 
 ```mermaid
-graph TB
+flowchart TB
     Config[Config Struct] --> Arc[Arc RwLock Config ]
 
     Arc --> Reader1[Reader 1:<br/>Rescan loop]

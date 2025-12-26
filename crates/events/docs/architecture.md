@@ -3,24 +3,16 @@
 ## Components
 
 ```mermaid
-graph TB
-    subgraph Event_System
-        EventBus[EventBus]
-        AppEvent[AppEvent Enum]
-    end
-
-    subgraph Event_Sources
-        Config[Config Loader]
-        Cache[Cache Manager]
-        Scanner[Scanner]
-        Watcher[Config Watcher]
-        API[API Layer]
-    end
-
-    subgraph Output
-        Console[Console Output]
-        Logs[Tracing Logs]
-    end
+flowchart TB
+    EventBus[EventBus]
+    AppEvent[AppEvent Enum]
+    Config[Config Loader]
+    Cache[Cache Manager]
+    Scanner[Scanner]
+    Watcher[Config Watcher]
+    API[API Layer]
+    Console[Console Output]
+    Logs[Tracing Logs]
 
     Config --> EventBus
     Cache --> EventBus

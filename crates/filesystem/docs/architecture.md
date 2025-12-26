@@ -19,7 +19,7 @@ FileSystem is an empty struct serving as a namespace for utility functions.
 ## Structure Creation Flow
 
 ```mermaid
-graph TD
+flowchart TD
     Start[ensure_server_structure] --> BuildPath[Build full path]
     BuildPath --> Absolute[Convert to absolute]
 
@@ -66,7 +66,7 @@ sequenceDiagram
 ## Path Resolution
 
 ```mermaid
-graph TD
+flowchart TD
     Input[Input path] --> Check{Is absolute?}
 
     Check -->|Yes| Return1[Use as-is]

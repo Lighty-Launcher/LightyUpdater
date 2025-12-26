@@ -197,7 +197,7 @@ The storage system is designed to be resilient:
 ### Error Propagation
 
 ```mermaid
-graph TD
+flowchart TD
     Error[Error occurs] --> Check{Error type?}
 
     Check -->|ConfigError| Fatal[Fail fast - Stop initialization]

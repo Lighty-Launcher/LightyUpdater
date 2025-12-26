@@ -3,7 +3,7 @@
 ## Complete Pipeline
 
 ```mermaid
-graph TD
+flowchart TD
     Request[HTTP GET /:server/:path] --> Parse[Parse request path]
     Parse --> Validate[Validate security]
 
@@ -83,7 +83,7 @@ graph TD
 ## URL to Path Resolution
 
 ```mermaid
-graph LR
+flowchart LR
     URL[URL requested<br/>http://domain/server/mods/mod.jar] --> Extract[Extract path<br/>server/mods/mod.jar]
     Extract --> FullURL[Rebuild full URL<br/>base_url + server + path]
     FullURL --> Lookup[HashMap.get O1]

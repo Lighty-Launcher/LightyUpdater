@@ -9,7 +9,7 @@ The detection system precisely identifies which servers have been added, modifie
 ### Step 1: Building Sets
 
 ```mermaid
-graph LR
+flowchart LR
     OldConfig[Old Config] --> ExtractOld[Extract server names]
     NewConfig[New Config] --> ExtractNew[Extract server names]
 
@@ -25,7 +25,7 @@ graph LR
 ### Step 2: Added/Removed Servers Detection
 
 ```mermaid
-graph TD
+flowchart TD
     SetNew[new_servers] --> Diff1[Difference]
     SetOld[old_servers] --> Diff1
 
@@ -36,7 +36,7 @@ graph TD
 ### Step 3: Modified Servers Detection
 
 ```mermaid
-graph TD
+flowchart TD
     NewServers[new_config.servers] --> Loop[For each server]
     OldConfigs[old_configs] --> Loop
 
@@ -216,7 +216,7 @@ if let Some(old_server) = old_configs.iter().find(|s| s.name == server.name) {
 Rescans can be batched to optimize performance:
 
 ```mermaid
-graph LR
+flowchart LR
     Modified[Modified servers] --> Batch[Group by priority]
     Batch --> High[High priority]
     Batch --> Low[Low priority]
@@ -292,7 +292,7 @@ sequenceDiagram
 ### Version Cache Invalidation
 
 ```mermaid
-graph TD
+flowchart TD
     Modified[Modified servers detected] --> Loop[For each modified server]
 
     Loop --> Invalidate[Invalidate version cache]

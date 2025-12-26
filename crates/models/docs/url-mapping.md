@@ -5,7 +5,7 @@
 The url_to_path_map mapping enables O(1) resolution from URLs to physical paths.
 
 ```mermaid
-graph LR
+flowchart LR
     URL1["URL client"] --> Map[HashMap<br/>url_to_path_map]
     URL2["URL library"] --> Map
     URL3["URL mod"] --> Map

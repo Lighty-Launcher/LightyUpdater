@@ -7,39 +7,17 @@ Hot-reload allows modifying the server configuration without restart, with autom
 ## Hot-Reload Architecture
 
 ```mermaid
-graph TB
-    subgraph Detection
-        FW[File Watcher]
-        Debounce[Debouncer]
-    end
+flowchart TB
+    FW[File Watcher] --> Debounce[Debouncer]
+    Debounce --> Parser[Config Parser]
+    Parser --> Validator[Config Validator]
 
-    subgraph Validation
-        Parser[Config Parser]
-        Validator[Config Validator]
-    end
-
-    subgraph Synchronization
-        Pause[Pause Rescan]
-        Lock[Write Lock]
-        Resume[Resume Rescan]
-    end
-
-    subgraph Updates
-        ConfigStore[Config Store]
-        CacheRebuild[Cache Rebuild]
-        ServerRescan[Server Rescan]
-    end
-
-    FW --> Debounce
-    Debounce --> Parser
-    Parser --> Validator
-
-    Validator --> Pause
-    Pause --> Lock
-    Lock --> ConfigStore
-    ConfigStore --> CacheRebuild
-    CacheRebuild --> Resume
-    Resume --> ServerRescan
+    Validator --> Pause[Pause Rescan]
+    Pause --> Lock[Write Lock]
+    Lock --> ConfigStore[Config Store]
+    ConfigStore --> CacheRebuild[Cache Rebuild]
+    CacheRebuild --> Resume[Resume Rescan]
+    Resume --> ServerRescan[Server Rescan]
 ```
 
 ## Hot-Reload Phases
@@ -171,7 +149,7 @@ sequenceDiagram
 ### Added Server
 
 ```mermaid
-graph TD
+flowchart TD
     Detect[New server detected] --> CheckEnabled{enabled = true?}
 
     CheckEnabled -->|No| Skip[Skip server]
@@ -196,7 +174,7 @@ graph TD
 ### Modified Server
 
 ```mermaid
-graph TD
+flowchart TD
     Detect[Config change detected] --> Compare[Compare old vs new]
 
     Compare --> Critical{Critical change?}
@@ -223,7 +201,7 @@ graph TD
 ### Removed Server
 
 ```mermaid
-graph TD
+flowchart TD
     Detect[Server removed from config] --> RemoveCache[Remove from cache]
 
     RemoveCache --> CleanMemory[Free memory]

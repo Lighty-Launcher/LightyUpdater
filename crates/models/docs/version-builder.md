@@ -3,7 +3,7 @@
 ## URL Mapping Construction
 
 ```mermaid
-graph TD
+flowchart TD
     Start[New VersionBuilder] --> BuildMap[build_url_map]
 
     BuildMap --> Client{Client exists?}

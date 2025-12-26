@@ -7,52 +7,23 @@ The API is built with Axum and follows a layered architecture with clear separat
 ## Architecture Diagram
 
 ```mermaid
-graph TB
-    subgraph HTTP_Layer
-        Router[Axum Router]
-        Middleware[Middleware Stack]
-    end
+flowchart TB
+    Router[Axum Router] --> Middleware[Middleware Stack]
+    Middleware --> ServersH[Servers Handler]
+    Middleware --> FilesH[Files Handler]
 
-    subgraph Handler_Layer
-        ServersH[Servers Handler]
-        FilesH[Files Handler]
-    end
+    ServersH --> AppState[AppState]
+    FilesH --> Parser[Path Parser]
 
-    subgraph File_Serving_Pipeline
-        Parser[Path Parser]
-        Validator[Security Validator]
-        Resolver[URL Resolver]
-        CacheServe[RAM Cache Server]
-        DiskServe[Disk Server]
-    end
+    Parser --> Validator[Security Validator]
+    Validator --> Resolver[URL Resolver]
+    Resolver --> CacheServe[RAM Cache Server]
+    CacheServe --> DiskServe[Disk Server]
+    DiskServe --> FS[File System]
 
-    subgraph State
-        AppState[AppState]
-        CacheRef[CacheManager Ref]
-        Config[Base URL/Path]
-    end
-
-    subgraph External
-        Cache[Cache Manager]
-        FS[File System]
-    end
-
-    Router --> Middleware
-    Middleware --> ServersH
-    Middleware --> FilesH
-
-    ServersH --> AppState
-    FilesH --> Parser
-
-    Parser --> Validator
-    Validator --> Resolver
-    Resolver --> CacheServe
-    CacheServe --> DiskServe
-    DiskServe --> FS
-
-    AppState --> CacheRef
-    AppState --> Config
-    CacheRef --> Cache
+    AppState --> CacheRef[CacheManager Ref]
+    AppState --> Config[Base URL/Path]
+    CacheRef --> Cache[Cache Manager]
 ```
 
 ## Main Components
@@ -87,7 +58,7 @@ Shared state structure across all handlers.
 ### File Serving Pipeline
 
 ```mermaid
-graph TD
+flowchart TD
     Request[HTTP Request] --> Parse[Parser]
     Parse --> Validate[Validator]
     Validate --> Resolve[Resolver]
@@ -140,7 +111,7 @@ graph TD
 ### Path Validation
 
 ```mermaid
-graph TD
+flowchart TD
     Path[User path input] --> Check1{Contains '..'?}
     Check1 -->|Yes| Reject[Return 400 Bad Request]
     Check1 -->|No| Check2{Contains null bytes?}

@@ -135,7 +135,7 @@ InvalidMetadata(String)
 ### Individual Error Filtering
 
 ```mermaid
-graph TD
+flowchart TD
     Start[Scan N files] --> Parallel[Process in parallel]
     Parallel --> Results[Collect Vec Result T ]
 

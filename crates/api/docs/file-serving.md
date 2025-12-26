@@ -86,7 +86,7 @@ graph TD
 graph LR
     URL[URL requested<br/>http://domain/server/mods/mod.jar] --> Extract[Extract path<br/>server/mods/mod.jar]
     Extract --> FullURL[Rebuild full URL<br/>base_url + server + path]
-    FullURL --> Lookup[HashMap.get O-1]
+    FullURL --> Lookup[HashMap.get O1]
 
     Lookup -->|Found| ActualPath[Actual path<br/>mods/mod-1.0.jar]
     Lookup -->|Not found| None[None]

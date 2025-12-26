@@ -55,7 +55,7 @@ graph TD
     Extract --> Move[Move to server section]
     Move --> Delete[Delete security section]
 
-    Check -->|No| Default[Use default ["*"]]
+    Check -->|No| Default[Use default asterisk]
 
     Delete --> Done[Done]
     Default --> Done

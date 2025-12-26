@@ -29,8 +29,8 @@ graph TD
     SetNew[new_servers] --> Diff1[Difference]
     SetOld[old_servers] --> Diff1
 
-    Diff1 --> Added["added = new - old<br/>(servers in new but not in old)"]
-    Diff1 --> Removed["removed = old - new<br/>(servers in old but not in new)"]
+    Diff1 --> Added[added = new - old<br/>servers in new but not in old]
+    Diff1 --> Removed[removed = old - new<br/>servers in old but not in new]
 ```
 
 ### Step 3: Modified Servers Detection

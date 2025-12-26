@@ -9,17 +9,17 @@ Converts a library path to Maven notation.
 **Algorithm**:
 ```mermaid
 graph TD
-    Path["Path components<br/>['com','google','guava','31.0','guava-31.0.jar']"] --> Extract[Extract components]
+    Path[Path components<br/>com,google,guava,31.0,guava-31.0.jar] --> Extract[Extract components]
 
-    Extract --> Group["group = components[0..-3].join('.')<br/>'com.google.guava'"]
-    Extract --> Artifact["artifact = components[-3]<br/>'guava'"]
-    Extract --> Version["version = components[-2]<br/>'31.0'"]
+    Extract --> Group[group = components from 0 to -3<br/>com.google.guava]
+    Extract --> Artifact[artifact = components at -3<br/>guava]
+    Extract --> Version[version = components at -2<br/>31.0]
 
-    Group --> Format["Format: group:artifact:version"]
+    Group --> Format[Format: group:artifact:version]
     Artifact --> Format
     Version --> Format
 
-    Format --> Result["com.google.guava:guava:31.0"]
+    Format --> Result[com.google.guava:guava:31.0]
 ```
 
 **Example**:

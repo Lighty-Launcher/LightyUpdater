@@ -20,16 +20,16 @@ graph TB
         Cache[CacheSettings]
         Storage[StorageSettings]
         CF[CloudflareSettings]
-        Servers[Vec-Arc-ServerConfig]
+        Servers[Vec Arc ServerConfig]
     end
 
     subgraph Defaults
-        Defaults[Default Values]
+        DefaultValues[Default Values]
         Template[Config Template]
     end
 
     subgraph Runtime
-        RwLock[Arc-RwLock-Config]
+        RwLock[Arc RwLock Config]
         Watcher[ConfigWatcher]
         Events[Event Bus]
     end
@@ -45,7 +45,7 @@ graph TB
     Config --> CF
     Config --> Servers
 
-    Defaults --> Migration
+    DefaultValues --> Migration
     Template --> Loader
 
     Config --> RwLock

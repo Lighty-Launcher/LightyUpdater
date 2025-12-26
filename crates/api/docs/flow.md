@@ -4,53 +4,53 @@
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant Handler
-    participant Cache
-    participant Config
+    participant C as Client
+    participant H as Handler
+    participant Ca as Cache
+    participant Cf as Config
 
-    Client->>Handler: GET /servers
-    Handler->>Cache: get_all_servers()
-    Cache-->>Handler: Vec<String> server names
+    C->>H: GET /servers
+    H->>Ca: get_all_servers()
+    Ca-->>H: Vec<String> server names
 
     loop For each server
-        Handler->>Cache: get_server_config(name)
-        Cache-->>Handler: ServerConfig
-        Handler->>Cache: get_last_update(name)
-        Cache-->>Handler: RFC3339 timestamp
-        Handler->>Handler: Build ServerInfo
+        H->>Ca: get_server_config(name)
+        Ca-->>H: ServerConfig
+        H->>Ca: get_last_update(name)
+        Ca-->>H: RFC3339 timestamp
+        H->>H: Build ServerInfo
     end
 
-    Handler->>Client: 200 JSON ServerListResponse
+    H->>C: 200 JSON ServerListResponse
 ```
 
 ## GET /{server}.json - Server Metadata
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant Handler
-    participant Cache
+    participant C as Client
+    participant H as Handler
+    participant Ca as Cache
 
-    Client->>Handler: GET /server1.json
-    Handler->>Handler: Strip .json suffix
+    C->>H: GET /server1.json
+    H->>H: Strip .json suffix
 
-    Handler->>Cache: get_server_config(server)
-    Cache-->>Handler: ServerConfig
+    H->>Ca: get_server_config(server)
+    Ca-->>H: ServerConfig
 
     alt Server disabled
-        Handler->>Cache: get_all_servers()
-        Cache-->>Handler: available list
-        Handler->>Client: 404 ServerNotFound
+        H->>Ca: get_all_servers()
+        Ca-->>H: available list
+        H->>C: 404 ServerNotFound
     else Server enabled
-        Handler->>Cache: get(server)
+        H->>Ca: get(server)
 
         alt Found
-            Cache-->>Handler: VersionBuilder
-            Handler->>Client: 200 JSON VersionBuilder
+            Ca-->>H: VersionBuilder
+            H->>C: 200 JSON VersionBuilder
         else Not found
-            Cache-->>Handler: None
-            Handler->>Client: 404 ServerNotFound
+            Ca-->>H: None
+            H->>C: 404 ServerNotFound
         end
     end
 ```
@@ -59,43 +59,43 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant Client
-    participant Handler
-    participant Parser
-    participant Resolver
-    participant RAMCache
-    participant Disk
+    participant C as Client
+    participant H as Handler
+    participant P as Parser
+    participant R as Resolver
+    participant RC as RAMCache
+    participant D as Disk
 
-    Client->>Handler: GET /server1/mods/mod.jar
+    C->>H: GET /server1/mods/mod.jar
 
-    Handler->>Parser: parse_request_path()
-    Parser->>Parser: Validate security
-    Parser-->>Handler: ParsedRequest
+    H->>P: parse_request_path()
+    P->>P: Validate security
+    P-->>H: ParsedRequest
 
-    Handler->>Handler: Get version from cache
+    H->>H: Get version from cache
 
-    Handler->>Resolver: resolve_file_path()
-    Resolver->>Resolver: O(1) HashMap lookup
-    Resolver-->>Handler: actual_path
+    H->>R: resolve_file_path()
+    R->>R: O(1) HashMap lookup
+    R-->>H: actual_path
 
-    Handler->>RAMCache: try_serve_from_cache()
+    H->>RC: try_serve_from_cache()
 
     alt In RAM cache
-        RAMCache-->>Handler: Response (Bytes)
-        Handler->>Client: 200 + file data
+        RC-->>H: Response (Bytes)
+        H->>C: 200 + file data
     else Not in cache
-        Handler->>Disk: serve_from_disk()
+        H->>D: serve_from_disk()
 
-        Disk->>Disk: Check file size
+        D->>D: Check file size
 
         alt Size < threshold
-            Disk->>Disk: Load to memory
-            Disk-->>Handler: Response (Vec<u8>)
+            D->>D: Load to memory
+            D-->>H: Response (Vec<u8>)
         else Size >= threshold
-            Disk->>Disk: Create stream
-            Disk-->>Handler: Response (Stream)
+            D->>D: Create stream
+            D-->>H: Response (Stream)
         end
 
-        Handler->>Client: 200 + file data
+        H->>C: 200 + file data
     end
 ```

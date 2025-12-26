@@ -53,18 +53,18 @@ Organization by hash for deduplication.
 sequenceDiagram
     participant CW as ConfigWatcher
     participant FS as FileSystem
-    participant Disk
+    participant D as Disk
 
     CW->>FS: ensure_server_structure(base, name)
-    FS->>Disk: mkdir base/name
-    FS->>Disk: mkdir base/name/client
-    FS->>Disk: mkdir base/name/libraries
-    FS->>Disk: mkdir base/name/mods
-    FS->>Disk: mkdir base/name/natives
-    FS->>Disk: mkdir base/name/natives/windows
-    FS->>Disk: mkdir base/name/natives/linux
-    FS->>Disk: mkdir base/name/natives/macos
-    FS->>Disk: mkdir base/name/assets
+    FS->>D: mkdir base/name
+    FS->>D: mkdir base/name/client
+    FS->>D: mkdir base/name/libraries
+    FS->>D: mkdir base/name/mods
+    FS->>D: mkdir base/name/natives
+    FS->>D: mkdir base/name/natives/windows
+    FS->>D: mkdir base/name/natives/linux
+    FS->>D: mkdir base/name/natives/macos
+    FS->>D: mkdir base/name/assets
     FS-->>CW: Ok(absolute_path)
 ```
 

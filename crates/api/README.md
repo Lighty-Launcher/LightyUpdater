@@ -46,9 +46,6 @@ Returns the complete VersionBuilder JSON for a server.
 ### GET /{server}/{path}
 Serves a specific file (JAR, mod, asset, etc.) with intelligent caching.
 
-### POST /rescan/{server}
-Triggers manual rescan of a specific server.
-
 ## Integration
 
 This crate integrates with:

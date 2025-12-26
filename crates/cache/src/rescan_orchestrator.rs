@@ -34,6 +34,7 @@ impl RescanOrchestrator {
         config: Arc<RwLock<Config>>,
         events: Arc<EventBus>,
         storage: Option<Arc<dyn lighty_storage::StorageBackend>>,
+        cdn: Option<Arc<super::cdn::CdnClient>>,
         cloudflare: Option<Arc<super::cloudflare::CloudflareClient>>,
         base_path: PathBuf,
         server_path_cache: Arc<super::server_path_cache::ServerPathCache>,
@@ -45,6 +46,7 @@ impl RescanOrchestrator {
             events,
             paused: Arc::new(AtomicBool::new(false)),
             storage,
+            cdn,
             cloudflare,
             base_path,
             server_path_cache,
@@ -272,6 +274,28 @@ impl RescanOrchestrator {
                             server_config.name,
                             e
                         );
+                    }
+
+                    // Purge CDN cache for storage files
+                    if let Some(cdn) = &self.cdn {
+                        let file_urls: Vec<String> = diff
+                            .added
+                            .iter()
+                            .chain(diff.modified.iter())
+                            .chain(diff.removed.iter())
+                            .map(|change| change.url.clone())
+                            .filter(|url| !url.is_empty())
+                            .collect();
+
+                        if !file_urls.is_empty() {
+                            if let Err(e) = cdn.purge_files(file_urls).await {
+                                tracing::warn!(
+                                    "Failed to purge CDN cache for server {}: {}",
+                                    server_config.name,
+                                    e
+                                );
+                            }
+                        }
                     }
                 }
             }

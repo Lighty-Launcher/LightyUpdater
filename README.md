@@ -18,8 +18,8 @@ High-performance Minecraft distribution server built with Rust and Axum. Serves 
 - **Parallel Scanning** - All server components scanned concurrently for maximum speed
 
 ### Storage & CDN
-- **S3 Storage Backend** - Optional AWS S3 integration for remote file storage
-- **Cloudflare Integration** - Automatic cache purging with retry mechanism (3 attempts, exponential backoff)
+- **S3 & R2 Storage** - Compatible with AWS S3 and Cloudflare R2 for remote file storage
+- **Cloudflare Integration** - Automatic cache purging with retry mechanism
 - **Local Storage** - Default local filesystem backend with HTTP serving
 
 ### Performance Optimizations
@@ -29,10 +29,10 @@ High-performance Minecraft distribution server built with Rust and Axum. Serves 
 - **Incremental Updates** - Only changed files processed during rescans
 
 ### Production Ready
-- **Async/Await** - Fully asynchronous with Tokio runtime
-- **Graceful Shutdown** - Clean task termination and resource cleanup
-- **Configurable Compression** - Optional response compression
-- **Modular Architecture** - Clean separation of concerns with 11 specialized crates
+- **Asynchronous Runtime** - Non-blocking I/O with concurrent request handling
+- **Graceful Shutdown** - Coordinated task termination and resource cleanup
+- **Configurable Compression** - Optional gzip/brotli response compression
+- **Modular Architecture** - 11 specialized crates with clear separation of concerns
 
 ---
 
@@ -100,12 +100,21 @@ access_key = "your-access-key"
 secret_key = "your-secret-key"
 public_url = "https://pub-<hash>.r2.dev"
 
-# Cloudflare cache purging (optional)
+# CDN cache purging for storage files (optional)
+[cdn]
+enabled = false
+provider = "cloudflare"  # "cloudflare" or "cloudfront"
+zone_id = "your-zone-id"
+api_token = "your-api-token"
+
+# Cloudflare cache purging for API JSON (optional)
 [cloudflare]
 enabled = false
 zone_id = "your-zone-id"
 api_token = "your-api-token"
+base_url = "https://api.example.com"
 
+# You can duplicate this [[servers]] section to add multiple servers
 [[servers]]
 name = "survival"
 enabled = true
@@ -192,18 +201,7 @@ Download file (zero-copy from RAM or streamed from disk).
 - `/survival/OptiFine.jar` → `updater/survival/mods/OptiFine.jar`
 - `/survival/com/mojang/lib.jar` → `updater/survival/libraries/com/mojang/lib.jar`
 
-### `GET /rescan/{server}`
-
-Force immediate rescan of server files.
-
-**Response:**
-```json
-{
-  "status": "success",
-  "message": "Server survival rescanned"
-}
-```
---
+---
 ## Architecture
 
 ### Crate Dependencies
@@ -248,8 +246,7 @@ Facade:
 - **File Watcher**: Monitors server directories, triggers rescan on changes (when `rescan_interval = 0`)
 - **Auto-Rescan**: Periodic rescan at configurable intervals (when `rescan_interval > 0`)
 - **Cache Eviction**: LRU eviction when memory limit reached
-- **Cloud Sync**: Automatic S3 upload/delete on file changes (if S3 enabled)
-- **Cloudflare Purge**: Automatic cache purging with retry on updates (if Cloudflare enabled)
+- **Cloud Sync**: Automatic S3/R2 upload/delete on file changes (if enabled)
 
 ---
 
@@ -274,14 +271,14 @@ Facade:
 
 ## Roadmap
 
-- [x] O(1) file resolution with HashMap
+- [x] Fast file resolution with HashMap
 - [x] Zero-copy serving with Bytes
 - [x] Configurable compression
 - [x] Auto-migration system
 - [x] File & config hot-reload
 - [x] Modular multicrate architecture
-- [ ] Cloudflare R2 integration (CDN + object storage)
-- [ ] WebSocket progress streaming 
+- [x] S3 & R2 storage backend
+- [ ] WebSocket progress streaming
 - [ ] Docker image
 
 ---
@@ -289,16 +286,6 @@ Facade:
 ## License
 
 MIT License - see [LICENSE](LICENSE) file
-
----
-
-## Acknowledgments
-
-Built with:
-- [Axum](https://github.com/tokio-rs/axum) - Web framework
-- [Tokio](https://tokio.rs) - Async runtime
-- [Moka](https://github.com/moka-rs/moka) - Caching library
-- [Notify](https://github.com/notify-rs/notify) - File watcher
 
 ---
 

@@ -1,4 +1,4 @@
-use lighty_api::{force_rescan, get_server_metadata, list_servers, serve_file, AppState};
+use lighty_api::{get_server_metadata, list_servers, serve_file, AppState};
 use lighty_config::Config;
 use axum::{http::StatusCode, routing::get, Router};
 use std::time::Duration;
@@ -17,7 +17,6 @@ pub fn build(config: &Config, app_state: AppState) -> Router {
 
     let mut router = Router::new()
         .route("/", get(list_servers))
-        .route("/rescan/:server_name", get(force_rescan))
         .route("/:server_name.json", get(get_server_metadata))
         .fallback(serve_file)
         .layer(ConcurrencyLimitLayer::new(max_concurrent_requests))

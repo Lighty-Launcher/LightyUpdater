@@ -29,7 +29,10 @@ async fn main() -> Result<()> {
     // Initialize storage backend
     let storage = initialize_storage(&config).await?;
 
-    // Initialize Cloudflare client if configured
+    // Initialize CDN client if configured
+    let cdn = initialize_cdn(&config).await;
+
+    // Initialize Cloudflare API client if configured
     let cloudflare = initialize_cloudflare(&config).await;
 
     let cache_manager = Arc::new(
@@ -37,6 +40,7 @@ async fn main() -> Result<()> {
             Arc::clone(&config),
             Arc::clone(&events),
             Some(storage),
+            cdn,
             cloudflare,
         )
         .await
@@ -143,6 +147,27 @@ async fn initialize_storage(config: &Arc<tokio::sync::RwLock<lighty_config::Conf
     }
 }
 
+async fn initialize_cdn(
+    config: &Arc<tokio::sync::RwLock<lighty_config::Config>>
+) -> Option<Arc<lighty_cache::CdnClient>> {
+    let config_read = config.read().await;
+
+    if config_read.cdn.enabled {
+        let client = lighty_cache::CdnClient::new(
+            &config_read.cdn.provider,
+            config_read.cdn.zone_id.clone(),
+            config_read.cdn.api_token.clone(),
+        );
+        tracing::info!(
+            "Initialized CDN cache purge client (provider: {})",
+            config_read.cdn.provider
+        );
+        Some(Arc::new(client))
+    } else {
+        None
+    }
+}
+
 async fn initialize_cloudflare(
     config: &Arc<tokio::sync::RwLock<lighty_config::Config>>
 ) -> Option<Arc<lighty_cache::CloudflareClient>> {
@@ -153,7 +178,7 @@ async fn initialize_cloudflare(
             config_read.cloudflare.zone_id.clone(),
             config_read.cloudflare.api_token.clone(),
         );
-        tracing::info!("Initialized Cloudflare cache purge client");
+        tracing::info!("Initialized Cloudflare API cache purge client");
         Some(Arc::new(client))
     } else {
         None

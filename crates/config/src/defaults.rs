@@ -121,17 +121,27 @@ pub fn s3_settings() -> super::models::S3Settings {
     }
 }
 
-// Cloudflare defaults
-pub fn purge_on_update() -> bool {
-    true
+// CDN defaults
+pub fn cdn_provider() -> String {
+    "cloudflare".to_string()
 }
 
+pub fn cdn_settings() -> super::models::CdnSettings {
+    super::models::CdnSettings {
+        enabled: false,
+        provider: cdn_provider(),
+        zone_id: String::new(),
+        api_token: String::new(),
+    }
+}
+
+// Cloudflare defaults
 pub fn cloudflare_settings() -> super::models::CloudflareSettings {
     super::models::CloudflareSettings {
         enabled: false,
         zone_id: String::new(),
         api_token: String::new(),
-        purge_on_update: purge_on_update(),
+        base_url: std::sync::Arc::from(""),
     }
 }
 
@@ -238,19 +248,29 @@ public_url = ""                      # Public URL for file downloads (optional)
 bucket_prefix = ""                   # Prefix for all S3 keys (optional)
 
 # ===============================================================================
-# CLOUDFLARE CACHE PURGE
+# CDN CACHE PURGE (for storage files)
+# ===============================================================================
+[cdn]
+enabled = false                      # Enable CDN cache purging for storage files
+provider = "cloudflare"              # CDN provider: "cloudflare" or "cloudfront"
+zone_id = ""                         # Cloudflare Zone ID (cloudflare only)
+api_token = ""                       # Cloudflare API Token (requires Cache Purge permission)
+
+# ===============================================================================
+# CLOUDFLARE API CACHE PURGE (for API JSON responses)
 # ===============================================================================
 [cloudflare]
-enabled = false                      # Enable Cloudflare cache purging
+enabled = false                      # Enable Cloudflare cache purging for API JSON
 zone_id = ""                         # Cloudflare Zone ID
 api_token = ""                       # Cloudflare API Token (requires Cache Purge permission)
-purge_on_update = true               # Auto-purge cache on file updates
+base_url = ""                        # API base URL (e.g., https://api.example.com)
 
 # ===============================================================================
 # SERVER DEFINITIONS
 # ===============================================================================
 # Expected folder structure: {base_path}/{name}/client/*.jar, libraries/*.jar,
 # mods/*.jar, natives/*.dll|.so|.dylib, assets/*
+# You can duplicate this [[servers]] section to add multiple servers
 
 #[[servers]]
 #name = "example"                    # Server ID (used in URLs and folder name)

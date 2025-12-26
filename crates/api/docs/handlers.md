@@ -60,21 +60,3 @@ Serves a specific file with intelligent caching.
 
 **Headers**:
 - `Content-Type`: Automatically detected via mime_guess
-
----
-
-## force_rescan
-
-Triggers manual rescan of a server.
-
-**Route**: `POST /rescan/{server}`
-
-**Response**:
-```json
-{
-  "status": "success",
-  "message": "Server server1 rescanned successfully"
-}
-```
-
-**Effect**: Launches complete rescan that detects changes and updates cache.

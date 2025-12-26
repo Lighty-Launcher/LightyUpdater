@@ -15,6 +15,7 @@ impl CacheManager {
         config: Arc<RwLock<Config>>,
         events: Arc<EventBus>,
         storage: Option<Arc<dyn lighty_storage::StorageBackend>>,
+        cdn: Option<Arc<super::cdn::CdnClient>>,
         cloudflare: Option<Arc<super::cloudflare::CloudflareClient>>,
     ) -> Self {
         let (shutdown_tx, _) = broadcast::channel(1);
@@ -40,13 +41,14 @@ impl CacheManager {
         let server_path_cache = Arc::new(super::server_path_cache::ServerPathCache::new());
         server_path_cache.rebuild(&servers, &base_path.to_string_lossy());
 
-        // Create rescan orchestrator with storage and cloudflare
+        // Create rescan orchestrator with storage, cdn and cloudflare
         let rescan_orchestrator = Arc::new(RescanOrchestrator::new(
             Arc::new(cache_store),
             Arc::clone(&last_updated),
             Arc::clone(&config),
             Arc::clone(&events),
             storage,
+            cdn,
             cloudflare,
             base_path,
             Arc::clone(&server_path_cache),

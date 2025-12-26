@@ -18,6 +18,7 @@ pub async fn migrate_config_if_needed<P: AsRef<Path>>(
     migrate_cache_section(&mut doc, &mut added_fields)?;
     migrate_hot_reload_section(&mut doc, &mut added_fields)?;
     migrate_storage_section(&mut doc, &mut added_fields)?;
+    migrate_cdn_section(&mut doc, &mut added_fields)?;
     migrate_cloudflare_section(&mut doc, &mut added_fields)?;
     migrate_servers_array(&mut doc, &mut added_fields)?;
 
@@ -332,6 +333,30 @@ fn migrate_storage_section(
     Ok(())
 }
 
+fn migrate_cdn_section(
+    doc: &mut DocumentMut,
+    added_fields: &mut Vec<String>,
+) -> Result<()> {
+    // Ensure [cdn] section exists
+    if !doc.contains_key("cdn") {
+        let mut table = Table::new();
+        table.set_implicit(true);
+        doc["cdn"] = Item::Table(table);
+        added_fields.push("cdn".to_string());
+    }
+
+    let cdn = doc["cdn"]
+        .as_table_mut()
+        .ok_or_else(|| ConfigError::InvalidConfig("Invalid [cdn] section in config".to_string()))?;
+
+    ensure_field(cdn, "enabled", Value::from(false), added_fields);
+    ensure_field(cdn, "provider", Value::from("cloudflare"), added_fields);
+    ensure_field(cdn, "zone_id", Value::from(""), added_fields);
+    ensure_field(cdn, "api_token", Value::from(""), added_fields);
+
+    Ok(())
+}
+
 fn migrate_cloudflare_section(
     doc: &mut DocumentMut,
     added_fields: &mut Vec<String>,
@@ -351,7 +376,13 @@ fn migrate_cloudflare_section(
     ensure_field(cloudflare, "enabled", Value::from(false), added_fields);
     ensure_field(cloudflare, "zone_id", Value::from(""), added_fields);
     ensure_field(cloudflare, "api_token", Value::from(""), added_fields);
-    ensure_field(cloudflare, "purge_on_update", Value::from(true), added_fields);
+    ensure_field(cloudflare, "base_url", Value::from(""), added_fields);
+
+    // Remove deprecated purge_on_update field
+    if cloudflare.contains_key("purge_on_update") {
+        cloudflare.remove("purge_on_update");
+        added_fields.push("removed deprecated cloudflare.purge_on_update".to_string());
+    }
 
     Ok(())
 }

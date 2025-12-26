@@ -94,6 +94,7 @@ pub struct RescanOrchestrator {
     pub(super) events: Arc<EventBus>,
     pub(super) paused: Arc<AtomicBool>,
     pub(super) storage: Option<Arc<dyn lighty_storage::StorageBackend>>,
+    pub(super) cdn: Option<Arc<super::cdn::CdnClient>>,
     pub(super) cloudflare: Option<Arc<super::cloudflare::CloudflareClient>>,
     pub(super) base_path: std::path::PathBuf,
     pub(super) server_path_cache: Arc<super::server_path_cache::ServerPathCache>,

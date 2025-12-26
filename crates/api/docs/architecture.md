@@ -16,7 +16,6 @@ graph TB
     subgraph Handler_Layer
         ServersH[Servers Handler]
         FilesH[Files Handler]
-        RescanH[Rescan Handler]
     end
 
     subgraph File_Serving_Pipeline
@@ -41,11 +40,9 @@ graph TB
     Router --> Middleware
     Middleware --> ServersH
     Middleware --> FilesH
-    Middleware --> RescanH
 
     ServersH --> AppState
     FilesH --> Parser
-    RescanH --> AppState
 
     Parser --> Validator
     Validator --> Resolver
@@ -86,11 +83,6 @@ Shared state structure across all handlers.
 - Route: GET /{server}/{path}
 - Complete file serving pipeline
 - RAM cache then disk fallback
-
-**force_rescan:**
-- Route: POST /rescan/{server}
-- Triggers manual rescan
-- Returns JSON status
 
 ### File Serving Pipeline
 

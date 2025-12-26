@@ -9,6 +9,8 @@ pub struct Config {
     pub hot_reload: HotReloadSettings,
     #[serde(default = "super::defaults::storage_settings")]
     pub storage: StorageSettings,
+    #[serde(default = "super::defaults::cdn_settings")]
+    pub cdn: CdnSettings,
     #[serde(default = "super::defaults::cloudflare_settings")]
     pub cloudflare: CloudflareSettings,
     #[serde(default)]
@@ -200,6 +202,18 @@ pub struct S3Settings {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct CdnSettings {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default = "super::defaults::cdn_provider")]
+    pub provider: String,
+    #[serde(default)]
+    pub zone_id: String,
+    #[serde(default)]
+    pub api_token: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CloudflareSettings {
     #[serde(default)]
     pub enabled: bool,
@@ -207,8 +221,10 @@ pub struct CloudflareSettings {
     pub zone_id: String,
     #[serde(default)]
     pub api_token: String,
-    #[serde(default = "super::defaults::purge_on_update")]
-    pub purge_on_update: bool,
+    #[serde(default)]
+    #[serde(deserialize_with = "deserialize_arc_str_default")]
+    #[serde(serialize_with = "serialize_arc_str")]
+    pub base_url: Arc<str>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

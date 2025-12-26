@@ -99,23 +99,3 @@ sequenceDiagram
         Handler->>Client: 200 + file data
     end
 ```
-
-## POST /rescan/{server} - Manual Rescan
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Handler
-    participant Cache
-    participant Scanner
-
-    Client->>Handler: POST /rescan/server1
-    Handler->>Cache: force_rescan(server1)
-
-    Cache->>Scanner: Scan server files
-    Scanner-->>Cache: New VersionBuilder
-    Cache->>Cache: Update cache
-    Cache-->>Handler: Ok()
-
-    Handler->>Client: 200 JSON success
-```

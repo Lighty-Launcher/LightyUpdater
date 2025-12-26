@@ -40,7 +40,7 @@ Computes granular differences between two server versions, identifying exactly w
 Fast mapping cache between file paths and servers. Essential for the file watcher to determine which server to rescan when a file changes.
 
 ### FileCacheManager
-Manages in-memory file cache with Moka LRU. Reduces latency for frequently accessed files and optimizes memory usage.
+Manages in-memory file cache with Moka LRU. Provides fast access for frequently accessed files and optimizes memory usage.
 
 ## Integration
 

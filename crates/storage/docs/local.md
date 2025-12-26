@@ -160,7 +160,7 @@ base_path = "/var/minecraft/servers"
 **Advantages:**
 - Simple architecture
 - No external dependencies
-- Minimal latency
+- Fast operations
 - Total control
 
 ### Automated Tests
@@ -176,20 +176,6 @@ Cache system integration tests.
 
 ## Performance
 
-### Benchmarks
-
-**Upload (10000 files):**
-- LocalBackend: ~1ms (URL generation only)
-- S3Backend: ~15-30s (real uploads)
-
-**Delete (10000 files):**
-- LocalBackend: ~0.5ms (no-op)
-- S3Backend: ~10-20s (HTTP requests)
-
-**Get URL (1M calls):**
-- LocalBackend: ~50ms (pure concatenation)
-- S3Backend: ~80ms (concatenation + prefix)
-
 ### Optimizations
 
 **Zero-copy:**
@@ -203,7 +189,7 @@ Cache system integration tests.
 - User space execution only
 
 **Predictable:**
-- Constant O(1) latency
+- Constant O(1) complexity
 - No network variance
 - Deterministic performance
 
@@ -237,8 +223,8 @@ For these cases, use S3Backend with a CDN frontend.
 
 | Aspect | LocalBackend | S3Backend |
 |--------|-------------|-----------|
-| Upload latency | 0ms (no-op) | 50-500ms |
-| Delete latency | 0ms (no-op) | 20-100ms |
+| Upload operation | No-op (instant) | Network upload required |
+| Delete operation | No-op (instant) | HTTP request required |
 | Bandwidth | None | Upload to cloud |
 | Complexity | Minimal | AWS SDK, credentials |
 | Scaling | Vertical | Horizontal |

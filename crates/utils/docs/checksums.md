@@ -43,16 +43,11 @@ let hash = compute_sha1_sync("/path/to/file.jar")?;
 
 Default buffer size: 8KB
 - Small file (< 1MB): Minimal impact
-- Large file (> 100MB): Larger buffer = faster
+- Large file (> 100MB): Larger buffer = more efficient
 - Recommendation: 8KB-64KB depending on use case
 
 ## Performance
 
-**100MB file, 8KB buffer**:
-- Async: ~800ms
-- Sync: ~850ms
-- Streaming memory: ~8KB constant
-
-**100MB file, 64KB buffer**:
-- Async: ~600ms
-- Faster but 8x more memory
+**Memory usage**:
+- Streaming memory: constant (buffer size)
+- More efficient but 8x more memory

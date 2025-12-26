@@ -1,6 +1,6 @@
-# Flux de traitement
+# Processing flows
 
-## Flux 1: Scan complet d'un serveur
+## Flow 1: Complete server scan
 
 ```mermaid
 sequenceDiagram
@@ -35,7 +35,7 @@ sequenceDiagram
     SS-->>Cache: VersionBuilder
 ```
 
-## Flux 2: JarScanner parallelise
+## Flow 2: Parallelized JarScanner
 
 ```mermaid
 sequenceDiagram
@@ -71,7 +71,7 @@ sequenceDiagram
     JS-->>LS: Vec<Library>
 ```
 
-## Flux 3: Calcul de hash asynchrone
+## Flow 3: Asynchronous hash computation
 
 ```mermaid
 graph TD
@@ -91,7 +91,7 @@ graph TD
     ToHex --> Return[Return SHA1 hex, size]
 ```
 
-## Flux 4: Scan des assets recursif
+## Flow 4: Recursive asset scan
 
 ```mermaid
 sequenceDiagram
@@ -121,7 +121,7 @@ sequenceDiagram
     Stream-->>AS: Vec<Asset>
 ```
 
-## Flux 5: Scan des natives multi-OS
+## Flow 5: Multi-OS native scan
 
 ```mermaid
 graph TD
@@ -153,7 +153,7 @@ graph TD
     Return --> End
 ```
 
-## Flux 6: Construction de VersionBuilder
+## Flow 6: VersionBuilder construction
 
 ```mermaid
 sequenceDiagram
@@ -198,28 +198,13 @@ sequenceDiagram
     VB-->>SS: Complete VersionBuilder
 ```
 
-## Metriques de performance
+## Performance metrics
 
-### Complexite temporelle
+### Time complexity
 
 **Sequential**:
-- Scan de N fichiers: O(N * T) ou T = temps de hash
+- Scan of N files: O(N * T) where T = hash time
 
-**Parallel avec batch_size B**:
-- Scan de N fichiers: O(N/B * T) theorique
-- En pratique: Limite par I/O disque
-
-### Exemples de temps de scan
-
-**Configuration**:
-- batch_size = 100
-- buffer_size = 8192
-
-**Resultats typiques**:
-- Client (1 file): < 100ms
-- Libraries (200 files): 2-5s
-- Mods (50 files): 1-2s
-- Natives (30 files): 500ms-1s
-- Assets (5000 files): 10-20s
-
-**Total**: 15-30s pour un serveur complet
+**Parallel with batch_size B**:
+- Scan of N files: O(N/B * T) theoretical
+- In practice: Limited by disk I/O

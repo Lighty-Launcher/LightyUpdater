@@ -20,7 +20,7 @@ graph TB
         Cache[CacheSettings]
         Storage[StorageSettings]
         CF[CloudflareSettings]
-        Servers[Vec ServerConfig ]
+        Servers[Vec-Arc-ServerConfig]
     end
 
     subgraph Defaults
@@ -29,7 +29,7 @@ graph TB
     end
 
     subgraph Runtime
-        RwLock[Arc RwLock Config ]
+        RwLock[Arc-RwLock-Config]
         Watcher[ConfigWatcher]
         Events[Event Bus]
     end

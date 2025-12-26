@@ -193,7 +193,7 @@ S3 client construction uses the builder pattern:
 **Connection pooling:**
 - AWS SDK client maintains a connection pool
 - HTTP connection reuse
-- Reduced latency
+- Efficient network usage
 
 ### LocalBackend
 

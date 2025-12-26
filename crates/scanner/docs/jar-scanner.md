@@ -1,8 +1,8 @@
-# JarScanner - Scanner generique parallelise
+# JarScanner - Parallelized generic scanner
 
-## Vue d'ensemble
+## Overview
 
-`JarScanner` est un scanner generique reutilisable pour les fichiers JAR avec parallelisation controlee. Il est utilise par LibraryScanner et ModScanner.
+`JarScanner` is a reusable generic scanner for JAR files with controlled parallelization. It is used by LibraryScanner and ModScanner.
 
 ## Architecture
 
@@ -24,14 +24,14 @@ graph TB
 
 ```rust
 pub struct JarScanner {
-    pub base_dir: PathBuf,       // Dossier a scanner
-    pub server: String,           // Nom du serveur
-    pub storage: Arc<dyn StorageBackend>,  // Backend de stockage
-    pub batch_size: usize,        // Nombre de taches paralleles
+    pub base_dir: PathBuf,       // Directory to scan
+    pub server: String,           // Server name
+    pub storage: Arc<dyn StorageBackend>,  // Storage backend
+    pub batch_size: usize,        // Number of parallel tasks
 }
 ```
 
-### Methode scan
+### scan method
 
 **Signature**:
 ```rust
@@ -41,13 +41,13 @@ where
     F: Fn(JarFileInfo) -> Result<T> + Send + Sync + 'static,
 ```
 
-**Parametres generiques**:
-- `T`: Type de retour (Library, Mod, etc.)
-- `F`: Fonction de mapping JarFileInfo → T
+**Generic parameters**:
+- `T`: Return type (Library, Mod, etc.)
+- `F`: JarFileInfo → T mapping function
 
-**Processus**:
+**Process**:
 
-1. **Collection des paths** (synchrone):
+1. **Path collection** (synchronous):
 ```rust
 let jar_paths: Vec<PathBuf> = WalkDir::new(&self.base_dir)
     .into_iter()
@@ -57,12 +57,12 @@ let jar_paths: Vec<PathBuf> = WalkDir::new(&self.base_dir)
     .collect();
 ```
 
-2. **Creation du semaphore**:
+2. **Semaphore creation**:
 ```rust
 let semaphore = Arc::new(Semaphore::new(self.batch_size));
 ```
 
-3. **Traitement parallele**:
+3. **Parallel processing**:
 ```rust
 let results: Vec<Result<T>> = stream::iter(jar_paths)
     .map(|jar_path| {
@@ -75,14 +75,14 @@ let results: Vec<Result<T>> = stream::iter(jar_paths)
     .await;
 ```
 
-4. **Filtrage des erreurs**:
+4. **Error filtering**:
 ```rust
 Ok(results.into_iter().filter_map(|r| r.ok()).collect())
 ```
 
 ## JarFileInfo
 
-Structure d'information sur un fichier JAR scanne:
+Information structure about a scanned JAR file:
 
 ```rust
 pub struct JarFileInfo {
@@ -95,7 +95,7 @@ pub struct JarFileInfo {
 }
 ```
 
-## Exemples d'utilisation
+## Usage examples
 
 ### LibraryScanner
 
@@ -131,7 +131,7 @@ let scanner = JarScanner::new(
 
 scanner.scan(|info| {
     Ok(Mod {
-        name: info.file_name,  // Pas de conversion Maven
+        name: info.file_name,  // No Maven conversion
         url: Some(info.url),
         path: Some(info.url_path),
         sha1: Some(info.sha1),
@@ -140,9 +140,9 @@ scanner.scan(|info| {
 }, buffer_size).await
 ```
 
-## Optimisations
+## Optimizations
 
-### Semaphore pour controle de concurrence
+### Semaphore for concurrency control
 
 ```mermaid
 sequenceDiagram
@@ -169,7 +169,7 @@ sequenceDiagram
     T101->>T101: Compute hash
 ```
 
-**Avantage**: Limite la charge systeme, evite OOM et thrashing disque.
+**Advantage**: Limits system load, prevents OOM and disk thrashing.
 
 ### buffer_unordered
 
@@ -177,25 +177,25 @@ sequenceDiagram
 .buffer_unordered(batch_size)
 ```
 
-**Comportement**:
-- Execute jusqu'a `batch_size` futures simultanement
-- Collecte les resultats des qu'ils sont prets (pas d'ordre)
-- Maximise le throughput
+**Behavior**:
+- Executes up to `batch_size` futures simultaneously
+- Collects results as soon as they are ready (no ordering)
+- Optimizes parallelization
 
-**Difference avec buffer**:
-- `buffer`: Preserve l'ordre (moins performant)
-- `buffer_unordered`: Meilleure performance, ordre non garanti
+**Difference with buffer**:
+- `buffer`: Preserves order (less performant)
+- `buffer_unordered`: Better performance, order not guaranteed
 
-### Collection eagere des paths
+### Eager path collection
 
-**Pourquoi**:
-- WalkDir est synchrone (bloquant)
-- Separation sync/async pour efficacite
-- Permet de connaitre le nombre total de fichiers
+**Why**:
+- WalkDir is synchronous (blocking)
+- Sync/async separation for efficiency
+- Allows knowing the total number of files
 
-**Alternative (mauvaise)**:
+**Alternative (bad)**:
 ```rust
-// Ne PAS faire:
+// DO NOT do this:
 for entry in WalkDir::new(&dir) {
     tokio::spawn(async move {
         // Mixing sync iterator with async tasks
@@ -203,54 +203,40 @@ for entry in WalkDir::new(&dir) {
 }
 ```
 
-## Gestion des erreurs
+## Error handling
 
-### Resilience aux erreurs individuelles
+### Resilience to individual errors
 
 ```rust
 let results: Vec<Result<T>> = stream::iter(jar_paths)
-    .map(|path| async { /* peut echouer */ })
+    .map(|path| async { /* can fail */ })
     .buffer_unordered(batch_size)
     .collect()
     .await;
 
-// Filtre les erreurs
+// Filter errors
 Ok(results.into_iter().filter_map(|r| r.ok()).collect())
 ```
 
 **Impact**:
-- Fichier corrompu: Ignore, continue
-- Erreur de permission: Ignore, continue
-- Hash impossible a calculer: Ignore, continue
+- Corrupted file: Ignore, continue
+- Permission error: Ignore, continue
+- Hash impossible to compute: Ignore, continue
 
-**Logging**: Erreurs loggees mais pas propagees.
+**Logging**: Errors are logged but not propagated.
 
-### Cas d'echec complet
+### Complete failure cases
 
-Le scan echoue completement si:
-- Dossier de base n'existe pas → retourne `Ok(vec![])` (vide)
-- Storage backend inaccessible → Erreur propagee
-- Panic d'une tache → JoinError propage
+The scan fails completely if:
+- Base directory does not exist → returns `Ok(vec![])` (empty)
+- Storage backend inaccessible → Error propagated
+- Task panic → JoinError propagated
 
 ## Performance
 
-### Metriques
+### Limiting factors
 
-**Configuration**: batch_size = 100, buffer_size = 8KB
-
-**Libraries** (200 fichiers, 50MB total):
-- Temps sequential estime: 20s
-- Temps parallele mesure: 3-5s
-- Speedup: 4-7x
-
-**Mods** (50 fichiers, 200MB total):
-- Temps sequential estime: 15s
-- Temps parallele mesure: 2-3s
-- Speedup: 5-7x
-
-### Facteurs limitants
-
-1. **I/O disque**: SSD vs HDD fait une grande difference
-2. **CPU**: Calcul SHA1 intensif
-3. **Semaphore**: Trop petit = sous-utilisation, trop grand = thrashing
-4. **Buffer size**: 8KB optimal pour la plupart des fichiers
+1. **Disk I/O**: SSD vs HDD makes a big difference
+2. **CPU**: Intensive SHA1 computation
+3. **Semaphore**: Too small = underutilization, too large = thrashing
+4. **Buffer size**: 8KB optimal for most files

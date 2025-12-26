@@ -312,40 +312,6 @@ sequenceDiagram
 
 ## Performance
 
-### Typical Reload Time
-
-```mermaid
-gantt
-    title Timeline du hot-reload
-    dateFormat  X
-    axisFormat %Lms
-
-    section Detection
-    Debounce wait           :0, 500
-
-    section Validation
-    Parse config            :500, 505
-    Validate                :505, 510
-
-    section Sync
-    Pause rescan            :510, 511
-    Acquire lock            :511, 512
-    Detect changes          :512, 520
-    Update config           :520, 525
-    Rebuild cache           :525, 535
-    Resume rescan           :535, 536
-
-    section Actions
-    Rescan servers          :536, 1536
-```
-
-**Breakdown:**
-- Debounce: 100-500ms (configurable)
-- Parsing: 1-5ms
-- Detection: 5-10ms
-- Mise a jour: 10-20ms
-- Rescan: 100ms-2s par serveur
-
 ### Optimizations
 
 **Minimize lock time:**

@@ -323,6 +323,5 @@ sequenceDiagram
 
 The system collects error metrics:
 - Error rate by type
-- Retry latency
 - Success rate after retry
 - Distribution of error causes

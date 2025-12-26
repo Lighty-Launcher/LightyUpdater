@@ -333,9 +333,9 @@ graph LR
     Metrics --> Count4[Added servers]
 ```
 
-Typical times:
-- Debounce: 100-500ms (configurable)
-- Config parsing: 1-10ms
-- Cache rebuild: 5-20ms
-- Rescan per server: 100ms-2s
-- Total: 200ms-5s depending on number of servers
+Process steps:
+- Debounce: configurable
+- Config parsing
+- Cache rebuild
+- Server rescan
+- Total time depends on number of servers and changes

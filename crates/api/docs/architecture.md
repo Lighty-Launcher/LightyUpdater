@@ -171,7 +171,6 @@ The validator checks:
 ### RAM Cache
 
 **Advantages:**
-- Latency < 1ms for cached files
 - Zero disk I/O
 - Zero-copy with Bytes
 

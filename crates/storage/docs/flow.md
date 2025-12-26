@@ -345,28 +345,22 @@ sequenceDiagram
 
 ```mermaid
 graph LR
-    Upload[Upload Operation] --> Duration[Upload duration]
-    Upload --> Size[File size]
+    Upload[Upload Operation] --> Size[File size]
     Upload --> Success[Success/Failure]
 
-    Delete[Delete Operation] --> DelDuration[Delete duration]
-    Delete --> DelSuccess[Success/Failure]
+    Delete[Delete Operation] --> DelSuccess[Success/Failure]
 
-    Metrics[Metrics] --> Duration
-    Metrics --> Size
+    Metrics[Metrics] --> Size
     Metrics --> Success
-    Metrics --> DelDuration
     Metrics --> DelSuccess
 
     Metrics --> Log[Logging tracing]
 ```
 
-### Performance traces
+### Operation traces
 
 S3 operations are traced with:
-- Start timestamp
 - File key
 - Target bucket
-- Total duration
 - Result (success/error)
 - File size (for uploads)

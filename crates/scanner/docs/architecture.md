@@ -1,10 +1,10 @@
-# Architecture du systeme de scan
+# Scan System Architecture
 
-## Vue d'ensemble
+## Overview
 
-Le systeme de scan est concu comme une architecture modulaire avec des composants specialises pour chaque type de fichier. L'accent est mis sur la parallelisation et les performances.
+The scan system is designed as a modular architecture with specialized components for each file type. The focus is on parallelization and performance.
 
-## Diagramme d'architecture
+## Architecture Diagram
 
 ```mermaid
 graph TB
@@ -62,33 +62,33 @@ graph TB
     SS --> Models
 ```
 
-## Composants principaux
+## Main Components
 
 ### ServerScanner
 
-Point d'entree principal qui orchestre le scan complet d'un serveur.
+Main entry point that orchestrates the complete scan of a server.
 
-**Responsabilites**:
-- Validation de la structure du serveur
-- Coordination des scanners specialises
-- Construction du VersionBuilder
-- Generation de la URL map
+**Responsibilities**:
+- Server structure validation
+- Specialized scanner coordination
+- VersionBuilder construction
+- URL map generation
 
-**Methodes**:
-- `scan_server`: Scan avec logging detaille
-- `scan_server_silent`: Scan sans logging (pour rescans frequents)
-- `validate_server_path`: Verification de l'existence du serveur
-- `build_version_metadata`: Construction des metadonnees
+**Methods**:
+- `scan_server`: Scan with detailed logging
+- `scan_server_silent`: Scan without logging (for frequent rescans)
+- `validate_server_path`: Verify server existence
+- `build_version_metadata`: Build metadata
 
 ### JarScanner
 
-Scanner generique reutilisable pour fichiers JAR avec parallelisation.
+Reusable generic scanner for JAR files with parallelization.
 
-**Caracteristiques**:
-- Generic sur le type de retour `T`
-- Fonction de mapping personnalisable
-- Controle de concurrence via Semaphore
-- Utilisation de futures::stream pour parallelisation
+**Features**:
+- Generic over return type `T`
+- Customizable mapping function
+- Concurrency control via Semaphore
+- Uses futures::stream for parallelization
 
 **Structure**:
 ```rust
@@ -100,32 +100,32 @@ pub struct JarScanner {
 }
 ```
 
-**Algorithme**:
-1. Collection synchrone des chemins de fichiers JAR
-2. Creation du semaphore pour controle de concurrence
-3. Stream des fichiers avec `buffer_unordered`
-4. Calcul parallele des hashes
-5. Mapping des resultats via fonction fournie
-6. Filtrage des erreurs et collection
+**Algorithm**:
+1. Synchronous collection of JAR file paths
+2. Semaphore creation for concurrency control
+3. File streaming with `buffer_unordered`
+4. Parallel hash computation
+5. Result mapping via provided function
+6. Error filtering and collection
 
 ### scan_files_parallel
 
-Fonction utilitaire pour scan parallele de fichiers avec filtre personnalisable.
+Utility function for parallel file scanning with customizable filter.
 
-**Parametres generiques**:
-- `T`: Type de retour
-- `Filter`: Fonction de filtrage des fichiers
-- `Mapper`: Fonction de transformation FileInfo → T
+**Generic parameters**:
+- `T`: Return type
+- `Filter`: File filtering function
+- `Mapper`: FileInfo → T transformation function
 
-**Utilisation**: Natives et autres fichiers non-JAR necessitant un traitement parallele.
+**Usage**: Natives and other non-JAR files requiring parallel processing.
 
-## Scanners specialises
+## Specialized scanners
 
 ### ClientScanner
 
-Scan du fichier client JAR unique.
+Scans the single client JAR file.
 
-**Algorithme**:
+**Algorithm**:
 ```mermaid
 graph TD
     Start[Start scan_client] --> CheckDir{client/ exists?}
@@ -145,16 +145,16 @@ graph TD
     ReturnSome --> End
 ```
 
-**Particularites**:
-- Pas de parallelisation (1 seul fichier)
-- Prend le premier .jar trouve
-- Retourne Option<Client>
+**Characteristics**:
+- No parallelization (single file)
+- Takes the first .jar found
+- Returns Option<Client>
 
 ### LibraryScanner
 
-Scan des libraries avec conversion en notation Maven.
+Scans libraries with Maven notation conversion.
 
-**Processus**:
+**Process**:
 ```mermaid
 sequenceDiagram
     participant LS as LibraryScanner
@@ -178,18 +178,18 @@ sequenceDiagram
     JS-->>LS: Vec<Library>
 ```
 
-**Conversion Maven**:
+**Maven conversion**:
 - Input: `com/example/library/1.0.0/library-1.0.0.jar`
 - Output: `com.example:library:1.0.0`
 
 ### ModScanner
 
-Scan des mods avec structure simple.
+Scans mods with simple structure.
 
-**Caracteristiques**:
-- Utilise JarScanner comme base
-- Pas de conversion de nom (garde le filename)
-- Structure plate (pas de sous-dossiers)
+**Features**:
+- Uses JarScanner as base
+- No name conversion (keeps filename)
+- Flat structure (no subdirectories)
 
 **Mapping**:
 ```rust
@@ -204,9 +204,9 @@ Mod {
 
 ### NativeScanner
 
-Scan des natives avec organisation multi-OS.
+Scans natives with multi-OS organization.
 
-**Organisation**:
+**Organization**:
 ```
 natives/
 ├── windows/
@@ -217,7 +217,7 @@ natives/
     └── lwjgl-natives-macos.jar
 ```
 
-**Algorithme**:
+**Algorithm**:
 ```mermaid
 graph TD
     Start[Start scan_natives] --> CheckDir{natives/ exists?}
@@ -248,23 +248,23 @@ graph TD
     Return --> End
 ```
 
-**Format du nom**:
+**Name format**:
 ```rust
 name: format!("natives:{}:{}", os, file_name)
-// Exemple: "natives:windows:lwjgl-natives-windows.jar"
+// Example: "natives:windows:lwjgl-natives-windows.jar"
 ```
 
 ### AssetScanner
 
-Scan recursif de tous les assets.
+Recursive scan of all assets.
 
-**Particularites**:
-- Scan recursif de toute l'arborescence
-- Peut generer des milliers de fichiers
-- Utilise walkdir pour traverser les dossiers
-- Parallelisation massive avec semaphore
+**Characteristics**:
+- Recursive scan of entire tree
+- Can generate thousands of files
+- Uses walkdir to traverse directories
+- Massive parallelization with semaphore
 
-**Structure typique**:
+**Typical structure**:
 ```
 assets/
 ├── minecraft/
@@ -281,9 +281,9 @@ assets/
     └── logo.png
 ```
 
-## Parallelisation
+## Parallelization
 
-### Architecture de concurrence
+### Concurrency architecture
 
 ```mermaid
 graph TB
@@ -323,19 +323,19 @@ graph TB
     Buffer --> Collect2
 ```
 
-### Controle de concurrence
+### Concurrency control
 
 **Semaphore**:
-- Limite le nombre de taches concurrentes
-- Evite la surcharge CPU/memoire
-- Configuration par batch_size
+- Limits the number of concurrent tasks
+- Prevents CPU/memory overload
+- Configured by batch_size
 
 **buffer_unordered**:
-- Execute jusqu'a N futures simultanement
-- Collecte les resultats dans l'ordre de completion
-- Maximise le throughput
+- Executes up to N futures simultaneously
+- Collects results in completion order
+- Optimizes parallelization
 
-### Exemple de flux
+### Flow example
 
 ```mermaid
 sequenceDiagram
@@ -370,15 +370,15 @@ sequenceDiagram
     Task101->>Task101: Compute hash
 ```
 
-## Calcul de hash asynchrone
+## Asynchronous hash computation
 
-### Probleme
+### Problem
 
-Le calcul de SHA1 est CPU-intensif et pourrait bloquer le runtime async.
+SHA1 computation is CPU-intensive and could block the async runtime.
 
 ### Solution
 
-Utilisation de tokio pour calcul asynchrone avec buffer:
+Using tokio for asynchronous computation with buffer:
 
 ```mermaid
 graph TD
@@ -393,10 +393,10 @@ graph TD
     Finalize --> Return[Return SHA1 hex + size]
 ```
 
-**Avantages**:
-- Pas de blocage du runtime
-- Buffer configurable pour optimiser I/O
-- Calcul de size en meme temps
+**Advantages**:
+- No runtime blocking
+- Configurable buffer to optimize I/O
+- Size computation at the same time
 
 **Configuration**:
 ```toml
@@ -404,9 +404,9 @@ graph TD
 checksum_buffer_size = 8192  # 8KB buffer
 ```
 
-## Integration avec Storage
+## Integration with Storage
 
-### Generation d'URLs
+### URL generation
 
 ```mermaid
 sequenceDiagram
@@ -437,7 +437,7 @@ sequenceDiagram
 ```
 {server_name}/{category}/{relative_path}
 
-Exemples:
+Examples:
 - survival/client.jar
 - survival/libraries/com/example/lib/1.0.0/lib-1.0.0.jar
 - survival/mods/optifine.jar
@@ -445,11 +445,11 @@ Exemples:
 - survival/assets/minecraft/textures/block/stone.png
 ```
 
-## Gestion des erreurs
+## Error handling
 
-### Strategie de filtrage
+### Filtering strategy
 
-Les erreurs individuelles ne bloquent pas le scan complet:
+Individual errors do not block the complete scan:
 
 ```rust
 let results: Vec<Result<T>> = stream::iter(paths)
@@ -462,23 +462,23 @@ let results: Vec<Result<T>> = stream::iter(paths)
 Ok(results.into_iter().filter_map(|r| r.ok()).collect())
 ```
 
-**Impact**: Un fichier corrompu n'empeche pas le scan des autres fichiers.
+**Impact**: A corrupted file does not prevent scanning other files.
 
-### Propagation d'erreurs critiques
+### Critical error propagation
 
-Certaines erreurs sont critiques:
-- Serveur folder inexistant
-- Permissions insuffisantes
+Some errors are critical:
+- Server folder does not exist
+- Insufficient permissions
 - Storage backend inaccessible
 
-Ces erreurs sont propagees via `Result<VersionBuilder>`.
+These errors are propagated via `Result<VersionBuilder>`.
 
-## Optimisations
+## Optimizations
 
-### Collection eagere des paths
+### Eager path collection
 
 ```rust
-// Bon: Collection sync puis traitement async
+// Good: Sync collection then async processing
 let paths: Vec<PathBuf> = WalkDir::new(&dir)
     .into_iter()
     .filter_map(|e| e.ok())
@@ -493,28 +493,28 @@ let results = stream::iter(paths)
     .await;
 ```
 
-**Avantage**: Separe les operations I/O sync (walkdir) des operations async (hash).
+**Advantage**: Separates sync I/O operations (walkdir) from async operations (hash).
 
-### Reuse de Arc
+### Arc reuse
 
 ```rust
 let storage = Arc::clone(&self.storage);
 let mapper = Arc::new(mapper);
 
-// Clone leger pour chaque task
+// Lightweight clone for each task
 let storage = Arc::clone(&storage);
 let mapper = Arc::clone(&mapper);
 ```
 
-**Avantage**: Pas de copie des structures volumineuses.
+**Advantage**: No copying of large structures.
 
-### Normalisation de chemins
+### Path normalization
 
-Conversion des chemins Windows en format Unix:
+Converting Windows paths to Unix format:
 ```rust
 // Windows: libraries\com\example\lib.jar
 // Unix:    libraries/com/example/lib.jar
-normalize_path(path)  // Toujours "/"
+normalize_path(path)  // Always "/"
 ```
 
-**Importance**: URLs consistantes independamment de l'OS.
+**Importance**: Consistent URLs regardless of OS.

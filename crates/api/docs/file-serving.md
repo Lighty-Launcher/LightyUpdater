@@ -4,7 +4,7 @@
 
 ```mermaid
 graph TD
-    Request[HTTP GET /{server}/{path}] --> Parse[Parse request path]
+    Request[HTTP GET /:server/:path] --> Parse[Parse request path]
     Parse --> Validate[Validate security]
 
     Validate -->|Invalid| Error400[400 Invalid Path]
@@ -38,10 +38,8 @@ graph TD
 ### RAM Cache (small files)
 
 **Advantages**:
-- Minimal latency (< 1ms)
 - Zero disk I/O
 - Zero-copy with axum Bytes
-- Maximum throughput
 
 **Configuration**:
 - LRU cache with memory limit
@@ -50,8 +48,6 @@ graph TD
 
 **Metrics**:
 - Hit rate: 70-90% typical
-- Latency p50: < 1ms
-- Latency p99: < 5ms
 
 ### Load to Memory (medium files)
 
@@ -63,9 +59,7 @@ graph TD
 3. Serve with appropriate Content-Type
 
 **Performance**:
-- Latency: 5-50ms depending on size
 - Memory: File size
-- Throughput: Disk limited
 
 ### Streaming (large files)
 
@@ -84,19 +78,17 @@ graph TD
 - No timeout on large files
 
 **Performance**:
-- First byte latency: 10-100ms
-- Throughput: Network/disk limited
 - Memory: ~8KB buffer
 
 ## URL to Path Resolution
 
 ```mermaid
 graph LR
-    URL["URL requested<br/>http://domain/server/mods/mod.jar"] --> Extract[Extract path<br/>'server/mods/mod.jar']
+    URL[URL requested<br/>http://domain/server/mods/mod.jar] --> Extract[Extract path<br/>server/mods/mod.jar]
     Extract --> FullURL[Rebuild full URL<br/>base_url + server + path]
-    FullURL --> Lookup[HashMap.get O(1)]
+    FullURL --> Lookup[HashMap.get O-1]
 
-    Lookup -->|Found| ActualPath["Actual path<br/>'mods/mod-1.0.jar'"]
+    Lookup -->|Found| ActualPath[Actual path<br/>mods/mod-1.0.jar]
     Lookup -->|Not found| None[None]
 ```
 

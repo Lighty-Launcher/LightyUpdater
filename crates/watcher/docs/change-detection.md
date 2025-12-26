@@ -193,11 +193,6 @@ sequenceDiagram
 - Efficient set operations
 - Fast comparisons
 
-**Performance:**
-- 10 servers: ~1μs
-- 100 servers: ~10μs
-- 1000 servers: ~100μs
-
 ### Lazy Comparison
 
 Configuration comparison is only done for servers existing in both configs:

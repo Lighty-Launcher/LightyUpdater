@@ -122,17 +122,6 @@ sequenceDiagram
 - Lookup: O(1) thanks to HashMap
 - Memory: O(n * (url_len + path_len))
 
-### Benchmarks
-
-**Construction (server with 500 files)**:
-- HashMap creation: ~50μs
-- Total memory: ~100KB
-
-**Resolution (1M lookups)**:
-- Hit: ~100ns per lookup
-- Miss: ~100ns per lookup
-- Total: ~100ms for 1M resolutions
-
 ## Incremental Updates
 
 The mapping can be updated incrementally during rescans:

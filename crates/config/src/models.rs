@@ -5,6 +5,8 @@ use std::sync::Arc;
 pub struct Config {
     pub server: ServerSettings,
     pub cache: CacheSettings,
+    #[serde(default = "super::defaults::hot_reload_settings")]
+    pub hot_reload: HotReloadSettings,
     #[serde(default = "super::defaults::storage_settings")]
     pub storage: StorageSettings,
     #[serde(default = "super::defaults::cloudflare_settings")]
@@ -94,14 +96,10 @@ pub struct CacheSettings {
     pub enabled: bool,
     pub auto_scan: bool,
     pub rescan_interval: u64,
-    #[serde(default = "super::defaults::config_watch_debounce_ms")]
-    pub config_watch_debounce_ms: u64,
     #[serde(default = "super::defaults::max_memory_cache_gb")]
     pub max_memory_cache_gb: u64,
     #[serde(default = "super::defaults::batch_config")]
     pub batch: BatchConfig,
-    #[serde(default = "super::defaults::file_watcher_debounce_ms")]
-    pub file_watcher_debounce_ms: u64,
     #[serde(default = "super::defaults::checksum_buffer_size")]
     pub checksum_buffer_size: usize,
     #[serde(default = "super::defaults::hash_concurrency")]
@@ -211,4 +209,28 @@ pub struct CloudflareSettings {
     pub api_token: String,
     #[serde(default = "super::defaults::purge_on_update")]
     pub purge_on_update: bool,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct HotReloadSettings {
+    #[serde(default = "super::defaults::hot_reload_config_settings")]
+    pub config: HotReloadConfigSettings,
+    #[serde(default = "super::defaults::hot_reload_files_settings")]
+    pub files: HotReloadFilesSettings,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct HotReloadConfigSettings {
+    #[serde(default = "super::defaults::hot_reload_config_enabled")]
+    pub enabled: bool,
+    #[serde(default = "super::defaults::config_watch_debounce_ms")]
+    pub debounce_ms: u64,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct HotReloadFilesSettings {
+    #[serde(default = "super::defaults::hot_reload_files_enabled")]
+    pub enabled: bool,
+    #[serde(default = "super::defaults::file_watcher_debounce_ms")]
+    pub debounce_ms: u64,
 }

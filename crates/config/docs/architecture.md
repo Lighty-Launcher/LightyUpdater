@@ -18,6 +18,7 @@ graph TB
         Config[Config]
         Server[ServerSettings]
         Cache[CacheSettings]
+        HotReload[HotReloadSettings]
         Storage[StorageSettings]
         CF[CloudflareSettings]
         Servers[Vec Arc ServerConfig]
@@ -41,6 +42,7 @@ graph TB
 
     Config --> Server
     Config --> Cache
+    Config --> HotReload
     Config --> Storage
     Config --> CF
     Config --> Servers
@@ -64,6 +66,7 @@ Root structure containing all configuration.
 pub struct Config {
     pub server: ServerSettings,
     pub cache: CacheSettings,
+    pub hot_reload: HotReloadSettings,
     pub storage: StorageSettings,
     pub cloudflare: CloudflareSettings,
     pub servers: Vec<Arc<ServerConfig>>,
@@ -130,6 +133,44 @@ pub struct BatchConfig {
 **Rescan Modes**:
 - `rescan_interval = 0`: File watcher mode (real-time)
 - `rescan_interval > 0`: Polling mode (periodic)
+
+### HotReloadSettings
+
+Hot-reload configuration for automatic config and file changes detection.
+
+**Structure**:
+```rust
+pub struct HotReloadSettings {
+    pub config: HotReloadConfigSettings,
+    pub files: HotReloadFilesSettings,
+}
+
+pub struct HotReloadConfigSettings {
+    pub enabled: bool,
+    pub debounce_ms: u64,
+}
+
+pub struct HotReloadFilesSettings {
+    pub enabled: bool,
+    pub debounce_ms: u64,
+}
+```
+
+**Configuration**:
+```toml
+[hot-reload.config]
+enabled = true          # Enable config.toml hot-reload
+debounce_ms = 300       # Debounce time in milliseconds
+
+[hot-reload.files]
+enabled = true          # Enable server files hot-reload
+debounce_ms = 300       # Debounce time in milliseconds
+```
+
+**Features**:
+- Independent control of config and files hot-reload
+- Configurable debounce times for each mode
+- Can be disabled in production environments
 
 ### StorageSettings
 

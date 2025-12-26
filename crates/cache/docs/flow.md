@@ -133,7 +133,9 @@ sequenceDiagram
 
         Debounce-->>RO: Timer expired
 
+        RO->>RO: Build HashMap of servers for O(1) lookup
         loop For each pending server
+            RO->>RO: Lookup server config in HashMap
             RO->>Scanner: scan_server_silent()
             Scanner-->>RO: VersionBuilder
             RO->>RO: update_cache_if_changed()
@@ -352,18 +354,11 @@ sequenceDiagram
 
 ## Performance Metrics
 
-### Time Complexity
-
-- **FileDiff computation**: O(n) where n = total number of files
-- **ServerPathCache lookup**: O(1) amortized
-- **Version cache get/insert**: O(1) with DashMap
-- **File cache get/insert**: O(1) with Moka
-- **URL map update**: O(k) where k = number of changes
-
 ### Implemented Optimizations
 
-1. **HashMap for FileDiff**: Avoids O(n²) comparisons
-2. **Incremental URL map**: Avoids O(n) reconstruction
+1. **HashMap for FileDiff**: Efficient file comparisons
+2. **Incremental URL map**: Updates only changed files
 3. **Parallel file upload**: Reduces total synchronization time
 4. **Debouncing**: Avoids unnecessary rescans
 5. **Lock-free DashMap**: Maximizes concurrency
+6. **ServerPathCache**: Sorted paths for fast lookups

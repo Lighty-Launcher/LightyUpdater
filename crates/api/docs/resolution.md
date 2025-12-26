@@ -2,7 +2,7 @@
 
 ## Overview
 
-The resolution system converts HTTP URLs to physical file paths via a pre-built HashMap for O(1) lookups.
+The resolution system converts HTTP URLs to physical file paths via a pre-built HashMap for fast lookups.
 
 ## Architecture
 
@@ -116,11 +116,9 @@ sequenceDiagram
 
 ## Performance
 
-### Complexity
-
-- Map construction: O(n) where n = total number of files
-- Lookup: O(1) thanks to HashMap
-- Memory: O(n * (url_len + path_len))
+- Map construction: One-time build during server scan
+- Lookup: Fast HashMap-based resolution
+- Memory: Stores URL to path mappings for all files
 
 ## Incremental Updates
 
@@ -145,7 +143,7 @@ graph TD
 
 **Advantages**:
 - Avoids complete reconstruction
-- Performance O(changes) instead of O(total)
+- Updates only changed files
 - Consistency maintained during rescan
 
 ## Special Cases

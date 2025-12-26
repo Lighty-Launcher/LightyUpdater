@@ -189,9 +189,9 @@ sequenceDiagram
 ### Using HashSet
 
 **Advantages:**
-- O(1) lookups instead of O(n)
+- Fast lookups
 - Efficient set operations
-- Fast comparisons
+- Quick comparisons
 
 ### Lazy Comparison
 

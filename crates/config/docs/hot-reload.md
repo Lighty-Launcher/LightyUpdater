@@ -4,6 +4,12 @@
 
 The hot-reload system allows modifying configuration without server restart. It detects changes, reloads configuration and updates affected components.
 
+The system has two independent hot-reload modes:
+- **Config hot-reload**: Monitors `config.toml` for configuration changes
+- **Files hot-reload**: Monitors server files (client/mods/libraries/natives/assets) for file changes
+
+Both can be enabled or disabled independently via configuration.
+
 ## Architecture
 
 ```mermaid
@@ -33,7 +39,8 @@ sequenceDiagram
     participant Scanner
 
     File->>Watcher: File modified (notify)
-    Watcher->>Watcher: Debounce (500ms)
+    Watcher->>Watcher: Check if hot-reload enabled
+    Watcher->>Watcher: Debounce (300ms)
 
     Watcher->>CM: pause_rescan()
     CM->>RO: pause()
@@ -110,6 +117,30 @@ for new_server in &new_config.servers {
 
 **Removed Servers**: No rescan necessary, handled automatically.
 
+## Configuration
+
+### Hot-Reload Settings
+
+```toml
+[hot-reload.config]
+enabled = true          # Enable/disable config.toml hot-reload
+debounce_ms = 300       # Debounce time in milliseconds
+
+[hot-reload.files]
+enabled = true          # Enable/disable server files hot-reload
+debounce_ms = 300       # Debounce time in milliseconds
+```
+
+**Config Hot-Reload**:
+- `enabled = true`: Automatically reloads `config.toml` when it changes
+- `enabled = false`: Requires server restart for configuration changes
+- `debounce_ms`: Wait time after last file change before reloading
+
+**Files Hot-Reload**:
+- `enabled = true`: Automatically rescans server files when they change
+- `enabled = false`: Only periodic rescans (requires `rescan_interval > 0`)
+- `debounce_ms`: Wait time after last file change before rescanning
+
 ## Debouncing
 
 ### Problem
@@ -123,10 +154,10 @@ Text editors can generate multiple events:
 
 ```mermaid
 graph TD
-    Event1[Event 1: Modify] --> Start[Start timer 500ms]
+    Event1[Event 1: Modify] --> Start[Start timer 300ms]
     Event2[Event 2: Modify] --> Reset[Reset timer]
     Event3[Event 3: Modify] --> Reset2[Reset timer]
-    Wait[Wait 500ms] --> NoMore{More events?}
+    Wait[Wait 300ms] --> NoMore{More events?}
 
     NoMore -->|No| Process[Process reload]
     NoMore -->|Yes| Reset3[Reset timer]
@@ -134,19 +165,22 @@ graph TD
     Process --> Done[Done]
 ```
 
-**Configuration**:
-```toml
-[cache]
-config_watch_debounce_ms = 500  # 500ms grace period
-```
-
 **Implementation**:
 ```rust
 while rx.recv().await.is_some() {
-    let debounce_ms = {
+    // Check if hot-reload is enabled
+    let (enabled, debounce_ms) = {
         let config_read = config.read().await;
-        config_read.cache.config_watch_debounce_ms
+        (
+            config_read.hot_reload.config.enabled,
+            config_read.hot_reload.config.debounce_ms,
+        )
     };
+
+    // Skip if disabled
+    if !enabled {
+        continue;
+    }
 
     tokio::time::sleep(Duration::from_millis(debounce_ms)).await;
 
@@ -379,11 +413,11 @@ if !std::path::Path::new(config_path).exists() {
 
 ## Communication Channel
 
-### Configuration
+### Channel Configuration
 
 ```toml
 [cache]
-config_reload_channel_size = 100
+config_reload_channel_size = 100  # Buffer size for config reload events
 ```
 
 **Channel Size**:
@@ -404,7 +438,28 @@ let (tx, mut rx) = tokio::sync::mpsc::channel(channel_size);
 
 ## Scenario Examples
 
-### Scenario 1: rescan_interval Change
+### Scenario 1: Disabling Hot-Reload
+
+```toml
+[hot-reload.config]
+enabled = false  # Disable config hot-reload
+
+[hot-reload.files]
+enabled = false  # Disable file hot-reload
+```
+
+**Impact**:
+- Config watcher still monitors file but ignores all change events
+- File watcher doesn't start (waits indefinitely)
+- All configuration changes require server restart
+- Server files changes not detected (only periodic rescan if enabled)
+
+**Use Cases**:
+- Production environments where changes should be controlled
+- Debugging to prevent automatic reloads
+- Testing specific configurations without interruption
+
+### Scenario 2: rescan_interval Change
 
 ```toml
 # Before
@@ -422,7 +477,7 @@ rescan_interval = 0  # File watcher mode
 - Switches from polling to file watcher
 - No server rescan necessary
 
-### Scenario 2: Adding a Server
+### Scenario 3: Adding a Server
 
 ```toml
 # New server added
@@ -440,7 +495,7 @@ loader = "fabric"
 4. Added to cache
 5. ServerPathCache rebuild
 
-### Scenario 3: enable_mods Modification
+### Scenario 4: enable_mods Modification
 
 ```toml
 # Before
@@ -460,7 +515,7 @@ enable_mods = true
 3. Scanner now scans mods/
 4. Cache updated with mods
 
-### Scenario 4: Multiple Changes
+### Scenario 5: Multiple Changes
 
 ```toml
 # Multiple changes in one save
@@ -477,7 +532,7 @@ name = "creative"  # New server
 ```
 
 **Process**:
-1. Debouncing: waits 500ms after last event
+1. Debouncing: waits 300ms after last event
 2. Complete config reload
 3. Detection: 1 modified + 1 added
 4. Rescan "survival"

@@ -78,7 +78,10 @@ Main entry point that orchestrates the complete scan of a server.
 - `scan_server`: Scan with detailed logging
 - `scan_server_silent`: Scan without logging (for frequent rescans)
 - `validate_server_path`: Verify server existence
-- `build_version_metadata`: Build metadata
+- `build_version_metadata`: Build metadata with parallel component scanning
+
+**Parallelization**:
+The `build_version_metadata` method uses `tokio::join!` to scan all components (client, libraries, mods, natives, assets) concurrently. This allows multiple I/O operations to execute simultaneously, significantly reducing total scan time.
 
 ### JarScanner
 

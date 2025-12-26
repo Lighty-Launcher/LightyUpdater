@@ -17,7 +17,7 @@ pub fn max_concurrent_requests() -> usize {
 }
 
 pub fn config_watch_debounce_ms() -> u64 {
-    500
+    300
 }
 
 pub fn max_memory_cache_gb() -> u64 {
@@ -51,7 +51,7 @@ pub fn streaming_threshold_mb() -> u64 {
 }
 
 pub fn file_watcher_debounce_ms() -> u64 {
-    500  // Wait 500ms after last file change before rescanning
+    300  // Wait 300ms after last file change before rescanning
 }
 
 pub fn checksum_buffer_size() -> usize {
@@ -135,6 +135,36 @@ pub fn cloudflare_settings() -> super::models::CloudflareSettings {
     }
 }
 
+// Hot-reload defaults
+pub fn hot_reload_config_enabled() -> bool {
+    true
+}
+
+pub fn hot_reload_files_enabled() -> bool {
+    true
+}
+
+pub fn hot_reload_config_settings() -> super::models::HotReloadConfigSettings {
+    super::models::HotReloadConfigSettings {
+        enabled: hot_reload_config_enabled(),
+        debounce_ms: config_watch_debounce_ms(),
+    }
+}
+
+pub fn hot_reload_files_settings() -> super::models::HotReloadFilesSettings {
+    super::models::HotReloadFilesSettings {
+        enabled: hot_reload_files_enabled(),
+        debounce_ms: file_watcher_debounce_ms(),
+    }
+}
+
+pub fn hot_reload_settings() -> super::models::HotReloadSettings {
+    super::models::HotReloadSettings {
+        config: hot_reload_config_settings(),
+        files: hot_reload_files_settings(),
+    }
+}
+
 pub const DEFAULT_CONFIG_TEMPLATE: &str = r#"# ===============================================================================
 # LightyUpdater Configuration
 # ===============================================================================
@@ -164,10 +194,6 @@ auto_scan = true                     # Scan servers on startup
 rescan_interval = 30                 # Rescan interval in seconds (0 = file watcher only)
 max_memory_cache_gb = 0              # Max RAM for cache in GB (0 = unlimited)
 
-# Hot-reload
-config_watch_debounce_ms = 500       # Config file change debounce (milliseconds)
-file_watcher_debounce_ms = 500       # Server files change debounce (milliseconds)
-
 # Performance
 checksum_buffer_size = 8192          # SHA1 calculation buffer (bytes)
 hash_concurrency = 100               # Max concurrent hash computations
@@ -180,6 +206,17 @@ libraries = 100                      # Libraries scan batch size
 mods = 100                           # Mods scan batch size
 natives = 100                        # Natives scan batch size
 assets = 100                         # Assets scan batch size
+
+# ===============================================================================
+# HOT-RELOAD CONFIGURATION
+# ===============================================================================
+[hot-reload.config]
+enabled = true                       # Enable automatic config.toml reload on changes
+debounce_ms = 300                    # Delay after config.toml changes before reload (milliseconds)
+
+[hot-reload.files]
+enabled = true                       # Enable automatic server files rescan on changes
+debounce_ms = 300                    # Delay after server files changes (client/mods/libs) before rescan (milliseconds)
 
 # ===============================================================================
 # STORAGE BACKEND

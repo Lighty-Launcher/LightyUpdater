@@ -86,14 +86,24 @@ impl CacheManager {
         tracing::debug!("Server path cache rebuilt after config reload");
     }
 
+    /// Rebuild server path cache with provided data (used during config hot-reload to avoid deadlock)
+    pub fn rebuild_server_cache_with_data(&self, servers: &[Arc<ServerConfig>], base_path: &str) {
+        self.server_path_cache.rebuild(servers, base_path);
+        tracing::debug!("Server path cache rebuilt after config reload (with provided data)");
+    }
+
     /// Signals graceful shutdown to all background tasks
     pub async fn shutdown(&self) {
         tracing::info!("CacheManager: Initiating graceful shutdown...");
         let _ = self.shutdown_tx.send(());
 
-        // Wait for all tasks to complete
-        let task_ids: Vec<usize> = self.tasks.iter().map(|entry| *entry.key()).collect();
-        for task_id in task_ids {
+        // Wait for all tasks to complete (drain tasks and collect handles)
+        let handles: Vec<_> = self.tasks.iter()
+            .map(|entry| *entry.key())
+            .collect();
+
+        // Remove and await each handle
+        for task_id in handles {
             if let Some((_, handle)) = self.tasks.remove(&task_id) {
                 let _ = handle.await;
             }

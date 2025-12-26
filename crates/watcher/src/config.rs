@@ -4,7 +4,7 @@ use lighty_cache::CacheManager;
 use lighty_config::{Config, ServerConfig};
 use lighty_filesystem::FileSystem;
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 use std::path::Path;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -47,6 +47,8 @@ impl ConfigWatcher {
         let config = Arc::clone(&self.config);
         let cache_manager = Arc::clone(&self.cache_manager);
 
+        tracing::info!("Starting ConfigWatcher for: {}", config_path);
+
         let handle = tokio::spawn(async move {
             if let Err(e) = Self::watch_config_file(&config_path, config, cache_manager).await {
                 tracing::error!("Config watcher error: {}", e);
@@ -72,10 +74,12 @@ impl ConfigWatcher {
         let mut watcher: RecommendedWatcher = notify::recommended_watcher(
             move |res: std::result::Result<Event, notify::Error>| {
                 if let Ok(event) = res {
+                    tracing::debug!("File watcher event: {:?}", event);
                     if matches!(
                         event.kind,
                         notify::EventKind::Modify(_) | notify::EventKind::Create(_)
                     ) {
+                        tracing::debug!("Config file change detected, sending reload signal");
                         let _ = tx.blocking_send(());
                     }
                 }
@@ -83,15 +87,48 @@ impl ConfigWatcher {
         )?;
 
         watcher.watch(Path::new(config_path), RecursiveMode::NonRecursive)?;
+        tracing::info!("File watcher initialized for: {}", config_path);
+
+        // Keep watcher alive for the entire loop
+        let _watcher = watcher;
 
         while rx.recv().await.is_some() {
-            // Get debounce time from current config
-            let debounce_ms = {
+            tracing::debug!("Config change signal received");
+
+            // Drain any additional events that arrived to debounce multiple rapid changes
+            while rx.try_recv().is_ok() {
+                tracing::debug!("Draining additional events from channel");
+            }
+
+            // Check if config hot-reload is enabled and get debounce time
+            let (enabled, debounce_ms) = {
                 let config_read = config.read().await;
-                config_read.cache.config_watch_debounce_ms
+                (
+                    config_read.hot_reload.config.enabled,
+                    config_read.hot_reload.config.debounce_ms,
+                )
             };
 
+            // Skip reload if hot-reload is disabled
+            if !enabled {
+                tracing::warn!("Config hot-reload is disabled, ignoring change event");
+                continue;
+            }
+
+            tracing::debug!("Debouncing for {}ms...", debounce_ms);
             tokio::time::sleep(tokio::time::Duration::from_millis(debounce_ms)).await;
+
+            // CRITICAL: Drain all events that arrived during debounce to avoid multiple reloads
+            let mut drained = 0;
+            while rx.try_recv().is_ok() {
+                drained += 1;
+            }
+            if drained > 0 {
+                tracing::debug!("Drained {} events after debounce, waiting additional {}ms", drained, debounce_ms);
+                tokio::time::sleep(tokio::time::Duration::from_millis(debounce_ms)).await;
+                // Drain again
+                while rx.try_recv().is_ok() {}
+            }
 
             // Check if config file still exists
             if !std::path::Path::new(config_path).exists() {
@@ -99,13 +136,18 @@ impl ConfigWatcher {
                 continue;
             }
 
-            match Config::from_file_with_events(config_path, None).await {
+            tracing::info!("🔄 Reloading configuration from {}", config_path);
+            match Config::from_file_no_migration(config_path).await {
                 Ok(new_config) => {
+                    tracing::debug!("Config loaded successfully, acquiring locks...");
+
                     // CRITICAL: Pause rescan to prevent race condition during config reload
                     cache_manager.pause_rescan();
 
                     let (old_servers, old_configs) = {
+                        tracing::debug!("Acquiring read lock on config...");
                         let config_read = config.read().await;
+                        tracing::debug!("Read lock acquired");
                         let names = config_read
                             .servers
                             .iter()
@@ -125,9 +167,15 @@ impl ConfigWatcher {
                         new_servers.difference(&old_servers).cloned().collect();
 
                     // Detect modified servers (existing servers with config changes)
+                    // O(1) HashMap lookup instead of O(n) find
+                    let old_configs_map: HashMap<_, _> = old_configs
+                        .iter()
+                        .map(|s| (s.name.as_ref(), s))
+                        .collect();
+
                     let mut modified_servers = Vec::new();
                     for new_server in &new_config.servers {
-                        if let Some(old_server) = old_configs.iter().find(|s| s.name == new_server.name) {
+                        if let Some(old_server) = old_configs_map.get(new_server.name.as_ref()) {
                             // Check if any config field changed
                             if Self::server_config_changed(old_server, new_server) {
                                 modified_servers.push(new_server.name.clone());
@@ -136,13 +184,17 @@ impl ConfigWatcher {
                     }
 
                     // Update config with exclusive write lock
+                    tracing::debug!("Acquiring write lock on config...");
                     let mut config_write = config.write().await;
+                    tracing::debug!("Write lock acquired, updating config...");
                     *config_write = new_config;
 
-                    // Rebuild server path cache after config update
-                    cache_manager.rebuild_server_cache().await;
+                    // Rebuild server path cache after config update (pass data directly to avoid deadlock)
+                    tracing::debug!("Rebuilding server path cache...");
+                    cache_manager.rebuild_server_cache_with_data(&config_write.servers, config_write.server.base_path.as_ref());
 
                     // Resume rescan BEFORE dropping lock to avoid race condition
+                    tracing::debug!("Resuming rescan...");
                     cache_manager.resume_rescan();
 
                     tracing::info!("✓ Configuration reloaded successfully from {}", config_path);
@@ -160,12 +212,14 @@ impl ConfigWatcher {
                     }
 
                     if !added_servers.is_empty() {
+                        tracing::info!("Detected {} new server(s): {:?}", added_servers.len(), added_servers);
                         for server_name in &added_servers {
                             if let Some(server_config) =
                                 config_write.servers.iter().find(|s| &s.name == server_name)
                             {
                                 // Skip if server is disabled
                                 if !server_config.enabled {
+                                    tracing::warn!("Skipping disabled server: {}", server_name);
                                     continue;
                                 }
 
@@ -199,6 +253,7 @@ impl ConfigWatcher {
                 }
                 Err(e) => {
                     tracing::error!("Failed to reload config: {}", e);
+                    cache_manager.resume_rescan();
                 }
             }
         }

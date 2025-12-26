@@ -115,14 +115,25 @@ Computes granular differences between two server versions.
 
 Fast mapping cache between file paths and owner servers.
 
-**Optimizations:**
-- HashMap for O(1) lookups
-- RwLock for concurrency
-- Incremental reconstruction when servers are added/removed
+**Structure:**
+- Uses a sorted Vec of (PathBuf, String) tuples
+- Paths sorted by length in descending order (longest first)
+- RwLock for concurrent access
+
+**Lookup Strategy:**
+- Paths are sorted to ensure most specific paths match first
+- Iteration stops at first matching prefix
+- O(k) complexity where k = number of servers
 
 **Usage:**
-- File watcher: Quickly determines which server to rescan
-- Configuration reload: Cache reconstruction with new servers
+- File watcher: Determines which server to rescan for a modified file
+- Configuration reload: Cache rebuilt with new server list
+
+**Cloudflare Integration:**
+When Cloudflare is enabled, cache purging includes:
+- Automatic retry with exponential backoff (3 attempts)
+- 10-second timeout per request
+- Graceful degradation on persistent failures
 
 ### FileCacheManager
 

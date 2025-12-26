@@ -16,6 +16,7 @@ pub async fn migrate_config_if_needed<P: AsRef<Path>>(
 
     migrate_server_section(&mut doc, &mut added_fields)?;
     migrate_cache_section(&mut doc, &mut added_fields)?;
+    migrate_hot_reload_section(&mut doc, &mut added_fields)?;
     migrate_storage_section(&mut doc, &mut added_fields)?;
     migrate_cloudflare_section(&mut doc, &mut added_fields)?;
     migrate_servers_array(&mut doc, &mut added_fields)?;
@@ -28,13 +29,17 @@ pub async fn migrate_config_if_needed<P: AsRef<Path>>(
 
     // Only write if we added fields
     if !added_fields.is_empty() {
+        tracing::info!("Migrating config with {} changes: {:?}", added_fields.len(), added_fields);
         tokio::fs::write(path.as_ref(), doc.to_string()).await?;
+        tracing::debug!("Config file written after migration");
 
         if let Some(event_bus) = events {
             event_bus.emit(lighty_events::AppEvent::ConfigMigrated {
                 added_fields: added_fields.clone(),
             });
         }
+    } else {
+        tracing::debug!("No migration needed");
     }
 
     Ok(())
@@ -144,20 +149,8 @@ fn migrate_cache_section(
     ensure_field(cache, "rescan_interval", Value::from(30), added_fields);
     ensure_field(
         cache,
-        "config_watch_debounce_ms",
-        Value::from(500),
-        added_fields,
-    );
-    ensure_field(
-        cache,
         "max_memory_cache_gb",
         Value::from(0),
-        added_fields,
-    );
-    ensure_field(
-        cache,
-        "file_watcher_debounce_ms",
-        Value::from(500),
         added_fields,
     );
     ensure_field(
@@ -209,6 +202,88 @@ fn migrate_cache_section(
     ensure_field(batch, "mods", Value::from(default_batch), added_fields);
     ensure_field(batch, "natives", Value::from(default_batch), added_fields);
     ensure_field(batch, "assets", Value::from(default_batch), added_fields);
+
+    Ok(())
+}
+
+fn migrate_hot_reload_section(
+    doc: &mut DocumentMut,
+    added_fields: &mut Vec<String>,
+) -> Result<()> {
+    // Extract old values from [cache] if they exist
+    let old_config_debounce = if let Some(cache) = doc.get("cache") {
+        cache.get("config_watch_debounce_ms")
+            .and_then(|v| v.as_integer())
+    } else {
+        None
+    };
+
+    let old_files_debounce = if let Some(cache) = doc.get("cache") {
+        cache.get("file_watcher_debounce_ms")
+            .and_then(|v| v.as_integer())
+    } else {
+        None
+    };
+
+    // Ensure [hot-reload] section exists
+    if !doc.contains_key("hot-reload") {
+        let mut table = Table::new();
+        table.set_implicit(true);
+        doc["hot-reload"] = Item::Table(table);
+        added_fields.push("hot-reload".to_string());
+    }
+
+    let hot_reload = doc["hot-reload"]
+        .as_table_mut()
+        .ok_or_else(|| ConfigError::InvalidConfig("Invalid [hot-reload] section in config".to_string()))?;
+
+    // Ensure [hot-reload.config] section
+    if !hot_reload.contains_key("config") {
+        let mut config_table = Table::new();
+        config_table.set_implicit(true);
+        hot_reload["config"] = Item::Table(config_table);
+        added_fields.push("hot-reload.config".to_string());
+    }
+
+    let config = hot_reload["config"]
+        .as_table_mut()
+        .ok_or_else(|| ConfigError::InvalidConfig("Invalid [hot-reload.config] section in config".to_string()))?;
+
+    ensure_field(config, "enabled", Value::from(true), added_fields);
+
+    // Use old value if exists, otherwise default to 300
+    let config_debounce = old_config_debounce.unwrap_or(300);
+    ensure_field(config, "debounce_ms", Value::from(config_debounce), added_fields);
+
+    // Ensure [hot-reload.files] section
+    if !hot_reload.contains_key("files") {
+        let mut files_table = Table::new();
+        files_table.set_implicit(true);
+        hot_reload["files"] = Item::Table(files_table);
+        added_fields.push("hot-reload.files".to_string());
+    }
+
+    let files = hot_reload["files"]
+        .as_table_mut()
+        .ok_or_else(|| ConfigError::InvalidConfig("Invalid [hot-reload.files] section in config".to_string()))?;
+
+    ensure_field(files, "enabled", Value::from(true), added_fields);
+
+    // Use old value if exists, otherwise default to 300
+    let files_debounce = old_files_debounce.unwrap_or(300);
+    ensure_field(files, "debounce_ms", Value::from(files_debounce), added_fields);
+
+    // Remove old fields from [cache] if they exist
+    if let Some(cache) = doc.get_mut("cache").and_then(|c| c.as_table_mut()) {
+        if cache.contains_key("config_watch_debounce_ms") {
+            cache.remove("config_watch_debounce_ms");
+            added_fields.push("removed cache.config_watch_debounce_ms (migrated to hot-reload.config.debounce_ms)".to_string());
+        }
+        if cache.contains_key("file_watcher_debounce_ms") {
+            cache.remove("file_watcher_debounce_ms");
+            added_fields.push("removed cache.file_watcher_debounce_ms (migrated to hot-reload.files.debounce_ms)".to_string());
+        }
+    }
 
     Ok(())
 }

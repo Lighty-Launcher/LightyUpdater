@@ -168,12 +168,17 @@ impl FileCacheManager {
     /// Waits for all background tasks to complete
     pub async fn shutdown(&self) {
         tracing::info!("FileCacheManager: Shutting down gracefully...");
+
+        // Collect task IDs (small allocation, necessary with DashMap)
         let task_ids: Vec<usize> = self.tasks.iter().map(|entry| *entry.key()).collect();
+
+        // Remove and await each handle
         for task_id in task_ids {
             if let Some((_, handle)) = self.tasks.remove(&task_id) {
                 let _ = handle.await;
             }
         }
+
         tracing::info!("FileCacheManager: All tasks shut down gracefully");
     }
 }

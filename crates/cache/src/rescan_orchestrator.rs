@@ -12,7 +12,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::sync::RwLock;
 use tokio::time::{interval, Duration};
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 
 type Result<T> = std::result::Result<T, CacheError>;
 
@@ -82,7 +82,8 @@ impl RescanOrchestrator {
                 interval.tick().await;
 
                 // Check if rescan is paused (e.g., during config reload)
-                if self.paused.load(Ordering::SeqCst) {
+                // Relaxed ordering is sufficient for simple flag check
+                if self.paused.load(Ordering::Relaxed) {
                     continue;
                 }
 
@@ -106,6 +107,22 @@ impl RescanOrchestrator {
 
     /// Runs file watcher loop for continuous monitoring (event-driven instead of polling)
     async fn run_file_watcher_loop(&self) {
+        // Check if file watcher is enabled
+        let (enabled, debounce_ms) = {
+            let config = self.config.read().await;
+            (
+                config.hot_reload.files.enabled,
+                config.hot_reload.files.debounce_ms,
+            )
+        };
+
+        if !enabled {
+            tracing::warn!("File watcher hot-reload is disabled, continuous scan will not monitor file changes");
+            // Wait indefinitely since the feature is disabled
+            std::future::pending::<()>().await;
+            return;
+        }
+
         let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
 
         // Setup file watcher
@@ -143,10 +160,6 @@ impl RescanOrchestrator {
         }
 
         // Debounce settings: wait after last event before rescanning
-        let debounce_ms = {
-            let config = self.config.read().await;
-            config.cache.file_watcher_debounce_ms
-        };
         let debounce_duration = Duration::from_millis(debounce_ms);
         let mut pending_servers: HashSet<String> = HashSet::new();
         let mut debounce_timer: Option<tokio::time::Instant> = None;
@@ -155,8 +168,8 @@ impl RescanOrchestrator {
             tokio::select! {
                 // File system event received
                 Some(event) = rx.recv() => {
-                    // Check if paused
-                    if self.paused.load(Ordering::SeqCst) {
+                    // Check if paused (Relaxed ordering sufficient)
+                    if self.paused.load(Ordering::Relaxed) {
                         continue;
                     }
 
@@ -185,8 +198,14 @@ impl RescanOrchestrator {
                             (config.servers.clone(), config.server.base_path.clone())
                         };
 
+                        // O(1) HashMap lookup instead of O(n) find
+                        let servers_map: HashMap<_, _> = servers
+                            .iter()
+                            .map(|s| (s.name.as_ref(), s))
+                            .collect();
+
                         for server_name in pending_servers.drain() {
-                            if let Some(server_config) = servers.iter().find(|s| s.name.as_ref() == server_name.as_str()) {
+                            if let Some(server_config) = servers_map.get(server_name.as_str()) {
                                 if server_config.enabled {
                                     tracing::debug!("File change detected, rescanning server: {}", server_name);
                                     self.rescan_server(server_config, base_path.as_ref()).await;
@@ -410,10 +429,47 @@ impl RescanOrchestrator {
                     self.events.emit(AppEvent::CacheNew { server: server_name.to_string() });
                 }
                 Err(e) => {
-                    self.events.emit(AppEvent::Error {
-                        context: format!("Failed to scan server {}", server_name),
-                        error: e.to_string(),
-                    });
+                    // Server scan failed (probably empty folders), add empty version to cache anyway
+                    tracing::warn!("Server {} initial scan failed (probably empty), adding empty version to cache: {}", server_name, e);
+
+                    // Get server config to create empty builder
+                    let (server_config, _) = {
+                        let config = self.config.read().await;
+                        let server_config = config.servers.iter()
+                            .find(|s| s.name.as_ref() == server_name.as_ref())
+                            .cloned();
+                        (server_config, config.server.base_path.clone())
+                    };
+
+                    if let Some(config) = server_config {
+                        let mut empty_builder = VersionBuilder {
+                            main_class: lighty_models::MainClass {
+                                main_class: config.main_class.clone(),
+                            },
+                            java_version: lighty_models::JavaVersion {
+                                major_version: config.java_version,
+                            },
+                            arguments: lighty_models::Arguments {
+                                game: config.game_args.clone(),
+                                jvm: config.jvm_args.clone(),
+                            },
+                            libraries: Vec::new(),
+                            mods: Vec::new(),
+                            natives: None,
+                            client: None,
+                            assets: Vec::new(),
+                            url_to_path_map: std::collections::HashMap::new(),
+                        };
+                        empty_builder.build_url_map();
+                        self.cache.insert(server_name.to_string(), Arc::new(empty_builder));
+                        self.last_updated.insert(server_name.to_string(), get_current_timestamp());
+                        self.events.emit(AppEvent::CacheNew { server: server_name.to_string() });
+                    } else {
+                        self.events.emit(AppEvent::Error {
+                            context: format!("Failed to scan server {}", server_name),
+                            error: e.to_string(),
+                        });
+                    }
                 }
             }
         }
@@ -442,13 +498,41 @@ impl RescanOrchestrator {
             )
         };
 
-        let mut builder = ServerScanner::scan_server(&server_config, storage, base_path.as_ref(), &batch_config, buffer_size).await?;
-
-        // Build URL map for forced rescan
-        builder.build_url_map();
-
-        self.cache.insert(server_name.to_string(), Arc::new(builder));
-        self.last_updated.insert(server_name.to_string(), get_current_timestamp());
+        // Try to scan the server, but add it to cache even if scan fails (empty server)
+        match ServerScanner::scan_server(&server_config, storage, base_path.as_ref(), &batch_config, buffer_size).await {
+            Ok(mut builder) => {
+                // Build URL map for forced rescan
+                builder.build_url_map();
+                self.cache.insert(server_name.to_string(), Arc::new(builder));
+                self.last_updated.insert(server_name.to_string(), get_current_timestamp());
+                tracing::info!("✓ Successfully rescanned server: {}", server_name);
+            }
+            Err(e) => {
+                // Server scan failed (probably empty folders), add empty version to cache anyway
+                tracing::warn!("Server {} scan failed (probably empty), adding empty version to cache: {}", server_name, e);
+                let mut empty_builder = VersionBuilder {
+                    main_class: lighty_models::MainClass {
+                        main_class: server_config.main_class.clone(),
+                    },
+                    java_version: lighty_models::JavaVersion {
+                        major_version: server_config.java_version,
+                    },
+                    arguments: lighty_models::Arguments {
+                        game: server_config.game_args.clone(),
+                        jvm: server_config.jvm_args.clone(),
+                    },
+                    libraries: Vec::new(),
+                    mods: Vec::new(),
+                    natives: None,
+                    client: None,
+                    assets: Vec::new(),
+                    url_to_path_map: std::collections::HashMap::new(),
+                };
+                empty_builder.build_url_map();
+                self.cache.insert(server_name.to_string(), Arc::new(empty_builder));
+                self.last_updated.insert(server_name.to_string(), get_current_timestamp());
+            }
+        }
 
         Ok(())
     }

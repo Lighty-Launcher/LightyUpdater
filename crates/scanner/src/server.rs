@@ -61,6 +61,45 @@ impl ServerScanner {
         batch_config: &BatchConfig,
         buffer_size: usize,
     ) -> Result<VersionBuilder> {
+        // Scan all components in parallel
+        let (libraries_result, mods_result, natives_result, client_result, assets_result) = tokio::join!(
+            async {
+                if config.enable_libraries {
+                    libraries::scan_libraries(server_path, &config.name, storage, batch_config.libraries, buffer_size).await
+                } else {
+                    Ok(vec![])
+                }
+            },
+            async {
+                if config.enable_mods {
+                    mods::scan_mods(server_path, &config.name, storage, batch_config.mods, buffer_size).await
+                } else {
+                    Ok(vec![])
+                }
+            },
+            async {
+                if config.enable_natives {
+                    natives::scan_natives(server_path, &config.name, storage, batch_config.natives, buffer_size).await.map(Some)
+                } else {
+                    Ok(None)
+                }
+            },
+            async {
+                if config.enable_client {
+                    client::scan_client(server_path, &config.name, storage, buffer_size).await
+                } else {
+                    Ok(None)
+                }
+            },
+            async {
+                if config.enable_assets {
+                    assets::scan_assets(server_path, &config.name, storage, batch_config.assets, buffer_size).await
+                } else {
+                    Ok(vec![])
+                }
+            },
+        );
+
         let mut builder = VersionBuilder {
             main_class: MainClass {
                 main_class: config.main_class.clone(),
@@ -72,31 +111,11 @@ impl ServerScanner {
                 game: config.game_args.clone(),
                 jvm: config.jvm_args.clone(),
             },
-            libraries: if config.enable_libraries {
-                libraries::scan_libraries(server_path, &config.name, storage, batch_config.libraries, buffer_size).await?
-            } else {
-                vec![]
-            },
-            mods: if config.enable_mods {
-                mods::scan_mods(server_path, &config.name, storage, batch_config.mods, buffer_size).await?
-            } else {
-                vec![]
-            },
-            natives: if config.enable_natives {
-                Some(natives::scan_natives(server_path, &config.name, storage, batch_config.natives, buffer_size).await?)
-            } else {
-                None
-            },
-            client: if config.enable_client {
-                client::scan_client(server_path, &config.name, storage, buffer_size).await?
-            } else {
-                None
-            },
-            assets: if config.enable_assets {
-                assets::scan_assets(server_path, &config.name, storage, batch_config.assets, buffer_size).await?
-            } else {
-                vec![]
-            },
+            libraries: libraries_result?,
+            mods: mods_result?,
+            natives: natives_result?,
+            client: client_result?,
+            assets: assets_result?,
             url_to_path_map: HashMap::new(),
         };
 

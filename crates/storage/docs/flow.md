@@ -102,7 +102,7 @@ sequenceDiagram
     end
 ```
 
-**Performance:** O(n) where n = file size
+**Performance:** Streaming upload for large files
 
 ### Deletion - LocalBackend
 

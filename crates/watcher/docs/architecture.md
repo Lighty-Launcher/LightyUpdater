@@ -106,11 +106,12 @@ graph TD
     LoadNew --> GetOld[Get old server list]
     GetOld --> GetOldConfigs[Get old server configs]
 
-    GetOldConfigs --> CompareServers[Compare server names]
+    GetOldConfigs --> BuildMap[Build HashMap of old configs]
+    BuildMap --> CompareServers[Compare server names]
     CompareServers --> Added[Detect added servers]
     CompareServers --> Removed[Detect removed servers]
 
-    GetOldConfigs --> CompareConfigs[Compare server configs]
+    BuildMap --> CompareConfigs[Compare server configs via HashMap]
     CompareConfigs --> Modified[Detect modified servers]
 
     Added --> Actions
@@ -119,6 +120,9 @@ graph TD
 
     Actions[Execute actions]
 ```
+
+**Performance:**
+Server config comparison uses a HashMap for fast lookups when checking modifications.
 
 ## Data Flow
 
@@ -159,7 +163,7 @@ sequenceDiagram
     Chan->>CW: Receive event
 
     CW->>CW: Debounce wait
-    Note over CW: Wait config_watch_debounce_ms
+    Note over CW: Wait hot_reload.config.debounce_ms
 
     CW->>CW: Check file exists
     CW->>Config: Load new config from file
@@ -345,15 +349,16 @@ sequenceDiagram
     FS->>Watcher: Event #3
     Watcher->>Timer: Reset debounce timer
 
-    Note over Timer: Wait config_watch_debounce_ms
+    Note over Timer: Wait hot_reload.config.debounce_ms
 
     Timer->>Watcher: Timer expired
     Watcher->>Watcher: Reload config (once)
 ```
 
 **Configuration:**
-- Configurable delay via `config.cache.config_watch_debounce_ms`
-- Default: 500ms
+- Configurable delay via `config.hot_reload.config.debounce_ms`
+- Default: 300ms
+- Enable/disable via `config.hot_reload.config.enabled`
 - Each event resets the timer
 - Reload only executes after delay with no new events
 
@@ -431,10 +436,10 @@ Channel size based on:
 
 ### HashSet for Comparison
 
-Using HashSet for O(1) lookups:
+Using HashSet for efficient comparisons:
 - Converting server lists to HashSet
-- Difference and intersection in O(n)
-- Avoids O(n²) comparisons
+- Fast difference and intersection operations
+- Efficient server list comparisons
 
 ### Lazy Evaluation
 

@@ -111,11 +111,11 @@ graph TD
     Unchanged --> End
 ```
 
-**Complexity**: O(1) - simple comparison
+Simple comparison of optional client JAR.
 
 ### diff_libraries
 
-Libraries are compared via HashMap for O(1) lookups:
+Libraries are compared via HashMap for fast lookups:
 
 ```mermaid
 graph TD
@@ -154,9 +154,7 @@ graph TD
     NextOld --> End[End]
 ```
 
-**Complexity**: O(n + m) where n = number of old libraries, m = number of new libraries
-
-**Optimization**: HashMap allows O(1) lookups instead of O(n) with linear iteration.
+**Optimization**: HashMap enables fast lookups during comparison.
 
 ### diff_mods
 
@@ -167,7 +165,6 @@ let old_map: HashMap<_, _> = old.mods.iter().map(|m| (&m.name, m)).collect();
 let new_map: HashMap<_, _> = new.mods.iter().map(|m| (&m.name, m)).collect();
 ```
 
-**Complexity**: O(n + m)
 
 ### diff_natives
 
@@ -188,9 +185,9 @@ graph TD
     Compare --> End
 ```
 
-**Complexity**:
-- None → Some or Some → None: O(n)
-- Some → Some: O(n + m)
+**Cases**:
+- None → Some or Some → None: Entire list marked as added/removed
+- Some → Some: Compared using HashMap
 
 ### diff_assets
 
@@ -201,7 +198,6 @@ let old_map: HashMap<_, _> = old.assets.iter().map(|a| (&a.path, a)).collect();
 let new_map: HashMap<_, _> = new.assets.iter().map(|a| (&a.path, a)).collect();
 ```
 
-**Complexity**: O(n + m)
 
 **Note**: Assets can be very numerous (thousands of files), hence the importance of HashMap optimization.
 
@@ -209,7 +205,7 @@ let new_map: HashMap<_, _> = new.assets.iter().map(|a| (&a.path, a)).collect();
 
 ### Principle
 
-Instead of completely rebuilding the URL map (O(n)), we only apply changes (O(k) where k = number of changes).
+Instead of completely rebuilding the URL map, we only apply changes to the files that were added, modified, or removed.
 
 ```mermaid
 graph TD
@@ -258,7 +254,7 @@ pub fn apply_to_url_map(&self, builder: &mut VersionBuilder) {
 ```
 
 **Advantages**:
-- Performance: O(k) instead of O(n)
+- Performance: Updates only changed files
 - Memory: No temporary reconstruction
 - Precision: Only necessary changes
 
@@ -411,11 +407,11 @@ FileDiff result:
 
 ### Using HashMap
 
-**Before (O(n²))**:
+**Before (nested loops)**:
 ```rust
 for new_lib in &new.libraries {
     let mut found = false;
-    for old_lib in &old.libraries {  // O(n) for each new_lib
+    for old_lib in &old.libraries {  // Linear search for each new_lib
         if new_lib.path == old_lib.path {
             found = true;
             if new_lib.sha1 != old_lib.sha1 {
@@ -430,11 +426,11 @@ for new_lib in &new.libraries {
 }
 ```
 
-**After (O(n))**:
+**After (HashMap)**:
 ```rust
-let old_map: HashMap<_, _> = old.libraries.iter().map(|lib| (&lib.path, lib)).collect();  // O(n)
-for new_lib in &new.libraries {  // O(m)
-    if let Some(old_lib) = old_map.get(&new_lib.path) {  // O(1) lookup
+let old_map: HashMap<_, _> = old.libraries.iter().map(|lib| (&lib.path, lib)).collect();
+for new_lib in &new.libraries {
+    if let Some(old_lib) = old_map.get(&new_lib.path) {  // Fast lookup
         if new_lib.sha1 != old_lib.sha1 {
             modified.push(new_lib);
         }
@@ -444,7 +440,7 @@ for new_lib in &new.libraries {  // O(m)
 }
 ```
 
-**Gain**: From O(n²) to O(n + m) - crucial when n and m are large (e.g., thousands of assets).
+**Gain**: Significant performance improvement when handling thousands of assets.
 
 ### Chaining for Added and Modified
 
@@ -460,14 +456,9 @@ for change in self.added.iter().chain(self.modified.iter()) {
 - Equivalent performance
 - More maintainable
 
-## Overall Complexity
+## Resource Usage
 
-**Time Complexity**:
-- First scan: O(n) - simple iteration
-- Rescan: O(n + m) - where n = old files, m = new files
-- URL map update: O(k) - where k = number of changes
-
-**Space Complexity**:
-- Temporary HashMaps: O(n + m)
-- FileDiff result: O(k)
-- Acceptable as only needed during computation
+**Memory**:
+- Temporary HashMaps for comparisons
+- FileDiff result containing only changed files
+- Memory freed after computation completes

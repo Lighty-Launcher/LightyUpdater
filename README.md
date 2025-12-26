@@ -139,10 +139,6 @@ auto_scan = true
 rescan_interval = 30
 max_memory_cache_gb = 0
 
-# Hot-reload
-config_watch_debounce_ms = 500
-file_watcher_debounce_ms = 500
-
 # Performance
 checksum_buffer_size = 8192
 
@@ -153,6 +149,15 @@ libraries = 100
 mods = 100
 natives = 100
 assets = 100
+
+# Hot-reload configuration
+[hot-reload.config]
+enabled = true
+debounce_ms = 300
+
+[hot-reload.files]
+enabled = true
+debounce_ms = 300
 
 [[servers]]
 name = "survival"

@@ -114,7 +114,10 @@ Active when `rescan_interval = 0` in the configuration.
 ```toml
 [cache]
 rescan_interval = 0  # Activate file watcher
-file_watcher_debounce_ms = 500  # Wait 500ms after the last event
+
+[hot-reload.files]
+enabled = true  # Enable file hot-reload
+debounce_ms = 300  # Wait 300ms after the last event
 ```
 
 **Sequence diagram**:
@@ -144,17 +147,19 @@ sequenceDiagram
             RO->>RO: Add to pending_servers
         end
 
-        RO->>Timer: Reset to 500ms
+        RO->>Timer: Reset to 300ms
 
         Note over RO,Timer: More events arrive...
         FS->>Notify: Another file modified
         Notify->>RO: Event received
-        RO->>Timer: Reset to 500ms again
+        RO->>Timer: Reset to 300ms again
 
-        Note over Timer: 500ms pass without events
+        Note over Timer: 300ms pass without events
         Timer-->>RO: Debounce expired
 
+        RO->>RO: Build HashMap of servers for O(1) lookup
         loop For each server in pending_servers
+            RO->>RO: Lookup server config in HashMap
             RO->>Scanner: scan_server_silent("survival")
             Scanner-->>RO: VersionBuilder
             RO->>RO: update_cache_if_changed()
@@ -218,7 +223,7 @@ sequenceDiagram
     RO->>Flag: store(true, SeqCst)
 
     Note over RO: Rescan loop checks flag
-    RO->>Flag: load(SeqCst)
+    RO->>Flag: load(Relaxed)
     Flag-->>RO: true
     RO->>RO: Skip rescan iteration
 
@@ -226,10 +231,14 @@ sequenceDiagram
     Watcher->>RO: resume()
     RO->>Flag: store(false, SeqCst)
 
-    RO->>Flag: load(SeqCst)
+    RO->>Flag: load(Relaxed)
     Flag-->>RO: false
     RO->>RO: Continue normal rescanning
 ```
+
+**Memory Ordering:**
+- Store operations use `SeqCst` for strong synchronization
+- Load operations use `Relaxed` ordering for simple flag checks
 
 **Importance**: Avoids race conditions during configuration reload by guaranteeing that no rescan occurs during shared config update.
 
@@ -401,21 +410,28 @@ sequenceDiagram
 
 ### ServerPathCache
 
-Cache for O(1) lookups of the owner server of a file:
+Cache for efficient lookup of the owner server of a file:
 
 ```rust
-// Instead of O(n) iteration:
-for server in servers {
-    if path.starts_with(&server.path) {
-        return Some(server.name);
-    }
-}
+// Structure: Vec sorted by path length (descending)
+// Paths sorted to ensure most specific matches first
 
-// Uses a HashMap O(1):
-server_path_cache.find_server(&path)  // O(1) lookup
+// Example:
+// [
+//   ("/servers/survival-modded", "survival-modded"),  // longest first
+//   ("/servers/survival", "survival"),
+//   ("/servers/creative", "creative")
+// ]
+
+server_path_cache.find_server(&path)
 ```
 
-**Impact**: Crucial for the file watcher which potentially receives hundreds of events per second.
+**Implementation:**
+- Sorted Vec ensures the first matching path is the most specific
+- Early termination on first match
+- Efficient for typical deployments with few servers
+
+**Impact**: Essential for the file watcher which potentially receives hundreds of events per second. The sorted structure ensures correct matching for nested server paths.
 
 ### Silent Scan
 
@@ -427,8 +443,8 @@ server_path_cache.find_server(&path)  // O(1) lookup
 ### Incremental URL Map
 
 Avoids complete URL map reconstruction:
-- First scan: `build_url_map()` - O(n)
-- Rescans: `apply_to_url_map(&diff)` - O(k) where k = number of changes
+- First scan: `build_url_map()` - Full map construction
+- Rescans: `apply_to_url_map(&diff)` - Updates only changed files
 
 Significant performance gain when few files change.
 

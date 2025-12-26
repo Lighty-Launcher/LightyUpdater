@@ -108,11 +108,79 @@ sequenceDiagram
 **New Fields**:
 ```toml
 [cache]
-config_watch_debounce_ms = 500
-file_watcher_debounce_ms = 500
 checksum_buffer_size = 8192
 hash_concurrency = 100
 config_reload_channel_size = 100
+```
+
+**Removed Fields** (migrated to [hot-reload]):
+- `config_watch_debounce_ms` → `[hot-reload.config] debounce_ms`
+- `file_watcher_debounce_ms` → `[hot-reload.files] debounce_ms`
+
+### Migration [hot-reload]
+
+**New Structure**:
+```toml
+[hot-reload.config]
+enabled = true
+debounce_ms = 300
+
+[hot-reload.files]
+enabled = true
+debounce_ms = 300
+```
+
+**Migration Process**:
+
+```mermaid
+sequenceDiagram
+    participant M as Migration
+    participant Cache as cache section
+    participant HR as hot-reload section
+
+    M->>Cache: Check config_watch_debounce_ms
+    Cache-->>M: Value or None
+    M->>Cache: Check file_watcher_debounce_ms
+    Cache-->>M: Value or None
+
+    M->>HR: Create hot-reload section
+    M->>HR: Create hot-reload.config
+    M->>HR: Set enabled = true
+    M->>HR: Set debounce_ms (old value or 300)
+
+    M->>HR: Create hot-reload.files
+    M->>HR: Set enabled = true
+    M->>HR: Set debounce_ms (old value or 300)
+
+    M->>Cache: Remove config_watch_debounce_ms
+    M->>Cache: Remove file_watcher_debounce_ms
+```
+
+**Migration Details**:
+- Extracts old debounce values from `[cache]` if they exist
+- Creates `[hot-reload]` section with subsections
+- Preserves custom debounce values or uses 300ms default
+- Removes deprecated fields from `[cache]`
+- Both `enabled` flags set to `true` by default
+
+**Example Migration**:
+```toml
+# Before
+[cache]
+config_watch_debounce_ms = 500
+file_watcher_debounce_ms = 500
+
+# After
+[cache]
+# Fields removed
+
+[hot-reload.config]
+enabled = true
+debounce_ms = 500  # Preserved custom value
+
+[hot-reload.files]
+enabled = true
+debounce_ms = 500  # Preserved custom value
 ```
 
 ### Migration [storage]
@@ -333,6 +401,14 @@ auto_scan = true  # Added
 rescan_interval = 30  # Added
 # ... etc
 
+[hot-reload.config]  # Complete section added
+enabled = true
+debounce_ms = 300
+
+[hot-reload.files]  # Complete section added
+enabled = true
+debounce_ms = 300
+
 [storage]  # Complete section added
 # ...
 
@@ -371,7 +447,42 @@ assets = 150
 - cache.batch.assets
 ```
 
-### Scenario 4: Deprecated Section Migration
+### Scenario 4: Hot-Reload Migration
+
+```toml
+# Before
+[cache]
+config_watch_debounce_ms = 500
+file_watcher_debounce_ms = 500
+enabled = true
+
+# After
+[cache]
+enabled = true
+
+[hot-reload.config]
+enabled = true
+debounce_ms = 500  # Custom value preserved
+
+[hot-reload.files]
+enabled = true
+debounce_ms = 500  # Custom value preserved
+```
+
+**added_fields**:
+```
+- hot-reload
+- hot-reload.config
+- hot-reload.config.enabled
+- hot-reload.config.debounce_ms
+- hot-reload.files
+- hot-reload.files.enabled
+- hot-reload.files.debounce_ms
+- removed cache.config_watch_debounce_ms (migrated to hot-reload.config.debounce_ms)
+- removed cache.file_watcher_debounce_ms (migrated to hot-reload.files.debounce_ms)
+```
+
+### Scenario 5: Deprecated Section Migration
 
 ```toml
 # Before

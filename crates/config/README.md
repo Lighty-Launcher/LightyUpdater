@@ -10,49 +10,6 @@ Configuration management system with automatic migration and hot-reload for Ligh
 - [Errors](docs/errors.md) - Error types documentation
 - [Structures](docs/structures.md) - Configuration structures documentation
 
-## Overview
-
-The `config` crate provides a robust configuration system with several key features:
-
-- **Automatic migration**: Detection and automatic update of configuration to the latest version
-- **Hot-reload**: Hot reloading via file watcher without server restart
-- **Validation**: Configuration consistency verification
-- **Smart defaults**: Default values for all optional fields
-- **TOML format**: Readable and maintainable configuration
-
-## Architecture
-
-The system is organized around several components:
-
-### Config
-Main structure containing all configuration:
-- `ServerSettings`: HTTP server configuration
-- `CacheSettings`: Cache system configuration
-- `StorageSettings`: Storage backend configuration
-- `CloudflareSettings`: Cloudflare integration configuration
-- `Vec<Arc<ServerConfig>>`: List of configured Minecraft servers
-
-### Migration System
-Automatic migration system that:
-- Detects missing fields in configuration
-- Adds new fields with their default values
-- Removes deprecated sections
-- Preserves existing values
-- Emits events to notify changes
-
-### Loader
-Configuration loading from TOML file:
-- Creates default file if it doesn't exist
-- Automatic migration before parsing
-- Event support for notification
-- Error handling with clear messages
-
-### Defaults
-Module containing all default values:
-- Functions for each optional field
-- Default configuration template
-- Production-optimized values
-
 ## Integration
 
 This crate integrates with:

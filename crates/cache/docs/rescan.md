@@ -30,7 +30,8 @@ graph TB
     FS --> FD
 
     FD --> SCS[Sync Cloud Storage]
-    FD --> PCF[Purge Cloudflare]
+    SCS --> PCDN[Purge CDN]
+    FD --> PCFAPI[Purge Cloudflare API]
 ```
 
 ## Operating Modes
@@ -272,12 +273,12 @@ graph TD
     Incremental --> UpdateCache
 
     UpdateCache --> UpdateTimestamp[Update last_updated]
-    UpdateTimestamp --> PurgeCF{Cloudflare enabled?}
+    UpdateTimestamp --> PurgeCFAPI{Cloudflare API enabled?}
 
-    PurgeCF -->|Yes| CallPurge[purge_cache]
-    PurgeCF -->|No| EmitEvent
+    PurgeCFAPI -->|Yes| CallPurgeAPI[purge_cache API JSON]
+    PurgeCFAPI -->|No| EmitEvent
 
-    CallPurge --> EmitEvent{Is new server?}
+    CallPurgeAPI --> EmitEvent{Is new server?}
 
     EmitEvent -->|Yes| EmitNew[Emit CacheNew]
     EmitEvent -->|No| EmitUpdated[Emit CacheUpdated with changes]

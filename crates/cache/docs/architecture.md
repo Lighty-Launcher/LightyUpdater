@@ -23,7 +23,8 @@ graph TB
     subgraph External_Services
         Scanner[Scanner Service]
         Storage[Storage Backend]
-        CF[Cloudflare Client]
+        CDN[CDN Client]
+        CF[Cloudflare API Client]
         Events[Event Bus]
     end
 
@@ -42,6 +43,7 @@ graph TB
     RO --> FD
     RO --> Scanner
     RO --> Storage
+    RO --> CDN
     RO --> CF
     RO --> Events
     RO --> SPC
@@ -91,7 +93,8 @@ Orchestrates automatic and manual server rescanning with two operating modes.
 **Responsibilities:**
 - Change detection via FileDiff
 - Cloud storage synchronization
-- Cloudflare cache purging
+- CDN cache purging for storage files
+- Cloudflare API cache purging for JSON responses
 - Event emission on changes
 
 ### FileDiff
@@ -129,8 +132,10 @@ Fast mapping cache between file paths and owner servers.
 - File watcher: Determines which server to rescan for a modified file
 - Configuration reload: Cache rebuilt with new server list
 
-**Cloudflare Integration:**
-When Cloudflare is enabled, cache purging includes:
+**CDN & Cloudflare Integration:**
+When CDN/Cloudflare is enabled, cache purging includes:
+- **CDN purging**: Purges storage files (S3/R2) from CDN cache
+- **Cloudflare API purging**: Purges JSON responses from Cloudflare cache
 - Automatic retry with exponential backoff (3 attempts)
 - 10-second timeout per request
 - Graceful degradation on persistent failures

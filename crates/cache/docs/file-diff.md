@@ -335,10 +335,11 @@ FileDiff result:
 
 **Actions**:
 1. Upload `mod3.jar` to cloud storage
-2. Add URL mapping for `mod3.jar`
-3. Update cache
-4. Purge Cloudflare
-5. Emit `CacheUpdated` event
+2. Purge CDN cache for `mod3.jar`
+3. Add URL mapping for `mod3.jar`
+4. Update cache
+5. Purge Cloudflare API cache for server JSON
+6. Emit `CacheUpdated` event
 
 ### Scenario 2: Updating a Library
 
@@ -379,9 +380,10 @@ FileDiff result:
 
 **Actions**:
 1. Upload new `client.jar` to cloud (overwrites old)
-2. Update URL mapping (same URL, new hash)
-3. Update cache
-4. Purge Cloudflare
+2. Purge CDN cache for `client.jar`
+3. Update URL mapping (same URL, new hash)
+4. Update cache
+5. Purge Cloudflare API cache for server JSON
 
 ### Scenario 4: Complete Removal of Natives
 

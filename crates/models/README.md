@@ -8,16 +8,6 @@ Data structures for representing Minecraft server versions with JSON serializati
 - [VersionBuilder](docs/version-builder.md) - Version construction and management
 - [URL Mapping](docs/url-mapping.md) - O(1) resolution system
 
-## Overview
-
-The `models` crate defines data structures representing a complete Minecraft server version compatible with launchers.
-
-- **VersionBuilder**: Main structure containing all components
-- **JSON Serialization**: Compatible with standard launcher format
-- **URL Mapping**: HashMap for O(1) URL to path resolution
-- **Strongly typed**: Main class, Java version, arguments, etc.
-- **Organized collections**: Libraries, mods, natives, assets
-
 ## Main Structures
 
 ### VersionBuilder

@@ -28,7 +28,8 @@ graph TB
         Config[Config RwLock]
         Events[Event Bus]
         Storage[Storage Backend]
-        CF[Cloudflare]
+        CDN[CDN Client]
+        CF[Cloudflare API Client]
     end
 
     Core --> Cache

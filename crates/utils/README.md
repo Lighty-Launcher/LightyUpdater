@@ -8,15 +8,6 @@ Utilities for checksum calculation and path normalization.
 - [Path utilities](docs/path.md) - Normalization and Maven conversion
 - [Errors](docs/errors.md) - Error documentation
 
-## Overview
-
-The `utils` crate provides essential utilities for file and path operations.
-
-- **SHA1 calculation**: Asynchronous and synchronous with streaming
-- **Path normalization**: Windows/Unix conversion
-- **Maven naming**: Path to Maven notation conversion
-- **Configurable buffer**: Memory vs performance optimization
-
 ## Main Functions
 
 ### compute_sha1

@@ -11,30 +11,6 @@ HTTP API layer for Minecraft file distribution with intelligent RAM cache manage
 - [File Serving](docs/file-serving.md) - File distribution system
 - [Resolution](docs/resolution.md) - URL to file path resolution
 
-## Overview
-
-The `api` crate provides the HTTP interface to access Minecraft server files and metadata.
-
-- **Axum Framework**: High-performance, type-safe REST API with Tokio
-- **Intelligent serving**: RAM cache for small files, streaming for large files
-- **O(1) resolution**: URL to file path mapping via HashMap
-- **Security validation**: Protection against path traversal and injections
-- **Robust error handling**: Structured JSON responses with appropriate HTTP codes
-- **Streaming threshold**: Configurable to optimize memory vs performance
-
-## Architecture
-
-The system is organized into several layers:
-
-### AppState
-Shared state across all handlers containing references to cache manager, base URL configuration, and streaming parameters.
-
-### Handlers
-Asynchronous functions handling HTTP routes. Each handler is responsible for a specific functionality.
-
-### File Serving Pipeline
-4-step process to serve files: parsing, resolution, RAM cache, disk fallback.
-
 ## Available Routes
 
 ### GET /servers

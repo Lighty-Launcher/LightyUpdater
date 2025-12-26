@@ -8,15 +8,6 @@ File system operations for managing Minecraft server structure.
 - [Server Structure](docs/server-structure.md) - Folder organization
 - [Operations](docs/operations.md) - Available operations
 
-## Overview
-
-The `filesystem` crate provides utilities to create and manage Minecraft server folder structure.
-
-- **Structure creation**: Standardized folders for each server
-- **Asynchronous operations**: Uses Tokio for non-blocking I/O
-- **Absolute paths**: Automatic resolution of relative paths
-- **Idempotence**: Safe operations if folders already exist
-
 ## Standard Structure
 
 Each server has the following structure:

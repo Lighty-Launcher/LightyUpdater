@@ -8,16 +8,6 @@ Event bus system for inter-component communication with structured console displ
 - [Event Types](docs/event-types.md) - Complete event catalog
 - [Formatting](docs/formatting.md) - Console display system
 
-## Overview
-
-The `events` crate provides a centralized event bus system for inter-component communication with formatted console display.
-
-- **EventBus**: Centralized bus for event emission
-- **AppEvent**: Enumeration of all possible event types
-- **Structured display**: Console messages with colors and symbols
-- **Silent mode**: Option to disable display
-- **Categorization**: Events grouped by context
-
 ## Event Types
 
 ### Lifecycle

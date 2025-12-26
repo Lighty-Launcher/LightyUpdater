@@ -9,7 +9,7 @@ The `CacheManager` is the main entry point of the cache crate. It coordinates al
 ## Architecture
 
 ```mermaid
-flowchart TB
+graph TB
     Core[Core Logic] --> Cache[Version Cache<br/>DashMap]
     Core --> FCM[FileCacheManager]
     Core --> RO[RescanOrchestrator]

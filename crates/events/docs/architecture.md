@@ -3,7 +3,7 @@
 ## Components
 
 ```mermaid
-flowchart TB
+graph TB
     EventBus[EventBus]
     AppEvent[AppEvent Enum]
     Config[Config Loader]

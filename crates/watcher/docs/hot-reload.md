@@ -7,7 +7,7 @@ Hot-reload allows modifying the server configuration without restart, with autom
 ## Hot-Reload Architecture
 
 ```mermaid
-flowchart TB
+graph TB
     FW[File Watcher] --> Debounce[Debouncer]
     Debounce --> Parser[Config Parser]
     Parser --> Validator[Config Validator]
@@ -149,7 +149,7 @@ sequenceDiagram
 ### Added Server
 
 ```mermaid
-flowchart TD
+graph TD
     Detect[New server detected] --> CheckEnabled{enabled = true?}
 
     CheckEnabled -->|No| Skip[Skip server]
@@ -174,7 +174,7 @@ flowchart TD
 ### Modified Server
 
 ```mermaid
-flowchart TD
+graph TD
     Detect[Config change detected] --> Compare[Compare old vs new]
 
     Compare --> Critical{Critical change?}
@@ -201,7 +201,7 @@ flowchart TD
 ### Removed Server
 
 ```mermaid
-flowchart TD
+graph TD
     Detect[Server removed from config] --> RemoveCache[Remove from cache]
 
     RemoveCache --> CleanMemory[Free memory]

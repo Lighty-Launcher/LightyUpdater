@@ -9,7 +9,7 @@ The `RescanOrchestrator` is the central component that orchestrates monitoring a
 ## Architecture
 
 ```mermaid
-flowchart TB
+graph TB
     RO[RescanOrchestrator] --> PM[Polling Mode]
     RO --> FW[File Watcher Mode]
     RO --> MR[Manual Rescan]
@@ -172,7 +172,7 @@ sequenceDiagram
 **Debouncing algorithm**:
 
 ```mermaid
-flowchart TD
+graph TD
     Start[Event received] --> CheckPause{Paused?}
     CheckPause -->|Yes| Skip[Skip event]
     CheckPause -->|No| FindServer[Find server via ServerPathCache]
@@ -247,7 +247,7 @@ sequenceDiagram
 ### update_cache_if_changed Algorithm
 
 ```mermaid
-flowchart TD
+graph TD
     Start[New VersionBuilder scanned] --> GetOld[Get old version from cache]
     GetOld --> ComputeDiff[FileDiff::compute old vs new]
 
@@ -293,7 +293,7 @@ When the storage backend is remote (S3, etc.), the system automatically synchron
 **Parallelized upload**:
 
 ```mermaid
-flowchart LR
+graph LR
     Diff[FileDiff] --> Added[Added files]
     Diff --> Modified[Modified files]
 
@@ -316,7 +316,7 @@ flowchart LR
 **Parallelized delete**:
 
 ```mermaid
-flowchart LR
+graph LR
     Diff[FileDiff] --> Removed[Removed files]
 
     Removed --> D1[Task 1: Delete]

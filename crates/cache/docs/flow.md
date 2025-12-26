@@ -148,7 +148,7 @@ sequenceDiagram
 ## Flow 4: Granular Change Detection (FileDiff)
 
 ```mermaid
-flowchart TD
+graph TD
     Start[Start: compute diff] --> CheckOld{Old version exists?}
 
     CheckOld -->|No| AddAll[add_all_files: Mark all as added]
@@ -267,7 +267,7 @@ sequenceDiagram
 ## Flow 7: Incremental URL Map Update
 
 ```mermaid
-flowchart TD
+graph TD
     Start[FileDiff computed] --> CheckNew{Is first scan?}
 
     CheckNew -->|Yes| FullBuild[builder.build_url_map]

@@ -7,7 +7,7 @@ The cache system is designed as a multi-layer architecture with clear separation
 ## Architecture Diagram
 
 ```mermaid
-flowchart TB
+graph TB
     CM[CacheManager] --> FCM[FileCacheManager]
     CM --> RO[RescanOrchestrator]
     CM --> SPC[ServerPathCache]

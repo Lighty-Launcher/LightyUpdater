@@ -7,7 +7,7 @@ The monitoring system is designed to detect and react to configuration file chan
 ## Diagramme d'architecture
 
 ```mermaid
-flowchart TB
+graph TB
     ConfigFile[config.toml] --> FW[File Watcher<br/>notify::RecommendedWatcher]
     FW --> Channel[MPSC Channel]
     Channel --> CW[ConfigWatcher]
@@ -79,7 +79,7 @@ Configuration change detection logic.
 **Algorithm:**
 
 ```mermaid
-flowchart TD
+graph TD
     Start[Configuration change detected] --> LoadNew[Load new config]
     LoadNew --> GetOld[Get old server list]
     GetOld --> GetOldConfigs[Get old server configs]
@@ -183,7 +183,7 @@ sequenceDiagram
 ### Server Comparison
 
 ```mermaid
-flowchart TD
+graph TD
     OldServers[Old server names] --> SetOld[HashSet old_servers]
     NewServers[New server names] --> SetNew[HashSet new_servers]
 
@@ -345,7 +345,7 @@ sequenceDiagram
 ### Used Locks
 
 ```mermaid
-flowchart TB
+graph TB
     R1[Get current config] --> ReadLock[Read Lock]
     R2[Check server existence] --> ReadLock
     R3[Read server list] --> ReadLock

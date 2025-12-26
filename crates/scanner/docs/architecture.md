@@ -7,7 +7,7 @@ The scan system is designed as a modular architecture with specialized component
 ## Architecture Diagram
 
 ```mermaid
-flowchart TB
+graph TB
     SS[ServerScanner] --> CS[ClientScanner]
     SS --> LS[LibraryScanner]
     SS --> MS[ModScanner]
@@ -102,7 +102,7 @@ Scans the single client JAR file.
 
 **Algorithm**:
 ```mermaid
-flowchart TD
+graph TD
     Start[Start scan_client] --> CheckDir{client/ exists?}
     CheckDir -->|No| ReturnNone[Return None]
     CheckDir -->|Yes| ReadDir[Read directory]
@@ -194,7 +194,7 @@ natives/
 
 **Algorithm**:
 ```mermaid
-flowchart TD
+graph TD
     Start[Start scan_natives] --> CheckDir{natives/ exists?}
     CheckDir -->|No| ReturnEmpty[Return empty Vec]
     CheckDir -->|Yes| InitVec[Initialize all_natives Vec]
@@ -261,7 +261,7 @@ assets/
 ### Concurrency architecture
 
 ```mermaid
-flowchart TB
+graph TB
     Collect[Collect file paths<br/>sync] --> Sem[Semaphore<br/>max = batch_size]
 
     Sem --> T1[Task 1: Hash file 1]
@@ -336,7 +336,7 @@ SHA1 computation is CPU-intensive and could block the async runtime.
 Using tokio for asynchronous computation with buffer:
 
 ```mermaid
-flowchart TD
+graph TD
     Start[File path] --> OpenFile[tokio::fs::File::open]
     OpenFile --> CreateBuf[Create buffer buffer_size]
     CreateBuf --> LoopRead{Read chunk}

@@ -8,7 +8,7 @@ Converts a library path to Maven notation.
 
 **Algorithm**:
 ```mermaid
-flowchart TD
+graph TD
     Path[Path components<br/>com,google,guava,31.0,guava-31.0.jar] --> Extract[Extract components]
 
     Extract --> Group[group = components from 0 to -3<br/>com.google.guava]

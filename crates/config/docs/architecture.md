@@ -7,7 +7,7 @@ The configuration system is designed to be robust, flexible and maintainable wit
 ## Architecture Diagram
 
 ```mermaid
-flowchart TB
+graph TB
     File[config.toml] --> Loader[Config Loader]
     Loader --> Migration[Migration System]
     Migration --> Parser[TOML Parser]
@@ -56,7 +56,7 @@ pub struct Config {
 HTTP server configuration.
 
 ```mermaid
-flowchart LR
+graph LR
     SS[ServerSettings] --> Network[Network<br/>host, port]
     SS --> URLs[URLs<br/>base_url, base_path]
     SS --> Perf[Performance<br/>tcp_nodelay, timeout]
@@ -150,7 +150,7 @@ debounce_ms = 300       # Debounce time in milliseconds
 Storage backend configuration.
 
 ```mermaid
-flowchart TB
+graph TB
     Storage[StorageSettings] --> Backend{Backend Type}
     Backend -->|Local| LocalPath[base_path]
     Backend -->|S3| S3Config[S3Settings]
@@ -203,7 +203,7 @@ pub struct ServerConfig {
 ### Migration Architecture
 
 ```mermaid
-flowchart TD
+graph TD
     Start[Load config file] --> Exists{File exists?}
     Exists -->|No| Create[Create default config]
     Exists -->|Yes| Read[Read file content]
@@ -316,7 +316,7 @@ fn deserialize_arc_servers<'de, D>(deserializer: D) -> Result<Vec<Arc<ServerConf
 ### Architecture
 
 ```mermaid
-flowchart TB
+graph TB
     Defaults[defaults.rs] --> Functions[Default Functions]
     Functions --> Simple[Simple Values<br/>tcp_nodelay, timeout, ...]
     Functions --> Complex[Complex Values<br/>batch_config, storage_settings, ...]
@@ -364,7 +364,7 @@ port = 8080
 ### Shared State with RwLock
 
 ```mermaid
-flowchart TB
+graph TB
     Config[Config Struct] --> Arc[Arc RwLock Config ]
 
     Arc --> Reader1[Reader 1:<br/>Rescan loop]

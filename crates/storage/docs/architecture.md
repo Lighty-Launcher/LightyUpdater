@@ -7,7 +7,7 @@ The storage system is designed as a multi-backend abstraction allowing support f
 ## Architecture Diagram
 
 ```mermaid
-flowchart TB
+graph TB
     SB[StorageBackend Trait] --> LB[LocalBackend]
     SB --> S3B[S3Backend]
 

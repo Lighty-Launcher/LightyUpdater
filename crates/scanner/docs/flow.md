@@ -74,7 +74,7 @@ sequenceDiagram
 ## Flow 3: Asynchronous hash computation
 
 ```mermaid
-flowchart TD
+graph TD
     Start[File path] --> Open[tokio::fs::File::open]
     Open --> CreateHasher[Create SHA1 Hasher]
     CreateHasher --> CreateBuffer[Allocate buffer buffer_size]
@@ -124,7 +124,7 @@ sequenceDiagram
 ## Flow 5: Multi-OS native scan
 
 ```mermaid
-flowchart TD
+graph TD
     Start[scan_natives] --> CheckDir{natives/ exists?}
     CheckDir -->|No| ReturnEmpty[Return Vec]
 

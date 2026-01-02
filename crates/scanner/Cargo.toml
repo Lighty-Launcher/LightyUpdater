@@ -1,0 +1,16 @@
+[package]
+name = "lighty-scanner"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lighty-models = { path = "../models" }
+lighty-config = { path = "../config" }
+lighty-utils = { path = "../utils" }
+lighty-storage = { path = "../storage" }
+tokio = { workspace = true }
+futures = { workspace = true }
+walkdir = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }

@@ -1,0 +1,38 @@
+[package]
+name = "lighty-server"
+version = "1.0.7"
+edition = "2021"
+
+[features]
+default = []
+s3 = ["lighty-storage/s3"]
+
+[[bin]]
+name = "lighty-server"
+path = "main.rs"
+
+[dependencies]
+# Internal crates
+lighty-api = { path = "../crates/api" }
+lighty-cache = { path = "../crates/cache" }
+lighty-config = { path = "../crates/config" }
+lighty-events = { path = "../crates/events" }
+lighty-storage = { path = "../crates/storage" }
+lighty-watcher = { path = "../crates/watcher" }
+lighty-filesystem = { path = "../crates/filesystem" }
+
+# Async runtime
+tokio = { workspace = true }
+
+# Web framework
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }

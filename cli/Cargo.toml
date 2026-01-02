@@ -1,0 +1,61 @@
+[package]
+name = "lighty-cli"
+version = "1.0.7"
+edition = "2021"
+
+[features]
+default = []
+s3 = ["lighty-storage/s3"]
+
+[[bin]]
+name = "lighty"
+path = "src/main.rs"
+
+[dependencies]
+# Internal crates
+lighty-api = { path = "../crates/api" }
+lighty-cache = { path = "../crates/cache" }
+lighty-config = { path = "../crates/config" }
+lighty-events = { path = "../crates/events" }
+lighty-storage = { path = "../crates/storage" }
+lighty-watcher = { path = "../crates/watcher" }
+lighty-filesystem = { path = "../crates/filesystem" }
+
+# Async runtime
+tokio = { workspace = true }
+
+# Web framework
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+
+# CLI framework
+clap = { version = "4.5", features = ["derive", "cargo"] }
+
+# Serialization
+serde = { workspace = true }
+serde_json = "1.0"
+toml = { workspace = true }
+
+# Date/Time
+chrono = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Process management
+sysinfo = "0.32"
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# File operations
+walkdir = { workspace = true }
+
+# Cross-platform paths
+dirs = "5.0"
+
+# Colored output
+colored = { workspace = true }

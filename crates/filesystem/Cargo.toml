@@ -1,0 +1,12 @@
+[package]
+name = "lighty-filesystem"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lighty-utils = { path = "../utils" }
+tokio = { workspace = true }
+bytes = { workspace = true }
+mime_guess = "2.0"
+anyhow = { workspace = true }
+tracing = { workspace = true }

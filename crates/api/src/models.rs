@@ -9,6 +9,7 @@ pub struct ServerListResponse {
 pub struct ServerInfo {
     pub name: String,
     pub loader: String,
+    pub loader_version: String,
     pub minecraft_version: String,
     pub url: String,
     pub last_update: String,  // ISO 8601 timestamp (RFC 3339)

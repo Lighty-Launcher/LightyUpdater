@@ -25,6 +25,7 @@ pub async fn list_servers(State(state): State<AppState>) -> Result<Json<ServerLi
             servers.push(ServerInfo {
                 name: name.clone(),
                 loader: config.loader.clone(),
+                loader_version: config.loader_version.clone(),
                 minecraft_version: config.minecraft_version.clone(),
                 url: format!("{}/{}.json", base_url, name),
                 last_update,

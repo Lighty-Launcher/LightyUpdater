@@ -3,7 +3,9 @@ use super::errors::CacheError;
 use lighty_config::ServerConfig;
 use lighty_filesystem::FileSystem;
 use dashmap::DashMap;
+use futures::stream::{self, StreamExt};
 use moka::future::Cache;
+use std::path::Path;
 use std::sync::Arc;
 use std::sync::atomic::AtomicUsize;
 use tokio::sync::broadcast;
@@ -18,18 +20,16 @@ impl FileCacheManager {
             // Unlimited capacity
             Cache::builder()
                 .weigher(|_key: &Arc<str>, value: &FileCache| -> u32 {
-                    let kb = value.memory_usage() / 1024;
-                    kb.min(u32::MAX as u64) as u32
+                    file_cache_weight_bytes(value)
                 })
                 .build()
         } else {
             // Limited capacity
-            let max_capacity_kb = max_capacity_gb * 1024 * 1024; // Convert GB to KB
+            let max_capacity_bytes = max_capacity_gb.saturating_mul(1024 * 1024 * 1024);
             Cache::builder()
-                .max_capacity(max_capacity_kb)
+                .max_capacity(max_capacity_bytes)
                 .weigher(|_key: &Arc<str>, value: &FileCache| -> u32 {
-                    let kb = value.memory_usage() / 1024;
-                    kb.min(u32::MAX as u64) as u32
+                    file_cache_weight_bytes(value)
                 })
                 .build()
         };
@@ -44,21 +44,67 @@ impl FileCacheManager {
 
     /// Retrieves a file from cache
     pub async fn get_file(&self, server: &str, path: &str) -> Option<FileCache> {
-        let key: Arc<str> = format!("{}/{}", server, path).into();
+        let key = cache_key(server, path);
         self.cache.get(&key).await
     }
 
     /// Adds a file to the cache
     async fn add_file(&self, server: &str, path: &str, file: FileCache) -> Result<()> {
-        let key: Arc<str> = format!("{}/{}", server, path).into();
+        let key = cache_key(server, path);
         self.cache.insert(key, file).await;
         Ok(())
+    }
+
+    /// Invalidates one cached file entry.
+    pub async fn invalidate_file(&self, server: &str, path: &str) {
+        let key = cache_key(server, path);
+        self.cache.invalidate(&key).await;
+    }
+
+    /// Refreshes one cache entry from disk; if the file is missing, only invalidates.
+    pub async fn refresh_file_from_disk(
+        &self,
+        server: &str,
+        path: &str,
+        full_path: &Path,
+    ) -> Result<()> {
+        if !full_path.exists() {
+            self.invalidate_file(server, path).await;
+            return Ok(());
+        }
+
+        let path_buf = full_path.to_path_buf();
+        let file_cache = tokio::task::spawn_blocking(move || FileCache::from_file_sync(&path_buf))
+            .await??;
+
+        self.add_file(server, path, file_cache).await
+    }
+
+    /// Invalidates all cached files for one server.
+    pub async fn invalidate_server(&self, server: &str) {
+        let prefix = format!("{}/", server);
+        let keys: Vec<Arc<str>> = self
+            .cache
+            .iter()
+            .filter_map(|(key, _)| {
+                let cache_key = key.as_ref();
+                if cache_key.starts_with(prefix.as_str()) {
+                    Some(Arc::clone(cache_key))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        for key in keys {
+            self.cache.invalidate(&key).await;
+        }
     }
 
     /// Gets cache statistics (entry count and weighted size in KB)
     pub fn get_stats(&self) -> (u64, u64) {
         let entry_count = self.cache.entry_count();
-        let weighted_size_kb = self.cache.weighted_size();
+        let weighted_size_kb = self.cache.weighted_size() / 1024;
         (entry_count, weighted_size_kb)
     }
 
@@ -67,26 +113,42 @@ impl FileCacheManager {
         &self,
         servers: &[Arc<ServerConfig>],
         base_path: &str,
+        server_parallelism: usize,
     ) -> Result<()> {
-        let server_names: Vec<_> = servers
+        let enabled_servers: Vec<_> = servers
             .iter()
             .filter(|s| s.enabled)
-            .map(|s| s.name.clone())
+            .cloned()
             .collect();
 
-        let load_futures: Vec<_> = servers
-            .iter()
-            .filter(|server_config| server_config.enabled)
-            .map(|server_config| self.load_server_files(server_config.as_ref(), base_path))
-            .collect();
+        if server_parallelism == 0 {
+            return Err(CacheError::CacheOperationFailed(
+                "cache.hash_concurrency must be greater than 0".to_string(),
+            ));
+        }
+        let concurrency = server_parallelism;
+        let base_path = base_path.to_string();
 
-        let results = futures::future::join_all(load_futures).await;
+        let results: Vec<_> = stream::iter(enabled_servers.into_iter())
+            .map(|server_config| {
+                let base_path = base_path.clone();
+                async move {
+                    let server_name = server_config.name.clone();
+                    let result = self
+                        .load_server_files(server_config.as_ref(), base_path.as_ref())
+                        .await;
+                    (server_name, result)
+                }
+            })
+            .buffer_unordered(concurrency)
+            .collect()
+            .await;
 
         // Collect successes and failures (partial success)
         let mut success_count = 0;
         let mut failures = Vec::new();
 
-        for (server_name, result) in server_names.iter().zip(results.iter()) {
+        for (server_name, result) in results {
             match result {
                 Ok(_) => {
                     success_count += 1;
@@ -94,13 +156,17 @@ impl FileCacheManager {
                 }
                 Err(e) => {
                     tracing::warn!("Failed to load files for server '{}': {}", server_name, e);
-                    failures.push((server_name.clone(), e.to_string()));
+                    failures.push((server_name, e.to_string()));
                 }
             }
         }
 
         if success_count > 0 {
-            tracing::info!("Loaded {} of {} servers into cache", success_count, server_names.len());
+            tracing::info!(
+                "Loaded {} of {} servers into cache",
+                success_count,
+                success_count + failures.len()
+            );
         }
 
         if !failures.is_empty() {
@@ -127,7 +193,7 @@ impl FileCacheManager {
             .filter(|e| {
                 // Only cache .jar, .json, and asset files
                 let path = e.path();
-                path.extension().map_or(false, |ext| ext == "jar" || ext == "json")
+                path.extension().is_some_and(|ext| ext == "jar" || ext == "json")
                     || path.starts_with(server_path.join("assets"))
             })
             .map(|e| e.path().to_path_buf())
@@ -181,4 +247,12 @@ impl FileCacheManager {
 
         tracing::info!("FileCacheManager: All tasks shut down gracefully");
     }
+}
+
+fn cache_key(server: &str, path: &str) -> Arc<str> {
+    format!("{}/{}", server, path).into()
+}
+
+fn file_cache_weight_bytes(value: &FileCache) -> u32 {
+    value.memory_usage().min(u32::MAX as u64) as u32
 }

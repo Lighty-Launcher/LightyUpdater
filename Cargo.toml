@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "crates/models",
     "crates/events",
+    "crates/adapters",
     "crates/utils",
     "crates/filesystem",
     "crates/config",
@@ -10,6 +11,7 @@ members = [
     "crates/cache",
     "crates/storage",
     "crates/watcher",
+    "crates/runtime",
     "crates/api",
     "cli",
     "app",
@@ -55,5 +57,4 @@ tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 colored = "2.2.0"
 
 # Error handling
-anyhow = "1.0.95"
 thiserror = "2.0"

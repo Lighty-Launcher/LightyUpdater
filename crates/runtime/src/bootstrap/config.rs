@@ -1,7 +1,8 @@
-use lighty_events::{AppEvent, EventBus};
+use crate::Result;
+use lighty_adapters::load_config_with_events;
 use lighty_config::Config;
+use lighty_events::{AppEvent, EventBus};
 use lighty_filesystem::FileSystem;
-use anyhow::Result;
 use std::sync::Arc;
 
 pub async fn load(config_path: &str, events: &Arc<EventBus>) -> Result<Config> {
@@ -12,7 +13,7 @@ pub async fn load(config_path: &str, events: &Arc<EventBus>) -> Result<Config> {
     });
 
     let config_exists = std::path::Path::new(config_path).exists();
-    let config = Config::from_file_with_events(config_path, Some(events)).await?;
+    let config = load_config_with_events(config_path, Some(events)).await?;
 
     if !config_exists {
         events.emit(AppEvent::ConfigCreated {

@@ -1,9 +1,9 @@
 use crate::daemon;
+use crate::config_file::resolve_updater_path;
 use crate::errors::CliResult;
 use crate::registry::Registry;
 use colored::Colorize;
 use serde::Serialize;
-use std::path::PathBuf;
 
 #[derive(Serialize)]
 struct InstanceStatus {
@@ -16,27 +16,6 @@ struct InstanceStatus {
     pid: Option<u32>,
 }
 
-fn get_updater_path(config_path: &PathBuf) -> CliResult<PathBuf> {
-    // Read config.toml to get base_path
-    let config_content = std::fs::read_to_string(config_path)?;
-    let config: toml::Value = toml::from_str(&config_content)?;
-
-    let base_path = config
-        .get("server")
-        .and_then(|s| s.get("base_path"))
-        .and_then(|b| b.as_str())
-        .unwrap_or("updater");
-
-    // Resolve path (absolute or relative to config directory)
-    let updater_path = if std::path::Path::new(base_path).is_absolute() {
-        PathBuf::from(base_path)
-    } else {
-        config_path.parent().unwrap().join(base_path)
-    };
-
-    Ok(updater_path)
-}
-
 pub fn execute(name: Option<String>, json: bool) -> CliResult<()> {
     let registry = Registry::load()?;
 
@@ -45,7 +24,7 @@ pub fn execute(name: Option<String>, json: bool) -> CliResult<()> {
         let instance = registry.get_instance(&name)?;
         let pid = daemon::read_pid(&instance.name)?;
         let status = if pid.is_some() { "running" } else { "stopped" };
-        let updater_path = get_updater_path(&instance.config_path)?;
+        let updater_path = resolve_updater_path(&instance.config_path)?;
 
         if json {
             let status_obj = InstanceStatus {
@@ -100,7 +79,7 @@ pub fn execute(name: Option<String>, json: bool) -> CliResult<()> {
             for instance in instances {
                 let pid = crate::daemon::read_pid_with_system(&instance.name, &mut sys)?;
                 let status = if pid.is_some() { "running" } else { "stopped" };
-                let updater_path = get_updater_path(&instance.config_path)?;
+                let updater_path = resolve_updater_path(&instance.config_path)?;
                 statuses.push(InstanceStatus {
                     name: instance.name.clone(),
                     directory: instance.directory.display().to_string(),

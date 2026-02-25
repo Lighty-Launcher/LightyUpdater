@@ -1,7 +1,7 @@
-use lighty_events::{AppEvent, EventBus};
+use crate::Result;
 use lighty_config::Config;
+use lighty_events::{AppEvent, EventBus};
 use lighty_filesystem::FileSystem;
-use anyhow::Result;
 use std::sync::Arc;
 
 pub async fn initialize_folders(config: &Config, events: &Arc<EventBus>) -> Result<()> {
@@ -10,7 +10,6 @@ pub async fn initialize_folders(config: &Config, events: &Arc<EventBus>) -> Resu
     }
 
     for server_config in &config.servers {
-        // Skip disabled servers
         if !server_config.enabled {
             continue;
         }
@@ -21,7 +20,8 @@ pub async fn initialize_folders(config: &Config, events: &Arc<EventBus>) -> Resu
             path: path.clone(),
         });
 
-        FileSystem::ensure_server_structure(config.server.base_path.as_ref(), server_config.name.as_ref()).await?;
+        FileSystem::ensure_server_structure(config.server.base_path.as_ref(), server_config.name.as_ref())
+            .await?;
 
         events.emit(AppEvent::ServerFolderCreated {
             name: server_config.name.to_string(),

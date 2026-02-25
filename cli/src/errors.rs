@@ -38,8 +38,8 @@ pub enum CliError {
     #[error("Config error: {0}")]
     Config(String),
 
-    #[error("{0}")]
-    Anyhow(#[from] anyhow::Error),
+    #[error("Runtime error: {0}")]
+    Runtime(#[from] lighty_runtime::RuntimeError),
 
     #[error("{0}")]
     Other(String),

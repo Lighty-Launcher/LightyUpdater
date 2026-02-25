@@ -1,5 +1,6 @@
 use super::models::ConfigWatcher;
 use super::errors::WatcherError;
+use lighty_adapters::load_config_no_migration;
 use lighty_cache::CacheManager;
 use lighty_config::{Config, ServerConfig};
 use lighty_filesystem::FileSystem;
@@ -137,7 +138,7 @@ impl ConfigWatcher {
             }
 
             tracing::info!("🔄 Reloading configuration from {}", config_path);
-            match Config::from_file_no_migration(config_path).await {
+            match load_config_no_migration(config_path).await {
                 Ok(new_config) => {
                     tracing::debug!("Config loaded successfully, acquiring locks...");
 
@@ -219,7 +220,7 @@ impl ConfigWatcher {
                     if !removed_servers.is_empty() {
                         tracing::info!("🗑️  Detected {} removed server(s): {:?}", removed_servers.len(), removed_servers);
                         for server_name in &removed_servers {
-                            cache_manager.remove_server(server_name);
+                            cache_manager.remove_server(server_name).await;
                             tracing::info!("Cleaned up removed server: {}", server_name);
                         }
                     }

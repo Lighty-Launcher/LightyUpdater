@@ -1,4 +1,4 @@
-use super::models::{CacheManager, FileCacheManager, RescanOrchestrator, FileCache, CacheUpdater, CacheStore};
+use super::models::{CacheManager, FileCacheManager, RescanOrchestrator, FileCache, CacheUpdater, CacheStore, RescanOrchestratorDeps};
 use super::errors::CacheError;
 use lighty_config::{Config, ServerConfig};
 use lighty_events::{AppEvent, EventBus};
@@ -42,17 +42,18 @@ impl CacheManager {
         server_path_cache.rebuild(&servers, &base_path.to_string_lossy());
 
         // Create rescan orchestrator with storage, cdn and cloudflare
-        let rescan_orchestrator = Arc::new(RescanOrchestrator::new(
-            Arc::new(cache_store),
-            Arc::clone(&last_updated),
-            Arc::clone(&config),
-            Arc::clone(&events),
+        let rescan_orchestrator = Arc::new(RescanOrchestrator::new(RescanOrchestratorDeps {
+            cache: Arc::new(cache_store),
+            file_cache_manager: Arc::clone(&file_cache_manager),
+            last_updated: Arc::clone(&last_updated),
+            config: Arc::clone(&config),
+            events: Arc::clone(&events),
             storage,
             cdn,
             cloudflare,
             base_path,
-            Arc::clone(&server_path_cache),
-        ));
+            server_path_cache: Arc::clone(&server_path_cache),
+        }));
 
         Self {
             cache,
@@ -135,11 +136,14 @@ impl CacheManager {
         if config.cache.auto_scan {
             let servers = config.servers.clone();
             let base_path = config.server.base_path.clone();
+            let server_parallelism = config.cache.hash_concurrency;
             drop(config);
 
             self.events.emit(AppEvent::InitialScanStarted);
             self.rescan_orchestrator.scan_all_servers().await?;
-            self.file_cache_manager.load_all_servers(&servers, base_path.as_ref()).await?;
+            self.file_cache_manager
+                .load_all_servers(&servers, base_path.as_ref(), server_parallelism)
+                .await?;
         }
 
         Ok(())
@@ -204,11 +208,13 @@ impl CacheManager {
     }
 
     /// Remove a server from all caches (prevents memory leaks when servers are deleted)
-    pub fn remove_server(&self, server_name: &str) {
+    pub async fn remove_server(&self, server_name: &str) {
         // Remove from version builder cache
         if self.cache.remove(server_name).is_some() {
             tracing::debug!("Removed server {} from version builder cache", server_name);
         }
+        self.file_cache_manager.invalidate_server(server_name).await;
+        tracing::debug!("Removed server {} from file cache", server_name);
 
         // Remove from last updated timestamps
         if self.last_updated.remove(server_name).is_some() {

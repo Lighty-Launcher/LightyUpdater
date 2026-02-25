@@ -30,16 +30,21 @@ impl JarScanner {
             return Ok(vec![]);
         }
 
-        // Collect all jar file paths first (sync operation)
-        let jar_paths: Vec<PathBuf> = WalkDir::new(&self.base_dir)
+        if self.batch_size == 0 {
+            return Err(ScanError::InvalidMetadata(
+                "Jar scan concurrency must be greater than 0".to_string(),
+            ));
+        }
+        let batch_size = self.batch_size;
+
+        let jar_paths = WalkDir::new(&self.base_dir)
             .into_iter()
             .filter_map(|e| e.ok())
             .filter(|e| is_jar_file(e.path()))
-            .map(|e| e.path().to_path_buf())
-            .collect();
+            .map(|e| e.path().to_path_buf());
 
         // Create semaphore to control concurrency
-        let semaphore = Arc::new(Semaphore::new(self.batch_size));
+        let semaphore = Arc::new(Semaphore::new(batch_size));
         let base_dir = self.base_dir;
         let server = self.server;
         let storage = self.storage;
@@ -53,11 +58,14 @@ impl JarScanner {
                 let server = server.clone();
                 let storage = Arc::clone(&storage);
                 let mapper = Arc::clone(&mapper);
-                let buffer_size = buffer_size;
 
                 async move {
                     // Acquire semaphore permit
-                    let _permit = sem.acquire().await.unwrap();
+                    let _permit = sem.acquire().await.map_err(|_| {
+                        ScanError::InvalidMetadata(
+                            "Failed to acquire semaphore permit for jar scan".to_string(),
+                        )
+                    })?;
 
                     let relative = jar_path
                         .strip_prefix(&base_dir)
@@ -88,7 +96,7 @@ impl JarScanner {
                     mapper(info)
                 }
             })
-            .buffer_unordered(self.batch_size)
+            .buffer_unordered(batch_size)
             .collect()
             .await;
 
@@ -98,7 +106,7 @@ impl JarScanner {
 }
 
 fn is_jar_file(path: &Path) -> bool {
-    path.is_file() && path.extension().map_or(false, |ext| ext == "jar")
+    path.is_file() && path.extension().is_some_and(|ext| ext == "jar")
 }
 
 /// Scan files with a custom filter and processor (async with concurrency control)
@@ -120,13 +128,17 @@ where
         return Ok(vec![]);
     }
 
-    // Collect all matching file paths
-    let file_paths: Vec<PathBuf> = WalkDir::new(&base_dir)
+    if concurrency == 0 {
+        return Err(ScanError::InvalidMetadata(
+            "File scan concurrency must be greater than 0".to_string(),
+        ));
+    }
+
+    let file_paths = WalkDir::new(&base_dir)
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| filter(e.path()))
-        .map(|e| e.path().to_path_buf())
-        .collect();
+        .map(|e| e.path().to_path_buf());
 
     // Create semaphore to control concurrency
     let semaphore = Arc::new(Semaphore::new(concurrency));
@@ -140,11 +152,14 @@ where
             let server = server.clone();
             let storage = Arc::clone(&storage);
             let mapper = Arc::clone(&mapper);
-            let buffer_size = buffer_size;
 
             async move {
                 // Acquire semaphore permit
-                let _permit = sem.acquire().await.unwrap();
+                let _permit = sem.acquire().await.map_err(|_| {
+                    ScanError::InvalidMetadata(
+                        "Failed to acquire semaphore permit for file scan".to_string(),
+                    )
+                })?;
 
                 let relative = file_path
                     .strip_prefix(&base_dir)

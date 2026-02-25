@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum ConfigError {
+pub enum ConfigIoError {
     #[error("I/O error: {0}")]
     IoError(#[from] std::io::Error),
 
@@ -11,12 +11,6 @@ pub enum ConfigError {
     #[error("TOML edit error: {0}")]
     TomlEditError(#[from] toml_edit::TomlError),
 
-    #[error("Config file not found: {0}")]
-    ConfigNotFound(String),
-
     #[error("Invalid configuration: {0}")]
     InvalidConfig(String),
-
-    #[error("Migration failed: {0}")]
-    MigrationError(String),
 }

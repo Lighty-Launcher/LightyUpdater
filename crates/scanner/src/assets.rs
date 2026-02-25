@@ -2,7 +2,7 @@ use super::errors::ScanError;
 use lighty_models::Asset;
 use lighty_storage::StorageBackend;
 use lighty_utils::{normalize_path, compute_sha1_with_size};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::Arc;
 use walkdir::WalkDir;
 use tokio::sync::Semaphore;
@@ -17,13 +17,17 @@ pub async fn scan_assets(path: &Path, server: &str, storage: &Arc<dyn StorageBac
         return Ok(vec![]);
     }
 
-    // Collect all file paths in assets directory
-    let file_paths: Vec<PathBuf> = WalkDir::new(&assets_dir)
+    if concurrency == 0 {
+        return Err(ScanError::InvalidMetadata(
+            "Asset scan concurrency must be greater than 0".to_string(),
+        ));
+    }
+
+    let file_paths = WalkDir::new(&assets_dir)
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| e.path().is_file())
-        .map(|e| e.path().to_path_buf())
-        .collect();
+        .map(|e| e.path().to_path_buf());
 
     // Create semaphore to control concurrency
     let semaphore = Arc::new(Semaphore::new(concurrency));
@@ -37,11 +41,14 @@ pub async fn scan_assets(path: &Path, server: &str, storage: &Arc<dyn StorageBac
             let assets_dir = assets_dir.clone();
             let server = server.clone();
             let storage = Arc::clone(&storage);
-            let buffer_size = buffer_size;
 
             async move {
                 // Acquire semaphore permit
-                let _permit = sem.acquire().await.unwrap();
+                let _permit = sem.acquire().await.map_err(|_| {
+                    ScanError::InvalidMetadata(
+                        "Failed to acquire semaphore permit for asset scan".to_string(),
+                    )
+                })?;
 
                 let relative = file_path
                     .strip_prefix(&assets_dir)

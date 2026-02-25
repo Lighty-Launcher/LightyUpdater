@@ -1,6 +1,6 @@
 [package]
-name = "lighty"
-version = "0.1.0"
+name = "lighty-updater"
+version = "2026.2.1"
 edition = "2021"
 description = "Unified interface for LightyUpdater - Minecraft distribution server"
 

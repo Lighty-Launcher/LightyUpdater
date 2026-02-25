@@ -1,26 +1,15 @@
-use crate::errors::{CliError, CliResult};
+use crate::errors::CliResult;
+use crate::instance_lookup::resolve_instance;
 use crate::paths;
 use crate::registry::Registry;
-use std::env;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Seek, SeekFrom};
+use std::io::{BufRead, BufReader, Read, Seek, SeekFrom};
 use std::thread;
 use std::time::Duration;
 
 pub fn execute(name: Option<String>, follow: bool, lines: usize) -> CliResult<()> {
     let registry = Registry::load()?;
-
-    // Find the instance
-    let instance = if let Some(name) = &name {
-        // Logs by name
-        registry.get_instance(name)?
-    } else {
-        // Logs from current directory
-        let current_dir = env::current_dir()?;
-        registry
-            .find_by_directory(&current_dir)
-            .ok_or(CliError::NoInstanceInCurrentDir)?
-    };
+    let instance = resolve_instance(&registry, name.as_deref())?;
 
     let log_path = paths::log_file(&instance.name)?;
 
@@ -42,20 +31,41 @@ pub fn execute(name: Option<String>, follow: bool, lines: usize) -> CliResult<()
 }
 
 fn print_last_lines(log_path: &std::path::Path, lines: usize) -> CliResult<()> {
-    let file = File::open(log_path)?;
-    let reader = BufReader::new(file);
+    if lines == 0 {
+        return Ok(());
+    }
 
-    let all_lines: Vec<String> = reader
-        .lines()
-        .collect::<Result<Vec<_>, _>>()?;
+    const CHUNK_SIZE: usize = 8 * 1024;
 
-    let start = if all_lines.len() > lines {
-        all_lines.len() - lines
-    } else {
-        0
-    };
+    let mut file = File::open(log_path)?;
+    let mut pos = file.metadata()?.len();
+    let mut chunks: Vec<Vec<u8>> = Vec::new();
+    let mut newline_count = 0usize;
 
-    for line in &all_lines[start..] {
+    while pos > 0 && newline_count <= lines {
+        let read_size = std::cmp::min(CHUNK_SIZE as u64, pos) as usize;
+        pos -= read_size as u64;
+
+        file.seek(SeekFrom::Start(pos))?;
+
+        let mut chunk = vec![0u8; read_size];
+        file.read_exact(&mut chunk)?;
+
+        newline_count += chunk.iter().filter(|&&b| b == b'\n').count();
+        chunks.push(chunk);
+    }
+
+    let total_len: usize = chunks.iter().map(|chunk| chunk.len()).sum();
+    let mut data = Vec::with_capacity(total_len);
+    for chunk in chunks.iter().rev() {
+        data.extend_from_slice(chunk);
+    }
+
+    let content = String::from_utf8_lossy(&data);
+    let mut selected: Vec<&str> = content.lines().rev().take(lines).collect();
+    selected.reverse();
+
+    for line in selected {
         println!("{}", line);
     }
 

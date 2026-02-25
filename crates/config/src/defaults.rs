@@ -1,4 +1,4 @@
-/// Default values for configuration fields
+//! Default values for configuration fields
 
 pub fn tcp_nodelay() -> bool {
     true
@@ -92,16 +92,8 @@ pub fn storage_settings() -> super::models::StorageSettings {
     }
 }
 
-pub fn s3_region() -> String {
-    "auto".to_string()
-}
-
 pub fn s3_region_arc() -> std::sync::Arc<str> {
     std::sync::Arc::from("auto")
-}
-
-pub fn s3_bucket_name() -> String {
-    "lighty-updater".to_string()
 }
 
 pub fn s3_bucket_name_arc() -> std::sync::Arc<str> {

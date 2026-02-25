@@ -1,0 +1,14 @@
+[package]
+name = "lighty-adapters"
+version = "2026.2.1"
+edition = "2021"
+
+[dependencies]
+lighty-config = { path = "../config" }
+lighty-events = { path = "../events" }
+tokio = { workspace = true }
+toml = { workspace = true }
+toml_edit = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+colored = { workspace = true }

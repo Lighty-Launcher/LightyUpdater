@@ -89,6 +89,7 @@ pub struct ChangeDetector;
 /// Orchestrates automatic and manual server rescanning
 pub struct RescanOrchestrator {
     pub(super) cache: Arc<dyn CacheUpdater>,
+    pub(super) file_cache_manager: Arc<FileCacheManager>,
     pub(super) last_updated: Arc<DashMap<String, String>>,
     pub(super) config: Arc<RwLock<Config>>,
     pub(super) events: Arc<EventBus>,
@@ -98,4 +99,18 @@ pub struct RescanOrchestrator {
     pub(super) cloudflare: Option<Arc<super::cloudflare::CloudflareClient>>,
     pub(super) base_path: std::path::PathBuf,
     pub(super) server_path_cache: Arc<super::server_path_cache::ServerPathCache>,
+}
+
+/// Constructor input object to keep `RescanOrchestrator::new` compact.
+pub struct RescanOrchestratorDeps {
+    pub cache: Arc<dyn CacheUpdater>,
+    pub file_cache_manager: Arc<FileCacheManager>,
+    pub last_updated: Arc<DashMap<String, String>>,
+    pub config: Arc<RwLock<Config>>,
+    pub events: Arc<EventBus>,
+    pub storage: Option<Arc<dyn lighty_storage::StorageBackend>>,
+    pub cdn: Option<Arc<super::cdn::CdnClient>>,
+    pub cloudflare: Option<Arc<super::cloudflare::CloudflareClient>>,
+    pub base_path: std::path::PathBuf,
+    pub server_path_cache: Arc<super::server_path_cache::ServerPathCache>,
 }

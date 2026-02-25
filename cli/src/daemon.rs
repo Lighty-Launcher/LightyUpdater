@@ -11,12 +11,6 @@ pub fn is_running_with_system(sys: &mut System, pid: u32) -> bool {
     sys.process(pid_obj).is_some()
 }
 
-/// Check if a process with the given PID is running (convenience wrapper, creates System)
-pub fn is_running(pid: u32) -> bool {
-    let mut sys = System::new();
-    is_running_with_system(&mut sys, pid)
-}
-
 /// Read PID from file (optimized: reuses System instance)
 pub fn read_pid_with_system(name: &str, sys: &mut System) -> CliResult<Option<u32>> {
     let pid_path = paths::pid_file(name)?;

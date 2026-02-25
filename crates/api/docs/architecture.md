@@ -41,7 +41,7 @@ Shared state structure across all handlers.
 ### Handlers
 
 **list_servers:**
-- Route: GET /servers
+- Route: GET /
 - Returns list of all servers with metadata
 - Builds ServerInfo for each server
 

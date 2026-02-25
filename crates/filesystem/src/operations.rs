@@ -1,7 +1,9 @@
 use super::models::FileSystem;
-use anyhow::Result;
+use super::errors::FileSystemError;
 use std::path::{Path, PathBuf};
 use tokio::fs;
+
+type Result<T> = std::result::Result<T, FileSystemError>;
 
 impl FileSystem {
     pub async fn ensure_server_structure(

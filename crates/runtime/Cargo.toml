@@ -1,0 +1,34 @@
+[package]
+name = "lighty-runtime"
+version = "2026.2.1"
+edition = "2021"
+
+[features]
+default = []
+s3 = ["lighty-storage/s3"]
+
+[dependencies]
+# Internal crates
+lighty-api = { path = "../api" }
+lighty-adapters = { path = "../adapters" }
+lighty-cache = { path = "../cache" }
+lighty-config = { path = "../config" }
+lighty-events = { path = "../events" }
+lighty-storage = { path = "../storage" }
+lighty-watcher = { path = "../watcher" }
+lighty-filesystem = { path = "../filesystem" }
+
+# Async runtime
+tokio = { workspace = true }
+
+# Web framework
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }

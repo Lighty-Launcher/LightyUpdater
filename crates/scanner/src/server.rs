@@ -5,7 +5,7 @@ use lighty_config::{ServerConfig, BatchConfig};
 use lighty_models::*;
 use lighty_storage::StorageBackend;
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 type Result<T> = std::result::Result<T, ScanError>;
@@ -47,7 +47,7 @@ impl ServerScanner {
         Self::build_version_metadata(config, &server_path, storage, batch_config, buffer_size).await
     }
 
-    fn validate_server_path(path: &PathBuf, folder: &str) -> Result<()> {
+    fn validate_server_path(path: &Path, folder: &str) -> Result<()> {
         if !path.exists() {
             return Err(ScanError::ServerFolderNotFound(folder.to_string()));
         }
@@ -56,7 +56,7 @@ impl ServerScanner {
 
     async fn build_version_metadata(
         config: &ServerConfig,
-        server_path: &PathBuf,
+        server_path: &Path,
         storage: &Arc<dyn StorageBackend>,
         batch_config: &BatchConfig,
         buffer_size: usize,

@@ -1,9 +1,7 @@
 [package]
 name = "lighty-events"
-version = "0.1.0"
+version = "2026.2.1"
 edition = "2021"
 
 [dependencies]
 serde = { workspace = true }
-colored = { workspace = true }
-tracing = { workspace = true }

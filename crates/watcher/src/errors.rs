@@ -6,7 +6,7 @@ pub enum WatcherError {
     IoError(#[from] std::io::Error),
 
     #[error("Config error: {0}")]
-    ConfigError(#[from] lighty_config::ConfigError),
+    ConfigError(#[from] lighty_adapters::ConfigIoError),
 
     #[error("Cache error: {0}")]
     CacheError(#[from] lighty_cache::CacheError),

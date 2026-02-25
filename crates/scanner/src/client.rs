@@ -21,7 +21,7 @@ pub async fn scan_client(path: &Path, server: &str, storage: &Arc<dyn StorageBac
 
     while let Some(entry) = entries.next_entry().await? {
         let entry_path = entry.path();
-        if entry_path.is_file() && entry_path.extension().map_or(false, |ext| ext == "jar") {
+        if entry_path.is_file() && entry_path.extension().is_some_and(|ext| ext == "jar") {
             jar_file = Some(entry_path);
             break;
         }

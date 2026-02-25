@@ -98,12 +98,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "anyhow"
-version = "1.0.100"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
-
-[[package]]
 name = "async-compression"
 version = "0.4.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1871,23 +1865,22 @@ dependencies = [
 ]
 
 [[package]]
-name = "lighty"
-version = "0.1.0"
+name = "lighty-adapters"
+version = "2026.2.1"
 dependencies = [
- "lighty-api",
- "lighty-cache",
+ "colored",
  "lighty-config",
  "lighty-events",
- "lighty-filesystem",
- "lighty-models",
- "lighty-scanner",
- "lighty-utils",
- "lighty-watcher",
+ "thiserror 2.0.17",
+ "tokio",
+ "toml",
+ "toml_edit",
+ "tracing",
 ]
 
 [[package]]
 name = "lighty-api"
-version = "0.1.0"
+version = "2026.2.1"
 dependencies = [
  "axum",
  "chrono",
@@ -1907,8 +1900,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "lighty-app"
+version = "2026.2.1"
+dependencies = [
+ "lighty-runtime",
+ "tokio",
+]
+
+[[package]]
 name = "lighty-cache"
-version = "0.1.0"
+version = "2026.2.1"
 dependencies = [
  "bytes",
  "chrono",
@@ -1937,14 +1938,62 @@ dependencies = [
 
 [[package]]
 name = "lighty-cli"
-version = "1.0.7"
+version = "2026.2.1"
 dependencies = [
- "anyhow",
- "axum",
  "chrono",
  "clap",
  "colored",
  "dirs",
+ "lighty-config",
+ "lighty-runtime",
+ "serde",
+ "serde_json",
+ "sysinfo",
+ "thiserror 2.0.17",
+ "tokio",
+ "toml",
+ "tracing",
+]
+
+[[package]]
+name = "lighty-config"
+version = "2026.2.1"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "lighty-events"
+version = "2026.2.1"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "lighty-filesystem"
+version = "2026.2.1"
+dependencies = [
+ "bytes",
+ "lighty-utils",
+ "mime_guess",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "lighty-models"
+version = "2026.2.1"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "lighty-runtime"
+version = "2026.2.1"
+dependencies = [
+ "axum",
+ "lighty-adapters",
  "lighty-api",
  "lighty-cache",
  "lighty-config",
@@ -1952,65 +2001,17 @@ dependencies = [
  "lighty-filesystem",
  "lighty-storage",
  "lighty-watcher",
- "serde",
- "serde_json",
- "sysinfo",
  "thiserror 2.0.17",
  "tokio",
- "toml",
  "tower",
  "tower-http",
  "tracing",
  "tracing-subscriber",
- "walkdir",
-]
-
-[[package]]
-name = "lighty-config"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "lighty-events",
- "lighty-filesystem",
- "serde",
- "thiserror 2.0.17",
- "tokio",
- "toml",
- "toml_edit",
- "tracing",
-]
-
-[[package]]
-name = "lighty-events"
-version = "0.1.0"
-dependencies = [
- "colored",
- "serde",
- "tracing",
-]
-
-[[package]]
-name = "lighty-filesystem"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bytes",
- "lighty-utils",
- "mime_guess",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "lighty-models"
-version = "0.1.0"
-dependencies = [
- "serde",
 ]
 
 [[package]]
 name = "lighty-scanner"
-version = "0.1.0"
+version = "2026.2.1"
 dependencies = [
  "futures",
  "lighty-config",
@@ -2025,29 +2026,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "lighty-server"
-version = "1.0.7"
-dependencies = [
- "anyhow",
- "axum",
- "lighty-api",
- "lighty-cache",
- "lighty-config",
- "lighty-events",
- "lighty-filesystem",
- "lighty-storage",
- "lighty-watcher",
- "thiserror 2.0.17",
- "tokio",
- "tower",
- "tower-http",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "lighty-storage"
-version = "0.1.0"
+version = "2026.2.1"
 dependencies = [
  "async-trait",
  "aws-config",
@@ -2061,8 +2041,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "lighty-updater"
+version = "2026.2.1"
+dependencies = [
+ "lighty-api",
+ "lighty-cache",
+ "lighty-config",
+ "lighty-events",
+ "lighty-filesystem",
+ "lighty-models",
+ "lighty-scanner",
+ "lighty-utils",
+ "lighty-watcher",
+]
+
+[[package]]
 name = "lighty-utils"
-version = "0.1.0"
+version = "2026.2.1"
 dependencies = [
  "hex",
  "sha1",
@@ -2072,8 +2067,9 @@ dependencies = [
 
 [[package]]
 name = "lighty-watcher"
-version = "0.1.0"
+version = "2026.2.1"
 dependencies = [
+ "lighty-adapters",
  "lighty-cache",
  "lighty-config",
  "lighty-filesystem",

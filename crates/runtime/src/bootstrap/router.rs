@@ -1,6 +1,6 @@
+use axum::{http::StatusCode, routing::get, Router};
 use lighty_api::{get_server_metadata, list_servers, serve_file, AppState};
 use lighty_config::Config;
-use axum::{http::StatusCode, routing::get, Router};
 use std::time::Duration;
 use tower::limit::ConcurrencyLimitLayer;
 use tower_http::{
@@ -23,7 +23,6 @@ pub fn build(config: &Config, app_state: AppState) -> Router {
         .layer(RequestBodyLimitLayer::new(max_body_size))
         .layer(TimeoutLayer::with_status_code(StatusCode::REQUEST_TIMEOUT, timeout));
 
-    // Optionally enable compression based on config
     if config.server.enable_compression {
         router = router.layer(CompressionLayer::new());
     }
@@ -34,7 +33,7 @@ pub fn build(config: &Config, app_state: AppState) -> Router {
 }
 
 fn build_cors_layer(allowed_origins: &[String]) -> CorsLayer {
-    if allowed_origins.iter().any(|o| o == "*") {
+    if allowed_origins.iter().any(|origin| origin == "*") {
         CorsLayer::new()
             .allow_origin(Any)
             .allow_methods(Any)
@@ -42,7 +41,7 @@ fn build_cors_layer(allowed_origins: &[String]) -> CorsLayer {
     } else {
         let origins: Vec<_> = allowed_origins
             .iter()
-            .filter_map(|o| o.parse().ok())
+            .filter_map(|origin| origin.parse().ok())
             .collect();
         CorsLayer::new()
             .allow_origin(origins)

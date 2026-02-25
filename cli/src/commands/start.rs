@@ -1,23 +1,12 @@
 use crate::daemon;
 use crate::errors::{CliError, CliResult};
+use crate::instance_lookup::resolve_instance;
 use crate::registry::Registry;
 use colored::Colorize;
-use std::env;
 
 pub fn execute(name: Option<String>) -> CliResult<()> {
     let registry = Registry::load()?;
-
-    // Find the instance
-    let instance = if let Some(name) = &name {
-        // Start by name
-        registry.get_instance(name)?
-    } else {
-        // Start from current directory
-        let current_dir = env::current_dir()?;
-        registry
-            .find_by_directory(&current_dir)
-            .ok_or(CliError::NoInstanceInCurrentDir)?
-    };
+    let instance = resolve_instance(&registry, name.as_deref())?;
 
     // Check if already running
     if let Some(pid) = daemon::read_pid(&instance.name)? {

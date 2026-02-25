@@ -10,8 +10,9 @@ pub fn execute(force: bool) -> CliResult<()> {
 
     // Check if any instances are running
     let mut running_instances = Vec::new();
+    let mut sys = sysinfo::System::new();
     for instance in &instances {
-        if let Ok(Some(_)) = daemon::read_pid(&instance.name) {
+        if let Ok(Some(_)) = daemon::read_pid_with_system(&instance.name, &mut sys) {
             running_instances.push(instance.name.clone());
         }
     }

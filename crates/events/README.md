@@ -1,52 +1,19 @@
 # Events Crate
 
-Event bus system for inter-component communication with structured console display.
+Event contracts and bus abstraction for LightyUpdater.
 
-## Table of Contents
+## Responsibilities
 
-- [Architecture](docs/architecture.md) - Event system architecture
-- [Event Types](docs/event-types.md) - Complete event catalog
-- [Formatting](docs/formatting.md) - Console display system
+- Define `AppEvent` as the shared event model.
+- Expose `EventSink` abstraction for pluggable renderers.
+- Expose `EventBus` for event dispatch to sink implementations.
 
-## Event Types
+## Non-Responsibilities
 
-### Lifecycle
-- Starting: Application startup
-- Ready: Server ready with address and URL
-- Shutdown: Server shutdown
+- No console formatting.
+- No terminal coloring.
+- No transport-specific rendering.
 
-### Configuration
-- ConfigLoading: Configuration loading
-- ConfigLoaded: Configuration loaded successfully
-- ConfigCreated: Default configuration created
-- ConfigMigrated: Fields added during migration
-- ConfigReloaded: Configuration hot-reloaded
-- ConfigError: Configuration error
+## Related Crate
 
-### Scanning
-- ScanStarted: Server scan started
-- ScanCompleted: Scan completed with duration
-- InitialScanStarted: Initial scan of all servers
-
-### Cache
-- CacheNew: New cache created for a server
-- CacheUpdated: Cache updated with change list
-- CacheUnchanged: No change detected
-
-### Server Discovery
-- NewServerDetected: New server added to config
-- ServerRemoved: Server removed from config
-
-### Auto-scan
-- AutoScanEnabled: Automatic rescan enabled with interval
-- ContinuousScanEnabled: Continuous monitoring enabled
-
-### Errors
-- Error: General error with context and message
-
-## Integration
-
-This crate integrates with:
-- All project crates for event emission
-- `colored`: For colored console display
-- `tracing`: For structured logs
+- `lighty-events-console` provides the console sink implementation.

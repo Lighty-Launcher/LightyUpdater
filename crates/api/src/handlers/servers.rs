@@ -3,7 +3,7 @@ use crate::errors::ApiError;
 use crate::models::{ServerListResponse, ServerInfo};
 use axum::{
     extract::{Path as AxumPath, State},
-    response::{Json, Response},
+    response::{IntoResponse, Json, Response},
     http::{StatusCode, header},
 };
 
@@ -62,11 +62,12 @@ pub async fn get_server_metadata(
             let json = serde_json::to_vec(&*builder)
                 .map_err(|e| ApiError::InternalError(e.to_string()))?;
 
-            Ok(Response::builder()
-                .status(StatusCode::OK)
-                .header(header::CONTENT_TYPE, "application/json")
-                .body(json.into())
-                .unwrap())
+            Ok((
+                StatusCode::OK,
+                [(header::CONTENT_TYPE, "application/json")],
+                json,
+            )
+                .into_response())
         }
         None => {
             let available = state.cache.get_all_servers().await;

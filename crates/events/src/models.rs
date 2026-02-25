@@ -42,8 +42,3 @@ pub enum AppEvent {
     // Errors
     Error { context: String, error: String },
 }
-
-pub struct EventBus {
-    #[allow(dead_code)]
-    pub(super) silent_mode: bool,
-}

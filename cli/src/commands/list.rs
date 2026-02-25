@@ -20,8 +20,10 @@ pub fn execute() -> CliResult<()> {
     println!("{}", format!("{} instances found:", instances.len()).bold());
     println!();
 
+    let mut sys = sysinfo::System::new();
+
     for instance in instances {
-        let pid = daemon::read_pid(&instance.name)?;
+        let pid = daemon::read_pid_with_system(&instance.name, &mut sys)?;
         let status = if pid.is_some() {
             "running".green()
         } else {

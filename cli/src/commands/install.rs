@@ -1,7 +1,7 @@
 use crate::errors::CliResult;
 use crate::paths;
 use colored::Colorize;
-use std::path::PathBuf;
+use std::path::Path;
 
 pub fn execute() -> CliResult<()> {
     // Get the current executable path
@@ -117,7 +117,7 @@ pub fn execute() -> CliResult<()> {
     Ok(())
 }
 
-fn is_in_path(dir: &PathBuf) -> bool {
+fn is_in_path(dir: &Path) -> bool {
     if let Ok(path_env) = std::env::var("PATH") {
         let canonical_dir = match dir.canonicalize() {
             Ok(d) => d,
@@ -136,7 +136,7 @@ fn is_in_path(dir: &PathBuf) -> bool {
 }
 
 /// Automatically add directory to PATH
-fn add_to_path_automatically(bin_dir: &PathBuf) -> bool {
+fn add_to_path_automatically(bin_dir: &Path) -> bool {
     #[cfg(target_os = "windows")]
     {
         add_to_path_windows(bin_dir)
@@ -149,14 +149,14 @@ fn add_to_path_automatically(bin_dir: &PathBuf) -> bool {
 }
 
 #[cfg(target_os = "windows")]
-fn add_to_path_windows(bin_dir: &PathBuf) -> bool {
+fn add_to_path_windows(bin_dir: &Path) -> bool {
     use std::process::Command;
 
     let bin_path = bin_dir.display().to_string();
 
     // Try to add to User PATH (doesn't require admin)
     let result = Command::new("powershell")
-        .args(&[
+        .args([
             "-NoProfile",
             "-Command",
             &format!(
@@ -179,7 +179,7 @@ fn add_to_path_windows(bin_dir: &PathBuf) -> bool {
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-fn add_to_path_unix(bin_dir: &PathBuf) -> bool {
+fn add_to_path_unix(bin_dir: &Path) -> bool {
     let shell_rc = detect_shell_rc();
     let export_line = format!("\n# Added by lighty installer\nexport PATH=\"{}:$PATH\"\n", bin_dir.display());
 
@@ -245,7 +245,7 @@ pub fn check_and_suggest_install() {
 
             // Skip if in PATH
             if let Some(parent) = current_exe.parent() {
-                if is_in_path(&parent.to_path_buf()) {
+                if is_in_path(parent) {
                     return;
                 }
             }

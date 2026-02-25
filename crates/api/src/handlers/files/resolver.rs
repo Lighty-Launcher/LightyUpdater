@@ -29,5 +29,55 @@ pub fn resolve_file_path(
         }
     }
 
+    // Fallback resolution independent of base_url. This keeps downloads working if
+    // base_url changes before a full rescan rebuilds URL mappings.
+    if let Some(path) = resolve_path_without_base_url(version, url_file_part) {
+        return Some(path);
+    }
+
+    None
+}
+
+fn resolve_path_without_base_url(version: &VersionBuilder, url_file_part: &str) -> Option<String> {
+    if let Some(client) = &version.client {
+        if client.path == url_file_part {
+            return Some(format!("client/{}", client.path));
+        }
+    }
+
+    for library in &version.libraries {
+        if let Some(path) = &library.path {
+            if path == url_file_part {
+                return Some(format!("libraries/{}", path));
+            }
+        }
+    }
+
+    for mod_item in &version.mods {
+        if let Some(path) = &mod_item.path {
+            if path == url_file_part {
+                return Some(format!("mods/{}", path));
+            }
+        }
+    }
+
+    if let Some(natives) = &version.natives {
+        if let Some(filename) = url_file_part.strip_prefix("natives/") {
+            for native in natives {
+                if native.path.rsplit('/').next() == Some(filename) {
+                    return Some(format!("natives/{}", native.path));
+                }
+            }
+        }
+    }
+
+    for asset in &version.assets {
+        if let Some(path) = &asset.path {
+            if path == url_file_part {
+                return Some(format!("assets/{}", path));
+            }
+        }
+    }
+
     None
 }

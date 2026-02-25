@@ -1,11 +1,11 @@
 [package]
 name = "lighty-cli"
-version = "1.0.7"
+version = "2026.2.1"
 edition = "2021"
 
 [features]
 default = []
-s3 = ["lighty-storage/s3"]
+s3 = ["lighty-runtime/s3"]
 
 [[bin]]
 name = "lighty"
@@ -13,21 +13,11 @@ path = "src/main.rs"
 
 [dependencies]
 # Internal crates
-lighty-api = { path = "../crates/api" }
-lighty-cache = { path = "../crates/cache" }
+lighty-runtime = { path = "../crates/runtime" }
 lighty-config = { path = "../crates/config" }
-lighty-events = { path = "../crates/events" }
-lighty-storage = { path = "../crates/storage" }
-lighty-watcher = { path = "../crates/watcher" }
-lighty-filesystem = { path = "../crates/filesystem" }
 
 # Async runtime
 tokio = { workspace = true }
-
-# Web framework
-axum = { workspace = true }
-tower = { workspace = true }
-tower-http = { workspace = true }
 
 # CLI framework
 clap = { version = "4.5", features = ["derive", "cargo"] }
@@ -42,17 +32,12 @@ chrono = { workspace = true }
 
 # Logging
 tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
 
 # Process management
 sysinfo = "0.32"
 
 # Error handling
-anyhow = { workspace = true }
 thiserror = { workspace = true }
-
-# File operations
-walkdir = { workspace = true }
 
 # Cross-platform paths
 dirs = "5.0"

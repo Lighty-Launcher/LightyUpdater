@@ -1,10 +1,11 @@
 [package]
 name = "lighty-watcher"
-version = "0.1.0"
+version = "2026.2.1"
 edition = "2021"
 
 [dependencies]
 lighty-config = { path = "../config" }
+lighty-adapters = { path = "../adapters" }
 lighty-cache = { path = "../cache" }
 lighty-filesystem = { path = "../filesystem" }
 notify = { workspace = true }

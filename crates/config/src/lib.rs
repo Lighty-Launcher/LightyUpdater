@@ -1,8 +1,5 @@
 mod models;
 mod defaults;
-mod loader;
-mod migration;
-mod errors;
 
 pub use models::*;
-pub use errors::ConfigError;
+pub const DEFAULT_CONFIG_TEMPLATE: &str = defaults::DEFAULT_CONFIG_TEMPLATE;

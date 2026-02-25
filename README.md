@@ -32,7 +32,7 @@ High-performance Minecraft distribution server built with Rust and Axum. Serves 
 - **Asynchronous Runtime** - Non-blocking I/O with concurrent request handling
 - **Graceful Shutdown** - Coordinated task termination and resource cleanup
 - **Configurable Compression** - Optional gzip/brotli response compression
-- **Modular Architecture** - 11 specialized crates with clear separation of concerns
+- **Modular Architecture** - 12 specialized crates with explicit business ownership
 
 ---
 
@@ -204,32 +204,60 @@ Download file (zero-copy from RAM or streamed from disk).
 ---
 ## Architecture
 
+### Business Ownership by Crate
+
+| Crate | Business logic responsibility |
+| --- | --- |
+| `lighty-models` | Canonical domain models exposed to API clients (server metadata, files, launch descriptors). |
+| `lighty-events` | Event contracts and publish/sink abstraction used across the workspace. |
+| `lighty-config` | Configuration domain schema and defaults (no file I/O). |
+| `lighty-utils` | Stateless helpers (hashing, path helpers, shared primitives). |
+| `lighty-filesystem` | Filesystem operations and folder/materialization helpers. |
+| `lighty-storage` | Storage backend abstraction (`local` / optional `s3`) and cloud upload/delete behavior. |
+| `lighty-adapters` | Integration adapters: `config.toml` load/migration + console event sink implementation. |
+| `lighty-scanner` | Scanning logic for clients/libraries/mods/natives/assets from server directories. |
+| `lighty-cache` | Core orchestration: scan state, in-memory cache, rescan/update/sync workflows. |
+| `lighty-watcher` | Hot-reload flow for config changes and targeted rescans. |
+| `lighty-api` | HTTP handlers, routing payloads, and transport-level response concerns. |
+| `lighty-runtime` | Composition root: wires config/events/cache/watcher/api and starts the server lifecycle. |
+| `lighty-updater` | Workspace facade crate re-exporting selected APIs. |
+| `lighty-cli` | CLI entrypoint and command surface. |
+| `lighty-app` | Minimal server binary entrypoint. |
+
 ### Crate Dependencies
 
 ```
-Foundation Layer:
+Domain Core:
   - models (domain models)
-  - events (event bus)
+  - events (event model + bus abstraction)
+  - config (pure config model types)
   - utils (checksum, path utilities)
 
-Core Services:
-  - filesystem → utils
-  - config → filesystem, events
+Infrastructure:
+  - filesystem -> utils
+  - storage -> config
+  - adapters -> config, events
 
 Business Logic:
-  - scanner → models, config, utils
-  - cache → models, config, events, scanner
-  - watcher → config, cache, filesystem
+  - scanner -> models, config, utils, storage
+  - cache -> models, config, events, scanner, filesystem, storage
+  - watcher -> config, cache, filesystem, adapters
 
 Interface Layer:
-  - api → cache, models, config, filesystem
+  - api -> cache, models, config, filesystem
 
-Application:
-  - server (binary) → api, cache, config, events, watcher, filesystem
+Composition Runtime:
+  - runtime -> api, cache, config, adapters, events, watcher, storage, filesystem
+
+Entrypoints:
+  - lighty-app (binary) -> runtime
+  - lighty-cli (serve mode) -> runtime
 
 Facade:
-  - lighty → all crates (unified re-exports)
+  - lighty-updater -> workspace crate re-exports
 ```
+
+Architecture governance docs: `docs/architecture/README.md`
 
 ### Request Flow
 

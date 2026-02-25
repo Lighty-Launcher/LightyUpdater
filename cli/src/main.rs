@@ -1,6 +1,8 @@
 mod commands;
+mod config_file;
 mod daemon;
 mod errors;
+mod instance_lookup;
 mod paths;
 mod registry;
 mod server;

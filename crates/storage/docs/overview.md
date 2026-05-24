@@ -26,14 +26,14 @@ work transparently against local disk or remote storage.
 
 ```mermaid
 flowchart TD
-    Cfg[config.storage.backend] --> Sw{value?}
-    Sw -->|"local"| LB[LocalBackend::new]
-    Sw -->|"s3"| F{compiled with s3 feature?}
+    Cfg[storage.backend] --> Sw{value}
+    Sw -->|local| LB[LocalBackend]
+    Sw -->|s3| F{s3 feature on}
     F -->|no| Err[InvalidConfiguration]
-    F -->|yes| EnFlag{config.storage.s3.enabled?}
+    F -->|yes| EnFlag{storage.s3.enabled}
     EnFlag -->|no| Err
-    EnFlag -->|yes| S3[S3Backend::new]
-    LB --> Box[Arc&lt;dyn StorageBackend&gt;]
+    EnFlag -->|yes| S3[S3Backend]
+    LB --> Box[dyn StorageBackend]
     S3 --> Box
 ```
 

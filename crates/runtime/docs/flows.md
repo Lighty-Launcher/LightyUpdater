@@ -2,46 +2,30 @@
 
 ## Bootstrap → Ready
 
-The order of operations matters: each step depends on the previous
-one. The diagram below is the canonical sequence.
-
 ```mermaid
 sequenceDiagram
-    participant Bin as lighty-app
+    participant Bin
     participant Run as run_server
-    participant Cfg as config.toml
-    participant Bus1 as Bootstrap EventBus
+    participant Cfg
     participant Stg as StorageBackend
-    participant Bus2 as Real EventBus
+    participant Bus as EventBus
     participant Cache as CacheManager
-    participant Watch as ConfigWatcher
     participant Axum
 
     Bin->>Run: run_server(path, version)
-    Run->>Run: initialize tracing
-    Run->>Bus1: new + ConsoleEventSink
-    Run->>Bus1: emit Starting { version }
-
+    Run->>Run: init tracing
+    Run->>Bus: bootstrap bus (Console only)
     Run->>Cfg: load + migrate
     Cfg-->>Run: Config
-    Run->>Run: emit ConfigLoaded
-    Run->>Run: initialize_folders per server
-
-    Run->>Stg: initialize_storage (Local or S3)
-    Run->>Run: initialize_cdn (Option<Arc<CdnClient>>)
-    Run->>Run: initialize_cloudflare (Option<Arc<CloudflareClient>>)
-
-    Run->>Bus2: new + Composite(Console, CdnEventSink)
-
-    Run->>Cache: new(config, events, Some(storage))
-    Run->>Cache: initialize() (initial scan + bulk load)
-    Run->>Cache: start_auto_rescan()
-
-    Run->>Watch: new(config, path, cache) then start_watching
-    Run->>Axum: TcpListener::bind addr
-    Axum-->>Run: listener
-    Run->>Bus2: emit Ready { addr, base_url }
-    Run->>Axum: serve(app, listener).with_graceful_shutdown(ctrl_c)
+    Run->>Run: initialize_folders
+    Run->>Stg: initialize_storage
+    Run->>Run: initialize_cdn + cloudflare
+    Run->>Bus: build real bus (Console + Cdn)
+    Run->>Cache: new + initialize + start_auto_rescan
+    Run->>Run: spawn ConfigWatcher
+    Run->>Axum: bind
+    Run->>Bus: emit Ready
+    Run->>Axum: serve with graceful_shutdown
 ```
 
 ## Shutdown
@@ -50,45 +34,36 @@ sequenceDiagram
 sequenceDiagram
     participant Sig as ctrl-c
     participant Axum
-    participant Run as run_server
+    participant Run
     participant Watch as ConfigWatcher
     participant Cache as CacheManager
-    participant Bus as EventBus
+    participant Bus
 
-    Sig->>Axum: shutdown signal
-    Axum-->>Run: serve future resolves
-    Run->>Watch: abort watcher task
-    Run->>Watch: await task handle
-    Run->>Cache: shutdown()
+    Sig->>Axum: shutdown
+    Axum-->>Run: serve resolves
+    Run->>Watch: abort + await
+    Run->>Cache: shutdown
     Cache-->>Run: drained
     Run->>Bus: emit Shutdown
-    Run-->>Bin: Ok(())
 ```
 
-## Storage feature decision tree
+## Storage backend decision
 
 ```mermaid
 flowchart TD
-    Cfg[config.storage.backend] --> Local{value?}
-    Local -->|"local"| LB[LocalBackend::new]
-    Local -->|"s3"| Feat{compiled with --features s3?}
-    Feat -->|yes| Enabled{config.storage.s3.enabled?}
-    Feat -->|no| Err1[RuntimeError::InvalidConfiguration<br/>rebuild with --features s3]
-    Enabled -->|yes| S3[S3Backend::new]
-    Enabled -->|no| Err2[RuntimeError::InvalidConfiguration<br/>S3 backend selected but not enabled]
-    LB --> Arc[Arc&lt;dyn StorageBackend&gt;]
-    S3 --> Arc
+    Cfg[storage.backend] --> Sw{value}
+    Sw -->|local| LB[LocalBackend]
+    Sw -->|s3| Feat{compiled with s3?}
+    Feat -->|no| Err[InvalidConfiguration]
+    Feat -->|yes| Enabled{storage.s3.enabled}
+    Enabled -->|no| Err
+    Enabled -->|yes| S3[S3Backend]
 ```
 
-This is why the `s3` feature must be threaded all the way up to the
-binary: the backend selection happens at the runtime layer, but the
-type only exists in `lighty-storage` when its `s3` feature is on.
+`s3` must be threaded all the way from the binary down to
+`lighty-storage`.
 
 ## See also
 
-- [`overview.md`](./overview.md)
-- [`how-to-use.md`](./how-to-use.md)
-- [`exports.md`](./exports.md)
-- [`../../cache/docs/flows.md`](../../cache/docs/flows.md) — what
-  `CacheManager::initialize` and `start_auto_rescan` actually do
-- [`../../watcher/docs/`](../../watcher/) — config hot-reload flow
+- [overview.md](./overview.md)
+- [../../cache/docs/flows.md](../../cache/docs/flows.md)

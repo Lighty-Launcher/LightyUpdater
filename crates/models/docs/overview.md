@@ -25,13 +25,11 @@ public CDN URL back to an on-disk relative path in O(1).
 
 ```mermaid
 flowchart LR
-    Client[client] --> Map
-    Libraries[libraries[i]] --> Map
-    Mods[mods[i]] --> Map
-    Natives[natives[i]] --> Map
-    Assets[assets[i]] --> Map
-
-    Map[url_to_path_map<br/>HashMap&lt;String,String&gt;]
+    Client[client] --> Map[url_to_path_map]
+    Libraries[libraries] --> Map
+    Mods[mods] --> Map
+    Natives[natives] --> Map
+    Assets[assets] --> Map
 ```
 
 Two ways to maintain it:

@@ -10,6 +10,7 @@ lighty-events = { path = "../events" }
 lighty-scanner = { path = "../scanner" }
 lighty-filesystem = { path = "../filesystem" }
 lighty-storage = { path = "../storage" }
+lighty-file-diff = { path = "../file-diff" }
 moka = { workspace = true }
 dashmap = { workspace = true }
 parking_lot = { workspace = true }

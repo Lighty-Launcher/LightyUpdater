@@ -12,7 +12,7 @@ impl RescanOrchestrator {
     ) {
         let old_builder = self.cache.get(&server_config.name);
 
-        let diff = super::file_diff::FileDiff::compute(
+        let diff = lighty_file_diff::FileDiff::compute(
             &server_config.name,
             old_builder.as_ref().map(|arc| arc.as_ref()),
             &new_builder,
@@ -105,7 +105,7 @@ impl RescanOrchestrator {
     async fn refresh_file_cache_for_diff(
         &self,
         server_name: &str,
-        diff: &super::file_diff::FileDiff,
+        diff: &lighty_file_diff::FileDiff,
     ) {
         for change in &diff.removed {
             if let Some(path) = relative_cache_path(server_name, &change.local_path) {

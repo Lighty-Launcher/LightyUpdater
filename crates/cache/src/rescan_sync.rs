@@ -9,7 +9,7 @@ impl RescanOrchestrator {
     pub(super) async fn sync_cloud_storage(
         &self,
         server_name: &str,
-        diff: &super::file_diff::FileDiff,
+        diff: &lighty_file_diff::FileDiff,
     ) -> Result<()> {
         let storage = self.storage.as_ref().ok_or_else(|| {
             CacheError::CacheOperationFailed("Storage backend not initialized".to_string())

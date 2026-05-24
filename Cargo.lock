@@ -1917,6 +1917,7 @@ dependencies = [
  "futures",
  "lighty-config",
  "lighty-events",
+ "lighty-file-diff",
  "lighty-filesystem",
  "lighty-models",
  "lighty-scanner",
@@ -1967,6 +1968,13 @@ name = "lighty-events"
 version = "2026.2.1"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "lighty-file-diff"
+version = "2026.2.1"
+dependencies = [
+ "lighty-models",
 ]
 
 [[package]]

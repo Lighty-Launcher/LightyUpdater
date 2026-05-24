@@ -8,6 +8,7 @@ members = [
     "crates/filesystem",
     "crates/config",
     "crates/scanner",
+    "crates/file-diff",
     "crates/cache",
     "crates/storage",
     "crates/watcher",

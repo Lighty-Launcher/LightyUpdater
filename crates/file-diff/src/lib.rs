@@ -44,7 +44,6 @@ impl FileDiff {
             Self::diff_natives(server_name, old, new, &mut added, &mut modified, &mut removed);
             Self::diff_assets(server_name, old, new, &mut added, &mut modified, &mut removed);
         } else {
-            // First scan: all files are "added"
             Self::add_all_files(server_name, new, &mut added);
         }
 
@@ -57,7 +56,6 @@ impl FileDiff {
 
     /// Updates the URL map incrementally based on this diff (avoids full rebuild)
     pub fn apply_to_url_map(&self, builder: &mut VersionBuilder) {
-        // Add new files and update modified files
         for change in self.added.iter().chain(self.modified.iter()) {
             if !change.url.is_empty() {
                 let path = Self::extract_relative_path(&change.local_path);
@@ -65,7 +63,6 @@ impl FileDiff {
             }
         }
 
-        // Remove deleted files
         for change in &self.removed {
             if !change.url.is_empty() {
                 builder.remove_url_mapping(&change.url);
@@ -73,10 +70,7 @@ impl FileDiff {
         }
     }
 
-    /// Extracts the relative path from a local path (removes server name prefix)
     fn extract_relative_path(local_path: &str) -> String {
-        // local_path format: "server_name/subfolder/file.jar"
-        // We want: "subfolder/file.jar"
         if let Some(idx) = local_path.find('/') {
             local_path[idx + 1..].to_string()
         } else {
@@ -131,7 +125,6 @@ impl FileDiff {
         modified: &mut Vec<FileChange>,
         removed: &mut Vec<FileChange>,
     ) {
-        // Create maps for O(1) lookup
         let old_map: HashMap<_, _> = old
             .libraries
             .iter()
@@ -143,7 +136,6 @@ impl FileDiff {
             .map(|lib| (&lib.path, lib))
             .collect();
 
-        // Find added and modified
         for (path, new_lib) in &new_map {
             let path_str = path.as_ref().unwrap();
             let remote_key = format!("{}/libraries/{}", server_name, path_str);
@@ -151,7 +143,6 @@ impl FileDiff {
             let url = new_lib.url.as_deref().unwrap_or_default().to_string();
 
             if let Some(old_lib) = old_map.get(path) {
-                // Exists in both: check if modified
                 if old_lib.sha1 != new_lib.sha1 {
                     modified.push(FileChange {
                         file_type: FileType::Library,
@@ -161,7 +152,6 @@ impl FileDiff {
                     });
                 }
             } else {
-                // Only in new: added
                 added.push(FileChange {
                     file_type: FileType::Library,
                     remote_key,
@@ -171,7 +161,6 @@ impl FileDiff {
             }
         }
 
-        // Find removed
         for (path, old_lib) in &old_map {
             if !new_map.contains_key(path) {
                 let path_str = path.as_ref().unwrap();
@@ -357,7 +346,6 @@ impl FileDiff {
     }
 
     fn add_all_files(server_name: &str, new: &VersionBuilder, added: &mut Vec<FileChange>) {
-        // Client
         if let Some(client) = &new.client {
             added.push(FileChange {
                 file_type: FileType::Client,
@@ -367,7 +355,6 @@ impl FileDiff {
             });
         }
 
-        // Libraries
         for lib in &new.libraries {
             if let Some(path) = &lib.path {
                 let url = lib.url.as_deref().unwrap_or_default().to_string();
@@ -380,7 +367,6 @@ impl FileDiff {
             }
         }
 
-        // Mods
         for mod_file in &new.mods {
             let url = mod_file.url.as_deref().unwrap_or_default().to_string();
             added.push(FileChange {
@@ -391,7 +377,6 @@ impl FileDiff {
             });
         }
 
-        // Natives
         if let Some(natives) = &new.natives {
             for native in natives {
                 added.push(FileChange {
@@ -403,7 +388,6 @@ impl FileDiff {
             }
         }
 
-        // Assets
         for asset in &new.assets {
             if let Some(path) = &asset.path {
                 let url = asset.url.as_deref().unwrap_or_default().to_string();
@@ -415,5 +399,251 @@ impl FileDiff {
                 });
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use lighty_models::{
+        Arguments, Asset, Client, JavaVersion, Library, MainClass, Mod, Native, VersionBuilder,
+    };
+
+    fn empty_builder() -> VersionBuilder {
+        VersionBuilder {
+            main_class: MainClass { main_class: String::new() },
+            java_version: JavaVersion { major_version: 21 },
+            arguments: Arguments { game: vec![], jvm: vec![] },
+            libraries: vec![],
+            mods: vec![],
+            natives: None,
+            client: None,
+            assets: vec![],
+            url_to_path_map: Default::default(),
+        }
+    }
+
+    fn lib(name: &str, sha: &str) -> Library {
+        Library {
+            name: name.to_string(),
+            url: Some(format!("https://cdn.example/{}", name)),
+            path: Some(format!("net/example/{}.jar", name)),
+            sha1: Some(sha.to_string()),
+            size: Some(1024),
+        }
+    }
+
+    fn mod_(name: &str, sha: &str) -> Mod {
+        Mod {
+            name: name.to_string(),
+            url: Some(format!("https://cdn.example/mods/{}", name)),
+            path: Some(name.to_string()),
+            sha1: Some(sha.to_string()),
+            size: Some(2048),
+        }
+    }
+
+    fn client(sha: &str) -> Client {
+        Client {
+            name: "client.jar".to_string(),
+            url: "https://cdn.example/client.jar".to_string(),
+            path: "client.jar".to_string(),
+            sha1: sha.to_string(),
+            size: 4096,
+        }
+    }
+
+    fn native(name: &str, sha: &str) -> Native {
+        Native {
+            name: name.to_string(),
+            url: format!("https://cdn.example/natives/{}", name),
+            path: name.to_string(),
+            sha1: sha.to_string(),
+            size: 512,
+            os: "linux".to_string(),
+        }
+    }
+
+    fn asset(path: &str, hash: &str) -> Asset {
+        Asset {
+            hash: hash.to_string(),
+            size: 256,
+            url: Some(format!("https://cdn.example/assets/{}", path)),
+            path: Some(path.to_string()),
+        }
+    }
+
+    #[test]
+    fn first_scan_marks_everything_as_added() {
+        let mut new = empty_builder();
+        new.libraries.push(lib("a", "sha-a"));
+        new.mods.push(mod_("m", "sha-m"));
+        new.client = Some(client("sha-c"));
+
+        let diff = FileDiff::compute("srv", None, &new);
+
+        assert_eq!(diff.added.len(), 3);
+        assert!(diff.modified.is_empty());
+        assert!(diff.removed.is_empty());
+    }
+
+    #[test]
+    fn identical_builders_produce_empty_diff() {
+        let mut a = empty_builder();
+        a.libraries.push(lib("a", "sha-a"));
+        let b = VersionBuilder { ..a.clone() };
+
+        let diff = FileDiff::compute("srv", Some(&a), &b);
+
+        assert!(diff.added.is_empty());
+        assert!(diff.modified.is_empty());
+        assert!(diff.removed.is_empty());
+    }
+
+    #[test]
+    fn detects_added_library() {
+        let old = empty_builder();
+        let mut new = empty_builder();
+        new.libraries.push(lib("a", "sha-a"));
+
+        let diff = FileDiff::compute("srv", Some(&old), &new);
+
+        assert_eq!(diff.added.len(), 1);
+        assert!(matches!(diff.added[0].file_type, FileType::Library));
+    }
+
+    #[test]
+    fn detects_modified_library_via_sha1_change() {
+        let mut old = empty_builder();
+        old.libraries.push(lib("a", "old-sha"));
+        let mut new = empty_builder();
+        new.libraries.push(lib("a", "new-sha"));
+
+        let diff = FileDiff::compute("srv", Some(&old), &new);
+
+        assert!(diff.added.is_empty());
+        assert_eq!(diff.modified.len(), 1);
+        assert!(diff.removed.is_empty());
+    }
+
+    #[test]
+    fn detects_removed_library() {
+        let mut old = empty_builder();
+        old.libraries.push(lib("a", "sha-a"));
+        let new = empty_builder();
+
+        let diff = FileDiff::compute("srv", Some(&old), &new);
+
+        assert!(diff.added.is_empty());
+        assert!(diff.modified.is_empty());
+        assert_eq!(diff.removed.len(), 1);
+    }
+
+    #[test]
+    fn detects_added_modified_removed_mods_together() {
+        let mut old = empty_builder();
+        old.mods.push(mod_("keep", "same"));
+        old.mods.push(mod_("change", "old"));
+        old.mods.push(mod_("gone", "x"));
+        let mut new = empty_builder();
+        new.mods.push(mod_("keep", "same"));
+        new.mods.push(mod_("change", "new"));
+        new.mods.push(mod_("fresh", "z"));
+
+        let diff = FileDiff::compute("srv", Some(&old), &new);
+
+        assert_eq!(diff.added.len(), 1);
+        assert_eq!(diff.modified.len(), 1);
+        assert_eq!(diff.removed.len(), 1);
+    }
+
+    #[test]
+    fn client_diff_handles_all_three_transitions() {
+        let mut with_old = empty_builder();
+        with_old.client = Some(client("old"));
+        let mut with_new = empty_builder();
+        with_new.client = Some(client("new"));
+        let empty = empty_builder();
+
+        let modified = FileDiff::compute("srv", Some(&with_old), &with_new);
+        let added = FileDiff::compute("srv", Some(&empty), &with_new);
+        let removed = FileDiff::compute("srv", Some(&with_old), &empty);
+
+        assert_eq!(modified.modified.len(), 1);
+        assert_eq!(added.added.len(), 1);
+        assert_eq!(removed.removed.len(), 1);
+    }
+
+    #[test]
+    fn natives_diff_detects_per_entry_changes() {
+        let mut old = empty_builder();
+        old.natives = Some(vec![native("a", "old"), native("b", "x")]);
+        let mut new = empty_builder();
+        new.natives = Some(vec![native("a", "new"), native("c", "y")]);
+
+        let diff = FileDiff::compute("srv", Some(&old), &new);
+
+        assert_eq!(diff.added.len(), 1);
+        assert_eq!(diff.modified.len(), 1);
+        assert_eq!(diff.removed.len(), 1);
+    }
+
+    #[test]
+    fn assets_diff_uses_hash_not_sha1() {
+        let mut old = empty_builder();
+        old.assets.push(asset("icons/a.png", "h1"));
+        let mut new = empty_builder();
+        new.assets.push(asset("icons/a.png", "h2"));
+
+        let diff = FileDiff::compute("srv", Some(&old), &new);
+
+        assert_eq!(diff.modified.len(), 1);
+        assert!(matches!(diff.modified[0].file_type, FileType::Asset));
+    }
+
+    #[test]
+    fn apply_to_url_map_adds_and_removes_entries() {
+        let mut builder = empty_builder();
+        builder.add_url_mapping("https://cdn.example/old".into(), "libraries/old".into());
+
+        let diff = FileDiff {
+            added: vec![FileChange {
+                file_type: FileType::Library,
+                remote_key: "srv/libraries/new".into(),
+                local_path: "srv/libraries/new".into(),
+                url: "https://cdn.example/new".into(),
+            }],
+            modified: vec![],
+            removed: vec![FileChange {
+                file_type: FileType::Library,
+                remote_key: "srv/libraries/old".into(),
+                local_path: "srv/libraries/old".into(),
+                url: "https://cdn.example/old".into(),
+            }],
+        };
+
+        diff.apply_to_url_map(&mut builder);
+
+        assert!(builder.url_to_path_map.contains_key("https://cdn.example/new"));
+        assert!(!builder.url_to_path_map.contains_key("https://cdn.example/old"));
+    }
+
+    #[test]
+    fn apply_to_url_map_ignores_empty_urls() {
+        let mut builder = empty_builder();
+        let diff = FileDiff {
+            added: vec![FileChange {
+                file_type: FileType::Library,
+                remote_key: "srv/libraries/a".into(),
+                local_path: "srv/libraries/a".into(),
+                url: String::new(),
+            }],
+            modified: vec![],
+            removed: vec![],
+        };
+
+        diff.apply_to_url_map(&mut builder);
+
+        assert!(builder.url_to_path_map.is_empty());
     }
 }

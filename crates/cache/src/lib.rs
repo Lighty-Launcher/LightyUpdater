@@ -7,14 +7,11 @@ mod rescan_orchestrator;
 mod rescan_update;
 mod rescan_sync;
 mod rescan_scan;
-mod cloudflare;
-mod cdn;
 mod errors;
 mod server_path_cache;
 
 pub use models::{CacheManager, FileCacheManager, FileCache, ChangeDetector, RescanOrchestrator};
 pub use lighty_file_diff::{FileChange, FileDiff, FileType};
-pub use cloudflare::CloudflareClient;
-pub use cdn::CdnClient;
+pub use lighty_cdn::{CdnClient, CdnError, CloudflareClient};
 pub use errors::CacheError;
 pub use server_path_cache::ServerPathCache;

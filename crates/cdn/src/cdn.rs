@@ -1,11 +1,14 @@
-use super::errors::CacheError;
+use crate::errors::CdnError;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-type Result<T> = std::result::Result<T, CacheError>;
+type Result<T> = std::result::Result<T, CdnError>;
+
+const DEFAULT_API_BASE: &str = "https://api.cloudflare.com";
 
 pub struct CdnClient {
     provider: CdnProvider,
+    api_base: String,
     zone_id: String,
     api_token: String,
     client: reqwest::Client,
@@ -31,15 +34,28 @@ impl CdnClient {
     pub fn new(provider: &str, zone_id: String, api_token: String) -> Self {
         let provider = match provider.to_lowercase().as_str() {
             "cloudfront" => CdnProvider::CloudFront,
-            _ => CdnProvider::Cloudflare, // Default to Cloudflare
+            _ => CdnProvider::Cloudflare,
         };
 
         Self {
             provider,
+            api_base: DEFAULT_API_BASE.to_string(),
             zone_id,
             api_token,
             client: reqwest::Client::new(),
         }
+    }
+
+    #[cfg(test)]
+    pub(crate) fn with_api_base(
+        provider: &str,
+        api_base: String,
+        zone_id: String,
+        api_token: String,
+    ) -> Self {
+        let mut c = Self::new(provider, zone_id, api_token);
+        c.api_base = api_base;
+        c
     }
 
     pub async fn purge_files(&self, file_urls: Vec<String>) -> Result<()> {
@@ -61,13 +77,12 @@ impl CdnClient {
         const INITIAL_BACKOFF: Duration = Duration::from_millis(100);
 
         let url = format!(
-            "https://api.cloudflare.com/client/v4/zones/{}/purge_cache",
-            self.zone_id
+            "{}/client/v4/zones/{}/purge_cache",
+            self.api_base, self.zone_id
         );
 
         let body = PurgeRequest { files: file_urls.clone() };
 
-        // Retry with exponential backoff
         for attempt in 0..MAX_RETRIES {
             match self.purge_cloudflare_internal(&url, &body).await {
                 Ok(()) => {
@@ -111,7 +126,54 @@ impl CdnClient {
         if result.success {
             Ok(())
         } else {
-            Err(CacheError::CloudflareError("Cloudflare CDN purge failed".to_string()))
+            Err(CdnError::Cloudflare("Cloudflare CDN purge failed".to_string()))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    #[tokio::test]
+    async fn empty_urls_skip_network_call() {
+        let client = CdnClient::new("cloudflare", "zone".into(), "token".into());
+        client.purge_files(vec![]).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn cloudfront_provider_returns_ok_without_calling_anything() {
+        let client = CdnClient::new("cloudfront", "zone".into(), "token".into());
+        client
+            .purge_files(vec!["https://x.example/a".into()])
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn cloudflare_purge_succeeds_on_200() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/client/v4/zones/zone-1/purge_cache"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "success": true
+            })))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let client = CdnClient::with_api_base(
+            "cloudflare",
+            server.uri(),
+            "zone-1".into(),
+            "token-x".into(),
+        );
+
+        client
+            .purge_files(vec!["https://cdn/a.jar".into()])
+            .await
+            .unwrap();
     }
 }

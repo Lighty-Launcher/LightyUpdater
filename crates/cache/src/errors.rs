@@ -20,16 +20,6 @@ pub enum CacheError {
     #[error("Cache operation failed: {0}")]
     CacheOperationFailed(String),
 
-    #[error("HTTP request failed: {0}")]
-    HttpError(String),
-
-    #[error("Cloudflare API error: {0}")]
-    CloudflareError(String),
-}
-
-// Convert reqwest errors to CacheError
-impl From<reqwest::Error> for CacheError {
-    fn from(err: reqwest::Error) -> Self {
-        CacheError::HttpError(err.to_string())
-    }
+    #[error(transparent)]
+    Cdn(#[from] lighty_cdn::CdnError),
 }

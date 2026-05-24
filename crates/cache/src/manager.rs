@@ -15,8 +15,8 @@ impl CacheManager {
         config: Arc<RwLock<Config>>,
         events: Arc<EventBus>,
         storage: Option<Arc<dyn lighty_storage::StorageBackend>>,
-        cdn: Option<Arc<super::cdn::CdnClient>>,
-        cloudflare: Option<Arc<super::cloudflare::CloudflareClient>>,
+        cdn: Option<Arc<lighty_cdn::CdnClient>>,
+        cloudflare: Option<Arc<lighty_cdn::CloudflareClient>>,
     ) -> Self {
         let (shutdown_tx, _) = broadcast::channel(1);
 

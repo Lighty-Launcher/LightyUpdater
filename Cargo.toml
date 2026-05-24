@@ -58,3 +58,8 @@ colored = "2.2.0"
 
 # Error handling
 thiserror = "2.0"
+
+# Dev dependencies (tests)
+tempfile = "3.14.0"
+wiremock = "0.6.2"
+pretty_assertions = "1.4.1"

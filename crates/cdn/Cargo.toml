@@ -4,6 +4,7 @@ version = "2026.2.1"
 edition = "2021"
 
 [dependencies]
+lighty-events = { path = "../events" }
 serde = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }

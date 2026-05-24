@@ -1974,6 +1974,7 @@ dependencies = [
 name = "lighty-cdn"
 version = "2026.2.1"
 dependencies = [
+ "lighty-events",
  "reqwest",
  "serde",
  "serde_json",
@@ -2050,6 +2051,7 @@ dependencies = [
  "lighty-adapters",
  "lighty-api",
  "lighty-cache",
+ "lighty-cdn",
  "lighty-config",
  "lighty-events",
  "lighty-filesystem",

@@ -22,8 +22,6 @@ impl RescanOrchestrator {
             events: deps.events,
             paused: Arc::new(AtomicBool::new(false)),
             storage: deps.storage,
-            cdn: deps.cdn,
-            cloudflare: deps.cloudflare,
             base_path: deps.base_path,
             server_path_cache: deps.server_path_cache,
         }

@@ -12,6 +12,7 @@ s3 = ["lighty-storage/s3"]
 lighty-api = { path = "../api" }
 lighty-adapters = { path = "../adapters" }
 lighty-cache = { path = "../cache" }
+lighty-cdn = { path = "../cdn" }
 lighty-config = { path = "../config" }
 lighty-events = { path = "../events" }
 lighty-storage = { path = "../storage" }

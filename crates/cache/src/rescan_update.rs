@@ -33,25 +33,20 @@ impl RescanOrchestrator {
                         );
                     }
 
-                    if let Some(cdn) = &self.cdn {
-                        let file_urls: Vec<String> = diff
-                            .added
-                            .iter()
-                            .chain(diff.modified.iter())
-                            .chain(diff.removed.iter())
-                            .map(|change| change.url.clone())
-                            .filter(|url| !url.is_empty())
-                            .collect();
+                    let file_urls: Vec<String> = diff
+                        .added
+                        .iter()
+                        .chain(diff.modified.iter())
+                        .chain(diff.removed.iter())
+                        .map(|change| change.url.clone())
+                        .filter(|url| !url.is_empty())
+                        .collect();
 
-                        if !file_urls.is_empty() {
-                            if let Err(e) = cdn.purge_files(file_urls).await {
-                                tracing::warn!(
-                                    "Failed to purge CDN cache for server {}: {}",
-                                    server_config.name,
-                                    e
-                                );
-                            }
-                        }
+                    if !file_urls.is_empty() {
+                        self.events.emit(AppEvent::CdnPurgeRequested {
+                            server: server_config.name.to_string(),
+                            urls: file_urls,
+                        });
                     }
                 }
             }
@@ -69,15 +64,9 @@ impl RescanOrchestrator {
             self.last_updated
                 .insert(server_config.name.to_string(), Self::current_timestamp());
 
-            if let Some(cloudflare) = &self.cloudflare {
-                if let Err(e) = cloudflare.purge_cache(&server_config.name).await {
-                    tracing::warn!(
-                        "Failed to purge Cloudflare cache for {}: {}",
-                        server_config.name,
-                        e
-                    );
-                }
-            }
+            self.events.emit(AppEvent::CloudflarePurgeRequested {
+                server: server_config.name.to_string(),
+            });
 
             if is_new {
                 self.events.emit(AppEvent::CacheNew {

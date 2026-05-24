@@ -11,6 +11,7 @@ members = [
     "crates/file-diff",
     "crates/cdn",
     "crates/file-cache",
+    "crates/rescan",
     "crates/cache",
     "crates/storage",
     "crates/watcher",

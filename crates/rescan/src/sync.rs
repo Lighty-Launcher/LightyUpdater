@@ -1,18 +1,18 @@
-use super::errors::CacheError;
-use super::RescanOrchestrator;
+use crate::errors::RescanError;
+use crate::models::RescanOrchestrator;
 use futures::stream::{self, StreamExt};
 use std::sync::Arc;
 
-type Result<T> = std::result::Result<T, CacheError>;
+type Result<T> = std::result::Result<T, RescanError>;
 
 impl RescanOrchestrator {
-    pub(super) async fn sync_cloud_storage(
+    pub(crate) async fn sync_cloud_storage(
         &self,
         server_name: &str,
         diff: &lighty_file_diff::FileDiff,
     ) -> Result<()> {
         let storage = self.storage.as_ref().ok_or_else(|| {
-            CacheError::CacheOperationFailed("Storage backend not initialized".to_string())
+            RescanError::InvalidConfig("Storage backend not initialized".to_string())
         })?;
         let base_path = self.base_path.clone();
         let concurrency = {
@@ -20,7 +20,7 @@ impl RescanOrchestrator {
             config.cache.hash_concurrency
         };
         if concurrency == 0 {
-            return Err(CacheError::CacheOperationFailed(
+            return Err(RescanError::InvalidConfig(
                 "cache.hash_concurrency must be greater than 0".to_string(),
             ));
         }

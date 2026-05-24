@@ -1,5 +1,5 @@
 [package]
-name = "lighty-cache"
+name = "lighty-rescan"
 version = "2026.2.1"
 edition = "2021"
 
@@ -7,12 +7,15 @@ edition = "2021"
 lighty-models = { path = "../models" }
 lighty-config = { path = "../config" }
 lighty-events = { path = "../events" }
+lighty-scanner = { path = "../scanner" }
 lighty-storage = { path = "../storage" }
 lighty-file-diff = { path = "../file-diff" }
 lighty-file-cache = { path = "../file-cache" }
-lighty-cdn = { path = "../cdn" }
-lighty-rescan = { path = "../rescan" }
+chrono = { workspace = true }
 dashmap = { workspace = true }
-tokio = { workspace = true }
+futures = "0.3"
+notify = { workspace = true }
+parking_lot = { workspace = true }
 thiserror = { workspace = true }
+tokio = { workspace = true }
 tracing = { workspace = true }

@@ -1,16 +1,10 @@
-mod models;
-mod manager;
-mod change_detector;
-mod rescan_orchestrator;
-mod rescan_update;
-mod rescan_sync;
-mod rescan_scan;
 mod errors;
-mod server_path_cache;
+mod manager;
+mod models;
 
-pub use models::{CacheManager, ChangeDetector, RescanOrchestrator};
+pub use errors::CacheError;
+pub use lighty_cdn::{CdnClient, CdnError, CloudflareClient};
 pub use lighty_file_cache::{FileCache, FileCacheManager};
 pub use lighty_file_diff::{FileChange, FileDiff, FileType};
-pub use lighty_cdn::{CdnClient, CdnError, CloudflareClient};
-pub use errors::CacheError;
-pub use server_path_cache::ServerPathCache;
+pub use lighty_rescan::{ChangeDetector, RescanOrchestrator, ServerPathCache};
+pub use models::CacheManager;

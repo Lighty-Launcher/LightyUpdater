@@ -1,11 +1,11 @@
-use super::RescanOrchestrator;
+use crate::models::RescanOrchestrator;
 use lighty_config::ServerConfig;
 use lighty_events::AppEvent;
 use lighty_models::VersionBuilder;
 use std::sync::Arc;
 
 impl RescanOrchestrator {
-    pub(super) async fn update_cache_if_changed(
+    pub(crate) async fn update_cache_if_changed(
         &self,
         server_config: &ServerConfig,
         new_builder: VersionBuilder,

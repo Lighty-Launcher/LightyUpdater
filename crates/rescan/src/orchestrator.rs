@@ -1,5 +1,4 @@
-use super::RescanOrchestrator;
-use super::models::RescanOrchestratorDeps;
+use crate::models::{RescanOrchestrator, RescanOrchestratorDeps};
 use lighty_config::ServerConfig;
 use lighty_events::AppEvent;
 use lighty_scanner::ServerScanner;
@@ -37,7 +36,7 @@ impl RescanOrchestrator {
         tracing::debug!("Rescan resumed");
     }
 
-    pub(super) fn current_timestamp() -> String {
+    pub(crate) fn current_timestamp() -> String {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
@@ -124,7 +123,6 @@ impl RescanOrchestrator {
                         match tx.try_send(event) {
                             Ok(()) => {}
                             Err(TrySendError::Full(_)) => {
-                                // Coalescing is safe because we debounce and then rescan by server.
                                 tracing::trace!("File watcher queue is full, dropping event");
                             }
                             Err(TrySendError::Closed(_)) => {}
@@ -171,7 +169,6 @@ impl RescanOrchestrator {
                 }
             }
 
-            // Debounce burst events and coalesce impacted servers.
             tokio::time::sleep(debounce_duration).await;
             while let Ok(event) = rx.try_recv() {
                 for path in event.paths {
@@ -236,3 +233,8 @@ impl RescanOrchestrator {
         }
     }
 }
+
+// Silence unused warning when the orchestrator is built but no AtomicBool
+// helpers are exercised in tests.
+#[allow(dead_code)]
+fn _atomic_bool_marker(_b: &AtomicBool) {}

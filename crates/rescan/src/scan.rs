@@ -1,17 +1,17 @@
-use super::errors::CacheError;
-use super::RescanOrchestrator;
+use crate::errors::RescanError;
+use crate::models::RescanOrchestrator;
+use futures::stream::{self, StreamExt};
 use lighty_events::AppEvent;
 use lighty_models::VersionBuilder;
 use lighty_scanner::ServerScanner;
-use futures::stream::{self, StreamExt};
 use std::sync::Arc;
 
-type Result<T> = std::result::Result<T, CacheError>;
+type Result<T> = std::result::Result<T, RescanError>;
 
 impl RescanOrchestrator {
     pub async fn scan_all_servers(&self) -> Result<()> {
         let storage = self.storage.as_ref().ok_or_else(|| {
-            CacheError::CacheOperationFailed("Storage backend not initialized".to_string())
+            RescanError::InvalidConfig("Storage backend not initialized".to_string())
         })?;
 
         let (servers, base_path, batch_config, buffer_size, server_parallelism) = {
@@ -26,7 +26,7 @@ impl RescanOrchestrator {
         };
 
         if server_parallelism == 0 {
-            return Err(CacheError::CacheOperationFailed(
+            return Err(RescanError::InvalidConfig(
                 "cache.hash_concurrency must be greater than 0".to_string(),
             ));
         }
@@ -127,7 +127,7 @@ impl RescanOrchestrator {
 
     pub async fn force_rescan_server(&self, server_name: &str) -> Result<()> {
         let storage = self.storage.as_ref().ok_or_else(|| {
-            CacheError::CacheOperationFailed("Storage backend not initialized".to_string())
+            RescanError::InvalidConfig("Storage backend not initialized".to_string())
         })?;
 
         let (server_config, base_path, batch_config, buffer_size) = {
@@ -136,7 +136,7 @@ impl RescanOrchestrator {
                 .servers
                 .iter()
                 .find(|s| s.name.as_ref() == server_name)
-                .ok_or_else(|| CacheError::ServerNotFound(server_name.to_string()))?
+                .ok_or_else(|| RescanError::ServerNotFound(server_name.to_string()))?
                 .clone();
             (
                 server_config,
@@ -161,11 +161,7 @@ impl RescanOrchestrator {
                 tracing::info!("Successfully rescanned server: {}", server_name);
             }
             Err(e) => {
-                tracing::warn!(
-                    "Server {} scan failed: {}",
-                    server_name,
-                    e
-                );
+                tracing::warn!("Server {} scan failed: {}", server_name, e);
                 if !had_existing_cache {
                     tracing::warn!(
                         "No previous cache for {}; inserting empty version as fallback",

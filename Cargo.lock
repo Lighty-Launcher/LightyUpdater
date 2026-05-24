@@ -1955,19 +1955,15 @@ dependencies = [
 name = "lighty-cache"
 version = "2026.2.1"
 dependencies = [
- "chrono",
  "dashmap",
- "futures",
  "lighty-cdn",
  "lighty-config",
  "lighty-events",
  "lighty-file-cache",
  "lighty-file-diff",
  "lighty-models",
- "lighty-scanner",
+ "lighty-rescan",
  "lighty-storage",
- "notify",
- "parking_lot",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
@@ -2064,6 +2060,27 @@ name = "lighty-models"
 version = "2026.2.1"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "lighty-rescan"
+version = "2026.2.1"
+dependencies = [
+ "chrono",
+ "dashmap",
+ "futures",
+ "lighty-config",
+ "lighty-events",
+ "lighty-file-cache",
+ "lighty-file-diff",
+ "lighty-models",
+ "lighty-scanner",
+ "lighty-storage",
+ "notify",
+ "parking_lot",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

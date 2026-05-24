@@ -1,5 +1,5 @@
+use crate::models::ChangeDetector;
 use lighty_models::VersionBuilder;
-use super::models::ChangeDetector;
 
 impl ChangeDetector {
     /// Détecte si des changements existent et retourne les détails
@@ -124,8 +124,6 @@ impl ChangeDetector {
         }
     }
 
-    // === Fonctions de comparaison ===
-
     fn client_has_changed(old: &VersionBuilder, new: &VersionBuilder) -> bool {
         match (&old.client, &new.client) {
             (Some(old_client), Some(new_client)) => {
@@ -193,3 +191,84 @@ impl ChangeDetector {
             })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use lighty_models::{Arguments, Client, JavaVersion, Library, MainClass};
+
+    fn empty() -> VersionBuilder {
+        VersionBuilder {
+            main_class: MainClass { main_class: String::new() },
+            java_version: JavaVersion { major_version: 21 },
+            arguments: Arguments { game: vec![], jvm: vec![] },
+            libraries: vec![],
+            mods: vec![],
+            natives: None,
+            client: None,
+            assets: vec![],
+            url_to_path_map: Default::default(),
+        }
+    }
+
+    fn lib(sha: &str, size: u64) -> Library {
+        Library {
+            name: "lib".into(),
+            url: Some("u".into()),
+            path: Some("p".into()),
+            sha1: Some(sha.into()),
+            size: Some(size),
+        }
+    }
+
+    #[test]
+    fn identical_builders_show_no_changes() {
+        let a = empty();
+        let b = empty();
+        let (changed, list) = ChangeDetector::detect_changes(&a, &b);
+        assert!(!changed);
+        assert!(list.is_empty());
+    }
+
+    #[test]
+    fn client_added_shows_in_changes() {
+        let old = empty();
+        let mut new = empty();
+        new.client = Some(Client {
+            name: "c".into(),
+            url: "u".into(),
+            path: "p".into(),
+            sha1: "s".into(),
+            size: 10,
+        });
+        let (changed, list) = ChangeDetector::detect_changes(&old, &new);
+        assert!(changed);
+        assert!(list.iter().any(|m| m == "client added"));
+    }
+
+    #[test]
+    fn library_count_increase_is_described() {
+        let mut old = empty();
+        old.libraries.push(lib("a", 1));
+        let mut new = empty();
+        new.libraries.push(lib("a", 1));
+        new.libraries.push(lib("b", 2));
+
+        let (changed, list) = ChangeDetector::detect_changes(&old, &new);
+        assert!(changed);
+        assert!(list.iter().any(|m| m.contains("libraries added")));
+    }
+
+    #[test]
+    fn library_size_change_is_detected() {
+        let mut old = empty();
+        old.libraries.push(lib("same-sha", 10));
+        let mut new = empty();
+        new.libraries.push(lib("same-sha", 99));
+
+        let (changed, list) = ChangeDetector::detect_changes(&old, &new);
+        assert!(changed);
+        assert!(list.iter().any(|m| m == "libraries updated"));
+    }
+}
+

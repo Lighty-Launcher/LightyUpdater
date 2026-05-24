@@ -39,6 +39,12 @@ pub enum AppEvent {
     AutoScanEnabled { interval: u64 },
     ContinuousScanEnabled,
 
+    // CDN / edge cache
+    CdnPurgeRequested { server: String, urls: Vec<String> },
+    CdnPurgeCompleted { server: String, ok: bool, error: Option<String> },
+    CloudflarePurgeRequested { server: String },
+    CloudflarePurgeCompleted { server: String, ok: bool, error: Option<String> },
+
     // Errors
     Error { context: String, error: String },
 }

@@ -68,11 +68,11 @@ impl RescanOrchestrator {
                         server: server_name.to_string(),
                     });
                 }
-                Err(e) => {
+                Err(error) => {
                     tracing::warn!(
                         "Server {} initial scan failed (probably empty), adding empty version to cache: {}",
                         server_name,
-                        e
+                        error
                     );
 
                     let (server_config, _) = {
@@ -115,7 +115,7 @@ impl RescanOrchestrator {
                     } else {
                         self.events.emit(AppEvent::Error {
                             context: format!("Failed to scan server {}", server_name),
-                            error: e.to_string(),
+                            error: error.to_string(),
                         });
                     }
                 }
@@ -160,8 +160,8 @@ impl RescanOrchestrator {
                 self.update_cache_if_changed(&server_config, builder).await;
                 tracing::info!("Successfully rescanned server: {}", server_name);
             }
-            Err(e) => {
-                tracing::warn!("Server {} scan failed: {}", server_name, e);
+            Err(error) => {
+                tracing::warn!("Server {} scan failed: {}", server_name, error);
                 if !had_existing_cache {
                     tracing::warn!(
                         "No previous cache for {}; inserting empty version as fallback",

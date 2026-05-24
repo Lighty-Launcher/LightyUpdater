@@ -61,25 +61,25 @@ impl CloudflareClient {
                     tracing::info!("Cloudflare cache purged for {}", server_name);
                     return Ok(());
                 }
-                Err(e) if attempt < MAX_RETRIES - 1 => {
+                Err(error) if attempt < MAX_RETRIES - 1 => {
                     let backoff = INITIAL_BACKOFF * 2u32.pow(attempt as u32);
                     tracing::warn!(
                         "Cloudflare purge attempt {} failed for {}: {}. Retrying in {:?}...",
                         attempt + 1,
                         server_name,
-                        e,
+                        error,
                         backoff
                     );
                     tokio::time::sleep(backoff).await;
                 }
-                Err(e) => {
+                Err(error) => {
                     tracing::error!(
                         "Cloudflare purge failed for {} after {} attempts: {}",
                         server_name,
                         MAX_RETRIES,
-                        e
+                        error
                     );
-                    return Err(e);
+                    return Err(error);
                 }
             }
         }

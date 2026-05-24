@@ -253,8 +253,8 @@ impl FileDiff {
                 }
             }
             (Some(old_natives), Some(new_natives)) => {
-                let old_map: HashMap<_, _> = old_natives.iter().map(|n| (&n.name, n)).collect();
-                let new_map: HashMap<_, _> = new_natives.iter().map(|n| (&n.name, n)).collect();
+                let old_map: HashMap<_, _> = old_natives.iter().map(|native| (&native.name, native)).collect();
+                let new_map: HashMap<_, _> = new_natives.iter().map(|native| (&native.name, native)).collect();
 
                 for (name, new_native) in &new_map {
                     let remote_key = format!("{}/natives/{}", server_name, name);
@@ -303,8 +303,8 @@ impl FileDiff {
         modified: &mut Vec<FileChange>,
         removed: &mut Vec<FileChange>,
     ) {
-        let old_map: HashMap<_, _> = old.assets.iter().map(|a| (&a.path, a)).collect();
-        let new_map: HashMap<_, _> = new.assets.iter().map(|a| (&a.path, a)).collect();
+        let old_map: HashMap<_, _> = old.assets.iter().map(|asset| (&asset.path, asset)).collect();
+        let new_map: HashMap<_, _> = new.assets.iter().map(|asset| (&asset.path, asset)).collect();
 
         for (path, new_asset) in &new_map {
             let path_str = path.as_ref().unwrap();
@@ -489,11 +489,11 @@ mod tests {
 
     #[test]
     fn identical_builders_produce_empty_diff() {
-        let mut a = empty_builder();
-        a.libraries.push(lib("a", "sha-a"));
-        let b = VersionBuilder { ..a.clone() };
+        let mut old_builder = empty_builder();
+        old_builder.libraries.push(lib("a", "sha-a"));
+        let new_builder = VersionBuilder { ..old_builder.clone() };
 
-        let diff = FileDiff::compute("srv", Some(&a), &b);
+        let diff = FileDiff::compute("srv", Some(&old_builder), &new_builder);
 
         assert!(diff.added.is_empty());
         assert!(diff.modified.is_empty());

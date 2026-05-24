@@ -89,19 +89,19 @@ impl CdnClient {
                     tracing::info!("Cloudflare CDN cache purged for {} files", file_urls.len());
                     return Ok(());
                 }
-                Err(e) if attempt < MAX_RETRIES - 1 => {
+                Err(error) if attempt < MAX_RETRIES - 1 => {
                     let backoff = INITIAL_BACKOFF * 2u32.pow(attempt as u32);
                     tracing::warn!(
                         "Cloudflare CDN purge attempt {} failed: {}. Retrying in {:?}...",
                         attempt + 1,
-                        e,
+                        error,
                         backoff
                     );
                     tokio::time::sleep(backoff).await;
                 }
-                Err(e) => {
-                    tracing::error!("Cloudflare CDN purge failed after {} attempts: {}", MAX_RETRIES, e);
-                    return Err(e);
+                Err(error) => {
+                    tracing::error!("Cloudflare CDN purge failed after {} attempts: {}", MAX_RETRIES, error);
+                    return Err(error);
                 }
             }
         }

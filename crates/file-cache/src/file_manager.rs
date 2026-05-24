@@ -118,7 +118,7 @@ impl FileCacheManager {
     ) -> Result<()> {
         let enabled_servers: Vec<_> = servers
             .iter()
-            .filter(|s| s.enabled)
+            .filter(|server| server.enabled)
             .cloned()
             .collect();
 
@@ -154,9 +154,9 @@ impl FileCacheManager {
                     success_count += 1;
                     tracing::debug!("Successfully loaded files for server: {}", server_name);
                 }
-                Err(e) => {
-                    tracing::warn!("Failed to load files for server '{}': {}", server_name, e);
-                    failures.push((server_name, e.to_string()));
+                Err(error) => {
+                    tracing::warn!("Failed to load files for server '{}': {}", server_name, error);
+                    failures.push((server_name, error.to_string()));
                 }
             }
         }
@@ -189,14 +189,14 @@ impl FileCacheManager {
 
         let files: Vec<_> = WalkDir::new(&server_path)
             .into_iter()
-            .filter_map(|e| e.ok())
-            .filter(|e| e.path().is_file())
-            .filter(|e| {
-                let path = e.path();
+            .filter_map(|entry| entry.ok())
+            .filter(|entry| entry.path().is_file())
+            .filter(|entry| {
+                let path = entry.path();
                 path.extension().is_some_and(|ext| ext == "jar" || ext == "json")
                     || path.starts_with(server_path.join("assets"))
             })
-            .map(|e| e.path().to_path_buf())
+            .map(|entry| entry.path().to_path_buf())
             .collect();
 
         let server_name = server_config.name.clone();

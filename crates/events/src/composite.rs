@@ -50,15 +50,15 @@ mod tests {
 
     #[test]
     fn fans_out_to_every_child_sink() {
-        let a = CountingSink::new();
-        let b = CountingSink::new();
-        let composite = CompositeEventSink::new(vec![a.clone(), b.clone()]);
+        let first_sink = CountingSink::new();
+        let second_sink = CountingSink::new();
+        let composite = CompositeEventSink::new(vec![first_sink.clone(), second_sink.clone()]);
 
         composite.handle(&AppEvent::Shutdown);
         composite.handle(&AppEvent::Shutdown);
 
-        assert_eq!(a.get(), 2);
-        assert_eq!(b.get(), 2);
+        assert_eq!(first_sink.get(), 2);
+        assert_eq!(second_sink.get(), 2);
     }
 
     #[test]

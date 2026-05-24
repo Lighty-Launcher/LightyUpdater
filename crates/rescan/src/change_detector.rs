@@ -223,9 +223,9 @@ mod tests {
 
     #[test]
     fn identical_builders_show_no_changes() {
-        let a = empty();
-        let b = empty();
-        let (changed, list) = ChangeDetector::detect_changes(&a, &b);
+        let old_builder = empty();
+        let new_builder = empty();
+        let (changed, list) = ChangeDetector::detect_changes(&old_builder, &new_builder);
         assert!(!changed);
         assert!(list.is_empty());
     }

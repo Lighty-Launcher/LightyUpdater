@@ -25,11 +25,11 @@ impl RescanOrchestrator {
 
             if let Some(storage) = &self.storage {
                 if storage.is_remote() {
-                    if let Err(e) = self.sync_cloud_storage(&server_config.name, &diff).await {
+                    if let Err(error) = self.sync_cloud_storage(&server_config.name, &diff).await {
                         tracing::error!(
                             "Failed to sync cloud storage for server {}: {}",
                             server_config.name,
-                            e
+                            error
                         );
                     }
 

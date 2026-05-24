@@ -131,9 +131,9 @@ impl RescanOrchestrator {
                 }
             },
         ) {
-            Ok(w) => w,
-            Err(e) => {
-                tracing::error!("Failed to create file watcher: {}", e);
+            Ok(watcher) => watcher,
+            Err(error) => {
+                tracing::error!("Failed to create file watcher: {}", error);
                 return;
             }
         };
@@ -149,8 +149,8 @@ impl RescanOrchestrator {
             }
             let server_path = PathBuf::from(base_path.as_ref()).join(server.name.as_ref());
             if server_path.exists() {
-                if let Err(e) = watcher.watch(&server_path, RecursiveMode::Recursive) {
-                    tracing::warn!("Failed to watch server folder {}: {}", server.name, e);
+                if let Err(error) = watcher.watch(&server_path, RecursiveMode::Recursive) {
+                    tracing::warn!("Failed to watch server folder {}: {}", server.name, error);
                 }
             }
         }

@@ -99,14 +99,14 @@ impl VersionBuilder {
 
         // Add libraries
         for lib in &self.libraries {
-            if let (Some(ref url), Some(ref path)) = (&lib.url, &lib.path) {
+            if let (Some(url), Some(path)) = (&lib.url, &lib.path) {
                 map.insert(url.clone(), format!("libraries/{}", path));
             }
         }
 
         // Add mods
         for mod_item in &self.mods {
-            if let (Some(ref url), Some(ref path)) = (&mod_item.url, &mod_item.path) {
+            if let (Some(url), Some(path)) = (&mod_item.url, &mod_item.path) {
                 map.insert(url.clone(), format!("mods/{}", path));
             }
         }
@@ -120,7 +120,7 @@ impl VersionBuilder {
 
         // Add assets
         for asset in &self.assets {
-            if let (Some(ref url), Some(ref path)) = (&asset.url, &asset.path) {
+            if let (Some(url), Some(path)) = (&asset.url, &asset.path) {
                 map.insert(url.clone(), format!("assets/{}", path));
             }
         }

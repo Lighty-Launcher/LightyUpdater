@@ -1,18 +1,24 @@
 [package]
 name = "lighty-cache"
-version = "2026.2.1"
-edition = "2021"
+description = "Facade composing LightyUpdater's caching, diffing, rescan and CDN crates"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
 
 [dependencies]
-lighty-models = { path = "../models" }
-lighty-config = { path = "../config" }
-lighty-events = { path = "../events" }
-lighty-storage = { path = "../storage" }
-lighty-file-diff = { path = "../file-diff" }
-lighty-file-cache = { path = "../file-cache" }
-lighty-cdn = { path = "../cdn" }
-lighty-rescan = { path = "../rescan" }
-dashmap = { workspace = true }
-tokio = { workspace = true }
+lighty-models     = { workspace = true }
+lighty-config     = { workspace = true }
+lighty-events     = { workspace = true }
+lighty-storage    = { workspace = true }
+lighty-file-diff  = { workspace = true }
+lighty-file-cache = { workspace = true }
+lighty-cdn        = { workspace = true }
+lighty-rescan     = { workspace = true }
+dashmap   = { workspace = true }
+tokio     = { workspace = true }
 thiserror = { workspace = true }
-tracing = { workspace = true }
+tracing   = { workspace = true }

@@ -1,7 +1,13 @@
 [package]
 name = "lighty-config"
-version = "2026.2.1"
-edition = "2021"
+description = "Configuration schema for LightyUpdater (no I/O)"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
 
 [dependencies]
 serde = { workspace = true }

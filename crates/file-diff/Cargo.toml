@@ -1,7 +1,13 @@
 [package]
 name = "lighty-file-diff"
-version = "2026.2.1"
-edition = "2021"
+description = "Granular diff between two VersionBuilder snapshots"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
 
 [dependencies]
-lighty-models = { path = "../models" }
+lighty-models = { workspace = true }

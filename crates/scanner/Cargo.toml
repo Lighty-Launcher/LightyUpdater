@@ -1,16 +1,22 @@
 [package]
 name = "lighty-scanner"
-version = "2026.2.1"
-edition = "2021"
+description = "Parallel scanning of server components (client / libraries / mods / natives / assets)"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
 
 [dependencies]
-lighty-models = { path = "../models" }
-lighty-config = { path = "../config" }
-lighty-utils = { path = "../utils" }
-lighty-storage = { path = "../storage" }
-tokio = { workspace = true }
-futures = { workspace = true }
-walkdir = { workspace = true }
-serde = { workspace = true }
+lighty-models  = { workspace = true }
+lighty-config  = { workspace = true }
+lighty-utils   = { workspace = true }
+lighty-storage = { workspace = true }
+tokio     = { workspace = true }
+futures   = { workspace = true }
+walkdir   = { workspace = true }
+serde     = { workspace = true }
 thiserror = { workspace = true }
-tracing = { workspace = true }
+tracing   = { workspace = true }

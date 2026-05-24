@@ -1,21 +1,27 @@
 [package]
 name = "lighty-rescan"
-version = "2026.2.1"
-edition = "2021"
+description = "Rescan orchestration: scan loop, file watcher, change detection, cloud sync"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
 
 [dependencies]
-lighty-models = { path = "../models" }
-lighty-config = { path = "../config" }
-lighty-events = { path = "../events" }
-lighty-scanner = { path = "../scanner" }
-lighty-storage = { path = "../storage" }
-lighty-file-diff = { path = "../file-diff" }
-lighty-file-cache = { path = "../file-cache" }
-chrono = { workspace = true }
-dashmap = { workspace = true }
-futures = "0.3"
-notify = { workspace = true }
+lighty-models     = { workspace = true }
+lighty-config     = { workspace = true }
+lighty-events     = { workspace = true }
+lighty-scanner    = { workspace = true }
+lighty-storage    = { workspace = true }
+lighty-file-diff  = { workspace = true }
+lighty-file-cache = { workspace = true }
+chrono      = { workspace = true }
+dashmap     = { workspace = true }
+futures     = { workspace = true }
+notify      = { workspace = true }
 parking_lot = { workspace = true }
-thiserror = { workspace = true }
-tokio = { workspace = true }
-tracing = { workspace = true }
+thiserror   = { workspace = true }
+tokio       = { workspace = true }
+tracing     = { workspace = true }

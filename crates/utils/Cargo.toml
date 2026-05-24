@@ -1,10 +1,16 @@
 [package]
 name = "lighty-utils"
-version = "2026.2.1"
-edition = "2021"
+description = "Stateless helpers (SHA1, path normalization) for LightyUpdater"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
 
 [dependencies]
-sha1 = { workspace = true }
-hex = { workspace = true }
+sha1      = { workspace = true }
+hex       = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true }
+tokio     = { workspace = true }

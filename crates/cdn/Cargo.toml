@@ -1,16 +1,22 @@
 [package]
 name = "lighty-cdn"
-version = "2026.2.1"
-edition = "2021"
+description = "Cloudflare / CDN HTTP clients and the event sink that drives them"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
 
 [dependencies]
-lighty-events = { path = "../events" }
-serde = { workspace = true }
+lighty-events = { workspace = true }
+serde     = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true }
-tracing = { workspace = true }
-reqwest = { version = "0.11", features = ["json", "rustls-tls"], default-features = false }
+tokio     = { workspace = true }
+tracing   = { workspace = true }
+reqwest   = { workspace = true }
 
 [dev-dependencies]
-wiremock = { workspace = true }
-serde_json = "1.0"
+wiremock   = { workspace = true }
+serde_json = { workspace = true }

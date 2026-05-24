@@ -7,63 +7,125 @@ members = [
     "crates/utils",
     "crates/filesystem",
     "crates/config",
+    "crates/storage",
     "crates/scanner",
     "crates/file-diff",
     "crates/cdn",
     "crates/file-cache",
     "crates/rescan",
     "crates/cache",
-    "crates/storage",
     "crates/watcher",
-    "crates/runtime",
     "crates/api",
-    "cli",
-    "app",
+    "crates/runtime",
     "crates",
+    "app",
+    "cli",
 ]
 
+[workspace.package]
+version = "26.5.0"
+edition = "2024"
+authors = ["Hamadi <dev.hamadipro@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/Lighty-Launcher/LightyUpdater"
+homepage = "https://github.com/Lighty-Launcher/LightyUpdater"
+rust-version = "1.85"
+
+# ============================================
+# WORKSPACE DEPENDENCIES
+# ============================================
+
 [workspace.dependencies]
-# Async runtime
-tokio = { version = "1.42.0", features = ["full"] }
 
-# Web framework
-axum = "0.7.9"
-tower = { version = "0.5.2", features = ["limit"] }
-tower-http = { version = "0.6.2", features = ["compression-full", "cors", "limit", "timeout"] }
+# ---- Internal crates (pinned to workspace version) ----
+lighty-models     = { version = "26.5.0", path = "crates/models" }
+lighty-events     = { version = "26.5.0", path = "crates/events" }
+lighty-adapters   = { version = "26.5.0", path = "crates/adapters" }
+lighty-utils      = { version = "26.5.0", path = "crates/utils" }
+lighty-filesystem = { version = "26.5.0", path = "crates/filesystem" }
+lighty-config     = { version = "26.5.0", path = "crates/config" }
+lighty-storage    = { version = "26.5.0", path = "crates/storage" }
+lighty-scanner    = { version = "26.5.0", path = "crates/scanner" }
+lighty-file-diff  = { version = "26.5.0", path = "crates/file-diff" }
+lighty-cdn        = { version = "26.5.0", path = "crates/cdn" }
+lighty-file-cache = { version = "26.5.0", path = "crates/file-cache" }
+lighty-rescan     = { version = "26.5.0", path = "crates/rescan" }
+lighty-cache      = { version = "26.5.0", path = "crates/cache" }
+lighty-watcher    = { version = "26.5.0", path = "crates/watcher" }
+lighty-api        = { version = "26.5.0", path = "crates/api" }
+lighty-runtime    = { version = "26.5.0", path = "crates/runtime" }
 
-# Serialization
-serde = { version = "1.0.217", features = ["derive"] }
-toml = "0.8.19"
-toml_edit = "0.22.22"
-bytes = "1.9.0"
-
-# Date/Time
-chrono = { version = "0.4.39", features = ["serde"] }
-
-# Caching & Concurrency
-moka = { version = "0.12.8", features = ["future"] }
-dashmap = "6.1.0"
-parking_lot = "0.12.3"
-rayon = "1.10.0"
+# ---- Async runtime ----
+tokio   = { version = "1.42.0", features = ["full"] }
 futures = "0.3"
 
-# File operations
+# ---- Web framework ----
+axum       = "0.7.9"
+tower      = { version = "0.5.2", features = ["limit"] }
+tower-http = { version = "0.6.2", features = ["compression-full", "cors", "limit", "timeout"] }
+
+# ---- HTTP client ----
+reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
+
+# ---- Serialization ----
+serde      = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0"
+toml       = "0.8.19"
+toml_edit  = "0.22.22"
+bytes      = "1.9.0"
+
+# ---- Date/Time ----
+chrono = { version = "0.4.39", features = ["serde"] }
+
+# ---- Caching & Concurrency ----
+moka         = { version = "0.12.8", features = ["future"] }
+dashmap      = "6.1.0"
+parking_lot  = "0.12.3"
+rayon        = "1.10.0"
+
+# ---- Filesystem watcher / traversal ----
 walkdir = "2.5.0"
-notify = "7.0.0"
+notify  = "7.0.0"
 
-# Hashing
+# ---- Hashing ----
 sha1 = "0.10.6"
-hex = "0.4.3"
+hex  = "0.4.3"
 
-# Logging
-tracing = "0.1.41"
+# ---- Logging ----
+tracing            = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
-colored = "2.2.0"
+colored            = "2.2.0"
 
-# Error handling
+# ---- Error handling ----
 thiserror = "2.0"
 
-# Dev dependencies (tests)
-tempfile = "3.14.0"
-wiremock = "0.6.2"
+# ---- Dev dependencies ----
+tempfile          = "3.14.0"
+wiremock          = "0.6.2"
 pretty_assertions = "1.4.1"
+
+# ============================================
+# COMPILATION PROFILES
+# ============================================
+
+[profile.dev]
+opt-level = 0
+debug = true
+split-debuginfo = "unpacked"
+incremental = true
+
+[profile.dev.package."*"]
+opt-level = 2
+debug = false
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+panic = "abort"
+
+[profile.release-small]
+inherits = "release"
+opt-level = "z"
+lto = "fat"

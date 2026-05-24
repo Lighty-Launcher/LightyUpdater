@@ -1,35 +1,32 @@
 [package]
 name = "lighty-runtime"
-version = "2026.2.1"
-edition = "2021"
+description = "Composition root: wires every LightyUpdater service crate together"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
 
 [features]
 default = []
 s3 = ["lighty-storage/s3"]
 
 [dependencies]
-# Internal crates
-lighty-api = { path = "../api" }
-lighty-adapters = { path = "../adapters" }
-lighty-cache = { path = "../cache" }
-lighty-cdn = { path = "../cdn" }
-lighty-config = { path = "../config" }
-lighty-events = { path = "../events" }
-lighty-storage = { path = "../storage" }
-lighty-watcher = { path = "../watcher" }
-lighty-filesystem = { path = "../filesystem" }
-
-# Async runtime
-tokio = { workspace = true }
-
-# Web framework
-axum = { workspace = true }
-tower = { workspace = true }
-tower-http = { workspace = true }
-
-# Logging
-tracing = { workspace = true }
+lighty-api        = { workspace = true }
+lighty-adapters   = { workspace = true }
+lighty-cache      = { workspace = true }
+lighty-cdn        = { workspace = true }
+lighty-config     = { workspace = true }
+lighty-events     = { workspace = true }
+lighty-storage    = { workspace = true }
+lighty-watcher    = { workspace = true }
+lighty-filesystem = { workspace = true }
+tokio              = { workspace = true }
+axum               = { workspace = true }
+tower              = { workspace = true }
+tower-http         = { workspace = true }
+tracing            = { workspace = true }
 tracing-subscriber = { workspace = true }
-
-# Error handling
-thiserror = { workspace = true }
+thiserror          = { workspace = true }

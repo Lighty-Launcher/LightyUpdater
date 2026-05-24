@@ -1910,7 +1910,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-adapters"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "colored",
  "lighty-config",
@@ -1924,7 +1924,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-api"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "axum",
  "chrono",
@@ -1945,7 +1945,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-app"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "lighty-runtime",
  "tokio",
@@ -1953,7 +1953,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-cache"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "dashmap",
  "lighty-cdn",
@@ -1971,7 +1971,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-cdn"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "lighty-events",
  "reqwest",
@@ -1985,7 +1985,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-cli"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "chrono",
  "clap",
@@ -2004,21 +2004,21 @@ dependencies = [
 
 [[package]]
 name = "lighty-config"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "lighty-events"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "lighty-file-cache"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "bytes",
  "dashmap",
@@ -2038,14 +2038,14 @@ dependencies = [
 
 [[package]]
 name = "lighty-file-diff"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "lighty-models",
 ]
 
 [[package]]
 name = "lighty-filesystem"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "bytes",
  "lighty-utils",
@@ -2057,14 +2057,14 @@ dependencies = [
 
 [[package]]
 name = "lighty-models"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "lighty-rescan"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "chrono",
  "dashmap",
@@ -2085,7 +2085,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-runtime"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "axum",
  "lighty-adapters",
@@ -2107,7 +2107,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-scanner"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "futures",
  "lighty-config",
@@ -2123,7 +2123,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-storage"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "async-trait",
  "aws-config",
@@ -2138,7 +2138,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-updater"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "lighty-api",
  "lighty-cache",
@@ -2153,7 +2153,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-utils"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "hex",
  "sha1",
@@ -2163,7 +2163,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-watcher"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "lighty-adapters",
  "lighty-cache",

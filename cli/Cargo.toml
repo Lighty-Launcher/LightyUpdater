@@ -1,7 +1,13 @@
 [package]
 name = "lighty-cli"
-version = "2026.2.1"
-edition = "2021"
+description = "LightyUpdater CLI — manage instances (install/create/start/stop/logs)"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
 
 [features]
 default = []
@@ -12,35 +18,16 @@ name = "lighty"
 path = "src/main.rs"
 
 [dependencies]
-# Internal crates
-lighty-runtime = { path = "../crates/runtime" }
-lighty-config = { path = "../crates/config" }
-
-# Async runtime
-tokio = { workspace = true }
-
-# CLI framework
-clap = { version = "4.5", features = ["derive", "cargo"] }
-
-# Serialization
-serde = { workspace = true }
-serde_json = "1.0"
-toml = { workspace = true }
-
-# Date/Time
-chrono = { workspace = true }
-
-# Logging
-tracing = { workspace = true }
-
-# Process management
+lighty-runtime = { workspace = true }
+lighty-config  = { workspace = true }
+tokio      = { workspace = true }
+serde      = { workspace = true }
+serde_json = { workspace = true }
+toml       = { workspace = true }
+chrono     = { workspace = true }
+tracing    = { workspace = true }
+thiserror  = { workspace = true }
+colored    = { workspace = true }
+clap    = { version = "4.5", features = ["derive", "cargo"] }
 sysinfo = "0.32"
-
-# Error handling
-thiserror = { workspace = true }
-
-# Cross-platform paths
-dirs = "5.0"
-
-# Colored output
-colored = { workspace = true }
+dirs    = "5.0"

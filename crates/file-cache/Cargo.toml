@@ -1,21 +1,27 @@
 [package]
 name = "lighty-file-cache"
-version = "2026.2.1"
-edition = "2021"
+description = "Moka-backed LRU cache for file payloads served by LightyUpdater"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
 
 [dependencies]
-lighty-config = { path = "../config" }
-lighty-filesystem = { path = "../filesystem" }
-bytes = { workspace = true }
-dashmap = { workspace = true }
-futures = { workspace = true }
-moka = { workspace = true }
-rayon = { workspace = true }
-sha1 = { workspace = true }
+lighty-config     = { workspace = true }
+lighty-filesystem = { workspace = true }
+bytes     = { workspace = true }
+dashmap   = { workspace = true }
+futures   = { workspace = true }
+moka      = { workspace = true }
+rayon     = { workspace = true }
+sha1      = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true }
-tracing = { workspace = true }
-walkdir = { workspace = true }
+tokio     = { workspace = true }
+tracing   = { workspace = true }
+walkdir   = { workspace = true }
 mime_guess = "2.0"
 
 [dev-dependencies]

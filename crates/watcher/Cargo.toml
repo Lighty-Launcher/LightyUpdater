@@ -1,14 +1,20 @@
 [package]
 name = "lighty-watcher"
-version = "2026.2.1"
-edition = "2021"
+description = "Hot-reload for config.toml; coordinates with the cache layer"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
 
 [dependencies]
-lighty-config = { path = "../config" }
-lighty-adapters = { path = "../adapters" }
-lighty-cache = { path = "../cache" }
-lighty-filesystem = { path = "../filesystem" }
-notify = { workspace = true }
-tokio = { workspace = true }
+lighty-config     = { workspace = true }
+lighty-adapters   = { workspace = true }
+lighty-cache      = { workspace = true }
+lighty-filesystem = { workspace = true }
+notify    = { workspace = true }
+tokio     = { workspace = true }
 thiserror = { workspace = true }
-tracing = { workspace = true }
+tracing   = { workspace = true }

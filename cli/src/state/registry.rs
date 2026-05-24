@@ -1,5 +1,5 @@
 use crate::errors::{CliError, CliResult};
-use crate::paths;
+use crate::state::paths;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

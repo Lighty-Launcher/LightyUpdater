@@ -22,7 +22,7 @@ lighty-config     = { workspace = true }
 lighty-events     = { workspace = true }
 lighty-storage    = { workspace = true }
 lighty-watcher    = { workspace = true }
-lighty-filesystem = { workspace = true }
+lighty-file-system = { workspace = true }
 tokio              = { workspace = true }
 axum               = { workspace = true }
 tower              = { workspace = true }

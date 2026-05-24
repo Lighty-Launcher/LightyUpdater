@@ -2,7 +2,7 @@ use crate::Result;
 use lighty_adapters::load_config_with_events;
 use lighty_config::Config;
 use lighty_events::{AppEvent, EventBus};
-use lighty_filesystem::FileSystem;
+use lighty_file_system::FileSystem;
 use std::sync::Arc;
 
 pub async fn load(config_path: &str, events: &Arc<EventBus>) -> Result<Config> {

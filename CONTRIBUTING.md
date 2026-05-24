@@ -61,7 +61,7 @@ Branch off `development`, never push directly to `production`.
 ## Local setup
 
 ```bash
-rustup toolchain install stable      # MSRV is 1.85, edition 2024
+rustup toolchain install stable      # MSRV is 1.95, edition 2024
 git clone https://github.com/Lighty-Launcher/LightyUpdater
 cd LightyUpdater
 git checkout development
@@ -77,8 +77,8 @@ cargo run -p lighty-app --features s3
 
 Manage instances with the CLI:
 ```bash
-cargo run -p lighty -- list
-cargo run -p lighty -- create --name survival --dir ./instances/survival
+cargo run -p lighty -- get
+cargo run -p lighty -- create survival --dir ./instances/survival
 cargo run -p lighty -- start survival
 ```
 
@@ -100,10 +100,10 @@ The repo ignores everything by default and only allows specific paths:
 !Cargo.lock
 
 !.github/**
+!.assets/
 !app/
 !cli/
 !crates/
-!docs/
 ```
 
 If you add a new top-level file or folder, **whitelist it in

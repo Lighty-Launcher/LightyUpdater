@@ -11,10 +11,10 @@
 
 # Whitelist directories
 !.github/**
-!assets/
-!crates/
+!.assets/
 !app/
 !cli/
+!crates/
 
 # Exceptions: Always ignore these patterns even if whitelisted
 **/.DS_Store

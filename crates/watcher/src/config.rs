@@ -3,7 +3,7 @@ use super::errors::WatcherError;
 use lighty_adapters::load_config_no_migration;
 use lighty_cache::CacheManager;
 use lighty_config::{Config, ServerConfig};
-use lighty_filesystem::FileSystem;
+use lighty_file_system::FileSystem;
 use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
 use std::collections::{HashSet, HashMap};
 use std::path::Path;

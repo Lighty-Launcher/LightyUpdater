@@ -1,11 +1,11 @@
 # Exports
 
-Public surface of `lighty-filesystem`.
+Public surface of `lighty-file-system`.
 
 ## Crate root
 
 ```rust
-use lighty_filesystem::{FileInfo, FileSystem, FileSystemError};
+use lighty_file_system::{FileInfo, FileSystem, FileSystemError};
 ```
 
 ## `FileSystem`

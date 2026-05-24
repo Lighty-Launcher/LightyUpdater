@@ -3,7 +3,7 @@ use crate::file_cache::FileCache;
 use dashmap::DashMap;
 use futures::stream::{self, StreamExt};
 use lighty_config::ServerConfig;
-use lighty_filesystem::FileSystem;
+use lighty_file_system::FileSystem;
 use moka::future::Cache;
 use std::path::Path;
 use std::sync::atomic::AtomicUsize;

@@ -5,7 +5,7 @@ members = [
     "crates/events",
     "crates/adapters",
     "crates/utils",
-    "crates/filesystem",
+    "crates/file-system",
     "crates/config",
     "crates/storage",
     "crates/scanner",
@@ -29,7 +29,7 @@ authors = ["Hamadi <dev.hamadipro@gmail.com>"]
 license = "MIT"
 repository = "https://github.com/Lighty-Launcher/LightyUpdater"
 homepage = "https://github.com/Lighty-Launcher/LightyUpdater"
-rust-version = "1.85"
+rust-version = "1.95"
 
 # ============================================
 # WORKSPACE DEPENDENCIES
@@ -42,7 +42,7 @@ lighty-models     = { version = "26.5.0", path = "crates/models" }
 lighty-events     = { version = "26.5.0", path = "crates/events" }
 lighty-adapters   = { version = "26.5.0", path = "crates/adapters" }
 lighty-utils      = { version = "26.5.0", path = "crates/utils" }
-lighty-filesystem = { version = "26.5.0", path = "crates/filesystem" }
+lighty-file-system = { version = "26.5.0", path = "crates/file-system" }
 lighty-config     = { version = "26.5.0", path = "crates/config" }
 lighty-storage    = { version = "26.5.0", path = "crates/storage" }
 lighty-scanner    = { version = "26.5.0", path = "crates/scanner" }

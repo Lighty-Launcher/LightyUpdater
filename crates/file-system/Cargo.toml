@@ -1,5 +1,5 @@
 [package]
-name = "lighty-filesystem"
+name = "lighty-file-system"
 description = "Filesystem operations and MIME type detection for LightyUpdater"
 version.workspace = true
 edition.workspace = true

@@ -1,7 +1,7 @@
-use crate::daemon;
+use crate::process::daemon;
 use crate::errors::{CliError, CliResult};
-use crate::paths;
-use crate::registry::Registry;
+use crate::state::paths;
+use crate::state::registry::Registry;
 use colored::Colorize;
 
 pub fn execute(name: String, with_logs: bool) -> CliResult<()> {
@@ -13,7 +13,7 @@ pub fn execute(name: String, with_logs: bool) -> CliResult<()> {
     // Check if instance is running
     if let Some(pid) = daemon::read_pid(&name)? {
         return Err(CliError::Other(format!(
-            "Instance '{}' is currently running (PID: {}). Stop it first with: lighty stop -n {}",
+            "Instance '{}' is currently running (PID: {}). Stop it first with: lighty stop {}",
             name, pid, name
         )));
     }

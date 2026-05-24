@@ -1,5 +1,6 @@
 use crate::errors::{CliError, CliResult};
-use crate::registry::{Instance, Registry};
+use crate::state::registry::{Instance, Registry};
+use std::env;
 
 pub fn resolve_instance<'a>(
     registry: &'a Registry,
@@ -9,7 +10,7 @@ pub fn resolve_instance<'a>(
         return registry.get_instance(name);
     }
 
-    let current_dir = std::env::current_dir()?;
+    let current_dir = env::current_dir()?;
     registry
         .find_by_directory(&current_dir)
         .ok_or(CliError::NoInstanceInCurrentDir)

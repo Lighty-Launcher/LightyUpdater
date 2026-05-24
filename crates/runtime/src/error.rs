@@ -18,7 +18,7 @@ pub enum RuntimeError {
     Watcher(#[from] lighty_watcher::WatcherError),
 
     #[error("Filesystem error: {0}")]
-    FileSystem(#[from] lighty_filesystem::FileSystemError),
+    FileSystem(#[from] lighty_file_system::FileSystemError),
 
     #[error("Invalid configuration: {0}")]
     InvalidConfiguration(String),

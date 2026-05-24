@@ -1,6 +1,10 @@
 use crate::errors::{CliError, CliResult};
-use crate::paths;
+use crate::state::paths;
+use std::env;
+use std::fs;
+use std::path::Path;
 use std::process::{Command, Stdio};
+use std::thread;
 use std::time::Duration;
 use sysinfo::{Pid, ProcessesToUpdate, System};
 
@@ -19,7 +23,7 @@ pub fn read_pid_with_system(name: &str, sys: &mut System) -> CliResult<Option<u3
         return Ok(None);
     }
 
-    let content = std::fs::read_to_string(&pid_path)?;
+    let content = fs::read_to_string(&pid_path)?;
     let pid: u32 = content
         .trim()
         .parse()
@@ -30,7 +34,7 @@ pub fn read_pid_with_system(name: &str, sys: &mut System) -> CliResult<Option<u3
         Ok(Some(pid))
     } else {
         // Clean up stale PID file
-        let _ = std::fs::remove_file(&pid_path);
+        let _ = fs::remove_file(&pid_path);
         Ok(None)
     }
 }
@@ -45,7 +49,7 @@ pub fn read_pid(name: &str) -> CliResult<Option<u32>> {
 pub fn write_pid(name: &str, pid: u32) -> CliResult<()> {
     paths::ensure_directories()?;
     let pid_path = paths::pid_file(name)?;
-    std::fs::write(&pid_path, pid.to_string())?;
+    fs::write(&pid_path, pid.to_string())?;
     Ok(())
 }
 
@@ -53,20 +57,20 @@ pub fn write_pid(name: &str, pid: u32) -> CliResult<()> {
 pub fn remove_pid(name: &str) -> CliResult<()> {
     let pid_path = paths::pid_file(name)?;
     if pid_path.exists() {
-        std::fs::remove_file(&pid_path)?;
+        fs::remove_file(&pid_path)?;
     }
     Ok(())
 }
 
 /// Start lighty as a daemon in server mode
-pub fn start_daemon(instance_name: &str, working_dir: &std::path::Path, config_path: &std::path::Path) -> CliResult<u32> {
+pub fn start_daemon(instance_name: &str, working_dir: &Path, config_path: &Path) -> CliResult<u32> {
     // Get the current lighty binary (itself)
-    let lighty_binary = std::env::current_exe()?;
+    let lighty_binary = env::current_exe()?;
 
     // Prepare log file
     paths::ensure_directories()?;
     let log_path = paths::log_file(instance_name)?;
-    let log_file = std::fs::OpenOptions::new()
+    let log_file = fs::OpenOptions::new()
         .create(true)
         .append(true)
         .open(&log_path)?;
@@ -146,7 +150,7 @@ pub fn stop_daemon(name: &str, force: bool) -> CliResult<()> {
     // Wait up to 5 seconds for graceful shutdown
     // Reuse sys instance to avoid creating 50 System instances
     for _ in 0..50 {
-        std::thread::sleep(Duration::from_millis(100));
+        thread::sleep(Duration::from_millis(100));
         if !is_running_with_system(&mut sys, pid) {
             remove_pid(name)?;
             return Ok(());

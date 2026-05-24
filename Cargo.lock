@@ -1930,7 +1930,7 @@ dependencies = [
  "chrono",
  "lighty-cache",
  "lighty-config",
- "lighty-filesystem",
+ "lighty-file-system",
  "lighty-models",
  "mime_guess",
  "serde",
@@ -2024,7 +2024,7 @@ dependencies = [
  "dashmap",
  "futures",
  "lighty-config",
- "lighty-filesystem",
+ "lighty-file-system",
  "mime_guess",
  "moka",
  "rayon",
@@ -2044,7 +2044,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lighty-filesystem"
+name = "lighty-file-system"
 version = "26.5.0"
 dependencies = [
  "bytes",
@@ -2094,7 +2094,7 @@ dependencies = [
  "lighty-cdn",
  "lighty-config",
  "lighty-events",
- "lighty-filesystem",
+ "lighty-file-system",
  "lighty-storage",
  "lighty-watcher",
  "thiserror 2.0.17",
@@ -2144,7 +2144,7 @@ dependencies = [
  "lighty-cache",
  "lighty-config",
  "lighty-events",
- "lighty-filesystem",
+ "lighty-file-system",
  "lighty-models",
  "lighty-scanner",
  "lighty-utils",
@@ -2168,7 +2168,7 @@ dependencies = [
  "lighty-adapters",
  "lighty-cache",
  "lighty-config",
- "lighty-filesystem",
+ "lighty-file-system",
  "notify",
  "thiserror 2.0.17",
  "tokio",

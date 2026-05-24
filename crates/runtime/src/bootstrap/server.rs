@@ -1,7 +1,7 @@
 use crate::Result;
 use lighty_config::Config;
 use lighty_events::{AppEvent, EventBus};
-use lighty_filesystem::FileSystem;
+use lighty_file_system::FileSystem;
 use std::sync::Arc;
 
 pub async fn initialize_folders(config: &Config, events: &Arc<EventBus>) -> Result<()> {

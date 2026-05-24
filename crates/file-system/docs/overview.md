@@ -1,6 +1,6 @@
 # Overview
 
-`lighty-filesystem` is the I/O wrapper for everything that needs to
+`lighty-file-system` is the I/O wrapper for everything that needs to
 touch the local disk in a predictable way: reading file bytes,
 building server paths, MIME detection. Built on `tokio::fs` plus
 `mime_guess`.

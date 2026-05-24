@@ -1,7 +1,7 @@
-use crate::daemon;
+use crate::process::daemon;
 use crate::errors::{CliError, CliResult};
-use crate::instance_lookup::resolve_instance;
-use crate::registry::Registry;
+use crate::state::instance_lookup::resolve_instance;
+use crate::state::registry::Registry;
 use colored::Colorize;
 
 pub fn execute(name: Option<String>, force: bool) -> CliResult<()> {

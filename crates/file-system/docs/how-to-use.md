@@ -1,9 +1,9 @@
-# Using lighty-filesystem
+# Using lighty-file-system
 
 ## 1. Build a server path
 
 ```rust
-use lighty_filesystem::FileSystem;
+use lighty_file_system::FileSystem;
 
 let path = FileSystem::build_server_path(base_path, "survival");
 // PathBuf: {base_path}/survival

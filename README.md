@@ -2,10 +2,16 @@
 
 High-performance Minecraft distribution server built with Rust and Axum. Serves game files (client, libraries, mods, natives, assets) via REST API with fast file resolution, RAM caching, hot-reload, S3/Cloudflare integration, and automatic scanning.
 
-[![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Maintained](https://img.shields.io/badge/Maintained-yes-2ea44f.svg)](#)
+[![Version](https://img.shields.io/badge/version-26.5.0-blue.svg)](#)
+[![Documentation](https://img.shields.io/badge/docs-gitbook-blue.svg)](https://hamadi.gitbook.io/lightyupdater)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Rust Version](https://img.shields.io/badge/rust-1.95%2B-red.svg)](https://www.rust-lang.org)
+[![Maintainer](https://img.shields.io/badge/Maintainer-Hamadi-blue.svg)](https://github.com/Kalandi)
 
-![LightyUpdater Banner](docs/img/banner.png)
+<p align="center">
+  <img src=".assets/banner.png" alt="LightyUpdater banner" />
+</p>
 
 ## Features
 
@@ -212,7 +218,7 @@ Download file (zero-copy from RAM or streamed from disk).
 | `lighty-events` | Event contracts and publish/sink abstraction used across the workspace. |
 | `lighty-config` | Configuration domain schema and defaults (no file I/O). |
 | `lighty-utils` | Stateless helpers (hashing, path helpers, shared primitives). |
-| `lighty-filesystem` | Filesystem operations and folder/materialization helpers. |
+| `lighty-file-system` | Filesystem operations and folder/materialization helpers. |
 | `lighty-storage` | Storage backend abstraction (`local` / optional `s3`) and cloud upload/delete behavior. |
 | `lighty-adapters` | Integration adapters: `config.toml` load/migration + console event sink implementation. |
 | `lighty-scanner` | Scanning logic for clients/libraries/mods/natives/assets from server directories. |

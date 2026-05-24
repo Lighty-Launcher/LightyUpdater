@@ -1,7 +1,7 @@
 use super::{cache, disk, parser, resolver};
 use crate::handlers::models::AppState;
 use crate::errors::ApiError;
-use lighty_filesystem::FileSystem;
+use lighty_file_system::FileSystem;
 use axum::{
     extract::State,
     response::Response,

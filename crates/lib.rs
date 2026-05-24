@@ -14,7 +14,7 @@ pub use lighty_utils::{
 pub use lighty_utils::checksum as utils_checksum;
 pub use lighty_utils::errors as utils_errors;
 pub use lighty_utils::path as utils_path;
-pub use lighty_filesystem::*;
+pub use lighty_file_system::*;
 pub use lighty_config::*;
 pub use lighty_scanner::*;
 pub use lighty_cache::*;
@@ -55,5 +55,5 @@ pub mod prelude {
     pub use lighty_watcher::ConfigWatcher;
 
     // Filesystem
-    pub use lighty_filesystem::FileSystem;
+    pub use lighty_file_system::FileSystem;
 }

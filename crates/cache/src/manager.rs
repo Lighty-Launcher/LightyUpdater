@@ -1,12 +1,16 @@
-use super::models::{CacheManager, FileCacheManager, RescanOrchestrator, FileCache, CacheUpdater, CacheStore, RescanOrchestratorDeps};
-use super::errors::CacheError;
+use crate::errors::CacheError;
+use crate::models::CacheManager;
+use dashmap::DashMap;
 use lighty_config::{Config, ServerConfig};
 use lighty_events::{AppEvent, EventBus};
+use lighty_file_cache::{FileCache, FileCacheManager};
 use lighty_models::VersionBuilder;
-use dashmap::DashMap;
-use std::sync::Arc;
+use lighty_rescan::{
+    CacheStore, CacheUpdater, RescanOrchestrator, RescanOrchestratorDeps, ServerPathCache,
+};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use tokio::sync::{RwLock, broadcast};
+use std::sync::Arc;
+use tokio::sync::{broadcast, RwLock};
 
 type Result<T> = std::result::Result<T, CacheError>;
 
@@ -15,16 +19,12 @@ impl CacheManager {
         config: Arc<RwLock<Config>>,
         events: Arc<EventBus>,
         storage: Option<Arc<dyn lighty_storage::StorageBackend>>,
-        cdn: Option<Arc<super::cdn::CdnClient>>,
-        cloudflare: Option<Arc<super::cloudflare::CloudflareClient>>,
     ) -> Self {
         let (shutdown_tx, _) = broadcast::channel(1);
 
-        // Create cache store (implements CacheUpdater trait)
         let (cache_store, cache) = CacheStore::new();
         let last_updated = Arc::new(DashMap::new());
 
-        // Read cache capacity, base path, and servers from config
         let (max_cache_gb, base_path, servers) = {
             let config_read = config.read().await;
             (
@@ -34,14 +34,11 @@ impl CacheManager {
             )
         };
 
-        // Create file cache manager with configured capacity
         let file_cache_manager = Arc::new(FileCacheManager::new(max_cache_gb, shutdown_tx.clone()));
 
-        // Create and initialize server path cache for O(1) lookups
-        let server_path_cache = Arc::new(super::server_path_cache::ServerPathCache::new());
+        let server_path_cache = Arc::new(ServerPathCache::new());
         server_path_cache.rebuild(&servers, &base_path.to_string_lossy());
 
-        // Create rescan orchestrator with storage, cdn and cloudflare
         let rescan_orchestrator = Arc::new(RescanOrchestrator::new(RescanOrchestratorDeps {
             cache: Arc::new(cache_store),
             file_cache_manager: Arc::clone(&file_cache_manager),
@@ -49,8 +46,6 @@ impl CacheManager {
             config: Arc::clone(&config),
             events: Arc::clone(&events),
             storage,
-            cdn,
-            cloudflare,
             base_path,
             server_path_cache: Arc::clone(&server_path_cache),
         }));
@@ -69,17 +64,14 @@ impl CacheManager {
         }
     }
 
-    /// Pause the auto-rescan loop (used during config reloads to prevent race conditions)
     pub fn pause_rescan(&self) {
         self.rescan_orchestrator.pause();
     }
 
-    /// Resume the auto-rescan loop
     pub fn resume_rescan(&self) {
         self.rescan_orchestrator.resume();
     }
 
-    /// Rebuild server path cache (call after config reload)
     pub async fn rebuild_server_cache(&self) {
         let (servers, base_path) = {
             let config = self.config.read().await;
@@ -89,30 +81,23 @@ impl CacheManager {
         tracing::debug!("Server path cache rebuilt after config reload");
     }
 
-    /// Rebuild server path cache with provided data (used during config hot-reload to avoid deadlock)
     pub fn rebuild_server_cache_with_data(&self, servers: &[Arc<ServerConfig>], base_path: &str) {
         self.server_path_cache.rebuild(servers, base_path);
         tracing::debug!("Server path cache rebuilt after config reload (with provided data)");
     }
 
-    /// Signals graceful shutdown to all background tasks
     pub async fn shutdown(&self) {
         tracing::info!("CacheManager: Initiating graceful shutdown...");
         let _ = self.shutdown_tx.send(());
 
-        // Wait for all tasks to complete (drain tasks and collect handles)
-        let handles: Vec<_> = self.tasks.iter()
-            .map(|entry| *entry.key())
-            .collect();
+        let handles: Vec<_> = self.tasks.iter().map(|entry| *entry.key()).collect();
 
-        // Remove and await each handle
         for task_id in handles {
             if let Some((_, handle)) = self.tasks.remove(&task_id) {
                 let _ = handle.await;
             }
         }
 
-        // Shutdown file cache manager
         self.file_cache_manager.shutdown().await;
 
         tracing::info!("CacheManager: All tasks shut down gracefully");
@@ -122,7 +107,6 @@ impl CacheManager {
         self.file_cache_manager.get_file(server, path).await
     }
 
-    /// Get cache statistics (entry count and weighted size in KB)
     pub fn get_cache_stats(&self) -> (u64, u64) {
         self.file_cache_manager.get_stats()
     }
@@ -182,12 +166,14 @@ impl CacheManager {
     }
 
     pub async fn force_rescan(&self, server_name: &str) -> Result<()> {
-        self.rescan_orchestrator.force_rescan_server(server_name).await
+        self.rescan_orchestrator.force_rescan_server(server_name).await?;
+        Ok(())
     }
 
     pub async fn get_all_servers(&self) -> Vec<String> {
         let config = self.config.read().await;
-        config.servers
+        config
+            .servers
             .iter()
             .filter(|s| s.enabled)
             .map(|s| s.name.to_string())
@@ -207,27 +193,22 @@ impl CacheManager {
         self.last_updated.get(name).map(|entry| entry.value().clone())
     }
 
-    /// Remove a server from all caches (prevents memory leaks when servers are deleted)
     pub async fn remove_server(&self, server_name: &str) {
-        // Remove from version builder cache
         if self.cache.remove(server_name).is_some() {
             tracing::debug!("Removed server {} from version builder cache", server_name);
         }
         self.file_cache_manager.invalidate_server(server_name).await;
         tracing::debug!("Removed server {} from file cache", server_name);
 
-        // Remove from last updated timestamps
         if self.last_updated.remove(server_name).is_some() {
             tracing::debug!("Removed server {} from last updated cache", server_name);
         }
 
-        // Remove from server path cache
         self.server_path_cache.remove_server(server_name);
         tracing::debug!("Removed server {} from server path cache", server_name);
     }
 }
 
-// Implement CacheUpdater trait for CacheManager (allows decoupled updates from RescanOrchestrator)
 impl CacheUpdater for CacheManager {
     fn insert(&self, server_name: String, version: Arc<VersionBuilder>) {
         self.cache.insert(server_name, version);

@@ -1,29 +1,24 @@
 [package]
 name = "lighty-cache"
-version = "2026.2.1"
-edition = "2021"
+description = "Facade composing LightyUpdater's caching, diffing, rescan and CDN crates"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
 
 [dependencies]
-lighty-models = { path = "../models" }
-lighty-config = { path = "../config" }
-lighty-events = { path = "../events" }
-lighty-scanner = { path = "../scanner" }
-lighty-filesystem = { path = "../filesystem" }
-lighty-storage = { path = "../storage" }
-moka = { workspace = true }
-dashmap = { workspace = true }
-parking_lot = { workspace = true }
-tokio = { workspace = true }
-serde = { workspace = true }
+lighty-models     = { workspace = true }
+lighty-config     = { workspace = true }
+lighty-events     = { workspace = true }
+lighty-storage    = { workspace = true }
+lighty-file-diff  = { workspace = true }
+lighty-file-cache = { workspace = true }
+lighty-cdn        = { workspace = true }
+lighty-rescan     = { workspace = true }
+dashmap   = { workspace = true }
+tokio     = { workspace = true }
 thiserror = { workspace = true }
-tracing = { workspace = true }
-bytes = { workspace = true }
-sha1 = { workspace = true }
-rayon = { workspace = true }
-walkdir = { workspace = true }
-notify = { workspace = true }
-futures = "0.3"
-chrono = { workspace = true }
-mime_guess = "2.0"
-reqwest = { version = "0.11", features = ["json", "rustls-tls"], default-features = false }
-serde_json = "1.0"
+tracing   = { workspace = true }

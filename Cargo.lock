@@ -98,6 +98,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "assert-json-diff"
+version = "2.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "47e4f2b81832e72834d7518d8487a0396a28cc408186a2e8854c0f98011faf12"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "async-compression"
 version = "0.4.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1012,6 +1022,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "deadpool"
+version = "0.12.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0be2b1d1d6ec8d846f05e137292d0b89133caf95ef33695424c09568bdd39b1b"
+dependencies = [
+ "deadpool-runtime",
+ "lazy_static",
+ "num_cpus",
+ "tokio",
+]
+
+[[package]]
+name = "deadpool-runtime"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "092966b41edc516079bdf31ec78a2e0588d1d0c08f78b91d8307215928642b2b"
+
+[[package]]
 name = "der"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1131,6 +1159,16 @@ name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
+
+[[package]]
+name = "errno"
+version = "0.3.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
+dependencies = [
+ "libc",
+ "windows-sys 0.61.2",
+]
 
 [[package]]
 name = "event-listener"
@@ -1432,6 +1470,12 @@ name = "heck"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
+
+[[package]]
+name = "hermit-abi"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc0fef456e4baa96da950455cd02c081ca953b141298e41db3fc7e36b1da849c"
 
 [[package]]
 name = "hex"
@@ -1849,9 +1893,9 @@ checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
 name = "libc"
-version = "0.2.177"
+version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2874a2af47a2325c2001a6e6fad9b16a53b802102b528163885171cf92b15976"
+checksum = "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
 
 [[package]]
 name = "libredox"
@@ -1866,7 +1910,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-adapters"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "colored",
  "lighty-config",
@@ -1880,13 +1924,13 @@ dependencies = [
 
 [[package]]
 name = "lighty-api"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "axum",
  "chrono",
  "lighty-cache",
  "lighty-config",
- "lighty-filesystem",
+ "lighty-file-system",
  "lighty-models",
  "mime_guess",
  "serde",
@@ -1901,7 +1945,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-app"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "lighty-runtime",
  "tokio",
@@ -1909,36 +1953,39 @@ dependencies = [
 
 [[package]]
 name = "lighty-cache"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
- "bytes",
- "chrono",
  "dashmap",
- "futures",
+ "lighty-cdn",
  "lighty-config",
  "lighty-events",
- "lighty-filesystem",
+ "lighty-file-cache",
+ "lighty-file-diff",
  "lighty-models",
- "lighty-scanner",
+ "lighty-rescan",
  "lighty-storage",
- "mime_guess",
- "moka",
- "notify",
- "parking_lot",
- "rayon",
- "reqwest",
- "serde",
- "serde_json",
- "sha1",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
- "walkdir",
+]
+
+[[package]]
+name = "lighty-cdn"
+version = "26.5.0"
+dependencies = [
+ "lighty-events",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "wiremock",
 ]
 
 [[package]]
 name = "lighty-cli"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "chrono",
  "clap",
@@ -1957,21 +2004,48 @@ dependencies = [
 
 [[package]]
 name = "lighty-config"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "lighty-events"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "serde",
 ]
 
 [[package]]
-name = "lighty-filesystem"
-version = "2026.2.1"
+name = "lighty-file-cache"
+version = "26.5.0"
+dependencies = [
+ "bytes",
+ "dashmap",
+ "futures",
+ "lighty-config",
+ "lighty-file-system",
+ "mime_guess",
+ "moka",
+ "rayon",
+ "sha1",
+ "tempfile",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+ "walkdir",
+]
+
+[[package]]
+name = "lighty-file-diff"
+version = "26.5.0"
+dependencies = [
+ "lighty-models",
+]
+
+[[package]]
+name = "lighty-file-system"
+version = "26.5.0"
 dependencies = [
  "bytes",
  "lighty-utils",
@@ -1983,22 +2057,44 @@ dependencies = [
 
 [[package]]
 name = "lighty-models"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "serde",
 ]
 
 [[package]]
+name = "lighty-rescan"
+version = "26.5.0"
+dependencies = [
+ "chrono",
+ "dashmap",
+ "futures",
+ "lighty-config",
+ "lighty-events",
+ "lighty-file-cache",
+ "lighty-file-diff",
+ "lighty-models",
+ "lighty-scanner",
+ "lighty-storage",
+ "notify",
+ "parking_lot",
+ "thiserror 2.0.17",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "lighty-runtime"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "axum",
  "lighty-adapters",
  "lighty-api",
  "lighty-cache",
+ "lighty-cdn",
  "lighty-config",
  "lighty-events",
- "lighty-filesystem",
+ "lighty-file-system",
  "lighty-storage",
  "lighty-watcher",
  "thiserror 2.0.17",
@@ -2011,7 +2107,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-scanner"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "futures",
  "lighty-config",
@@ -2027,7 +2123,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-storage"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "async-trait",
  "aws-config",
@@ -2042,13 +2138,13 @@ dependencies = [
 
 [[package]]
 name = "lighty-updater"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "lighty-api",
  "lighty-cache",
  "lighty-config",
  "lighty-events",
- "lighty-filesystem",
+ "lighty-file-system",
  "lighty-models",
  "lighty-scanner",
  "lighty-utils",
@@ -2057,7 +2153,7 @@ dependencies = [
 
 [[package]]
 name = "lighty-utils"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "hex",
  "sha1",
@@ -2067,17 +2163,23 @@ dependencies = [
 
 [[package]]
 name = "lighty-watcher"
-version = "2026.2.1"
+version = "26.5.0"
 dependencies = [
  "lighty-adapters",
  "lighty-cache",
  "lighty-config",
- "lighty-filesystem",
+ "lighty-file-system",
  "notify",
  "thiserror 2.0.17",
  "tokio",
  "tracing",
 ]
+
+[[package]]
+name = "linux-raw-sys"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
 
 [[package]]
 name = "litemap"
@@ -2267,6 +2369,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "num_cpus"
+version = "1.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "91df4bbde75afed763b708b7eee1e8e7651e02d97f6d5dd763e89367e957b23b"
+dependencies = [
+ "hermit-abi",
+ "libc",
 ]
 
 [[package]]
@@ -2613,6 +2725,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cfcb3a22ef46e85b45de6ee7e79d063319ebb6594faafcf1c225ea92ab6e9b92"
 dependencies = [
  "semver",
+]
+
+[[package]]
+name = "rustix"
+version = "1.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b6fe4565b9518b83ef4f91bb47ce29620ca828bd32cb7e408f0062e9930ba190"
+dependencies = [
+ "bitflags 2.10.0",
+ "errno",
+ "libc",
+ "linux-raw-sys",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3053,6 +3178,19 @@ name = "tagptr"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7b2093cf4c8eb1e67749a6762251bc9cd836b6fc171623bd0a9d324d37af2417"
+
+[[package]]
+name = "tempfile"
+version = "3.27.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
+dependencies = [
+ "fastrand",
+ "getrandom 0.3.4",
+ "once_cell",
+ "rustix",
+ "windows-sys 0.61.2",
+]
 
 [[package]]
 name = "thiserror"
@@ -3944,6 +4082,29 @@ checksum = "524e57b2c537c0f9b1e69f1965311ec12182b4122e45035b1508cd24d2adadb1"
 dependencies = [
  "cfg-if",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "wiremock"
+version = "0.6.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08db1edfb05d9b3c1542e521aea074442088292f00b5f28e435c714a98f85031"
+dependencies = [
+ "assert-json-diff",
+ "base64 0.22.1",
+ "deadpool",
+ "futures",
+ "http 1.4.0",
+ "http-body-util",
+ "hyper 1.8.1",
+ "hyper-util",
+ "log",
+ "once_cell",
+ "regex",
+ "serde",
+ "serde_json",
+ "tokio",
+ "url",
 ]
 
 [[package]]

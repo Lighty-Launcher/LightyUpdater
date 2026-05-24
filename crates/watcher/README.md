@@ -15,5 +15,5 @@ Configuration monitoring system with hot-reloading and intelligent server change
 This crate integrates with:
 - `lighty_config`: To load and validate the new configuration
 - `lighty_cache`: To trigger rescans and manage the cache
-- `lighty_filesystem`: To create folder structures for new servers
+- `lighty_file_system`: To create folder structures for new servers
 - `notify`: For system-level file monitoring

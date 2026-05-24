@@ -1,7 +1,13 @@
 [package]
 name = "lighty-app"
-version = "2026.2.1"
-edition = "2021"
+description = "LightyUpdater server binary"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
 
 [features]
 default = []
@@ -12,8 +18,5 @@ name = "lighty-app"
 path = "main.rs"
 
 [dependencies]
-# Internal crates
-lighty-runtime = { path = "../crates/runtime" }
-
-# Async runtime
+lighty-runtime = { workspace = true }
 tokio = { workspace = true }

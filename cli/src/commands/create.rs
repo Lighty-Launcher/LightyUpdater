@@ -1,8 +1,10 @@
 use crate::errors::{CliError, CliResult};
-use crate::config_file::read_server_port;
-use crate::registry::{Instance, Registry};
+use crate::state::config_file::read_server_port;
+use crate::state::registry::{Instance, Registry};
 use chrono::Utc;
 use colored::Colorize;
+use std::env;
+use std::fs;
 use std::path::PathBuf;
 
 pub fn execute(name: String, dir: Option<String>) -> CliResult<()> {
@@ -37,12 +39,12 @@ pub fn execute(name: String, dir: Option<String>) -> CliResult<()> {
         );
         println!("{}", "Skipping config.toml creation".yellow());
     } else {
-        std::fs::write(&config_path, lighty_config::DEFAULT_CONFIG_TEMPLATE)?;
+        fs::write(&config_path, lighty_config::DEFAULT_CONFIG_TEMPLATE)?;
     }
 
     // Create updater/ directory
     let updater_dir = target_dir.join("updater");
-    std::fs::create_dir_all(&updater_dir)?;
+    fs::create_dir_all(&updater_dir)?;
 
     // Parse config to extract port
     let port = read_server_port(&config_path)?;
@@ -119,13 +121,13 @@ fn resolve_directory(dir: Option<String>) -> CliResult<PathBuf> {
                 Ok(path_buf)
             } else {
                 // Relative path: resolve from current directory
-                let current_dir = std::env::current_dir()?;
+                let current_dir = env::current_dir()?;
                 Ok(current_dir.join(path_buf))
             }
         }
         None => {
             // No directory specified: use current directory
-            Ok(std::env::current_dir()?)
+            Ok(env::current_dir()?)
         }
     }
 }

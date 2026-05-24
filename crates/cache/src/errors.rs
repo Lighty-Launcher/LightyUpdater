@@ -5,31 +5,12 @@ pub enum CacheError {
     #[error("I/O error: {0}")]
     IoError(#[from] std::io::Error),
 
-    #[error("Scanner error: {0}")]
-    ScanError(#[from] lighty_scanner::ScanError),
+    #[error(transparent)]
+    Rescan(#[from] lighty_rescan::RescanError),
 
-    #[error("Storage error: {0}")]
-    StorageError(#[from] lighty_storage::StorageError),
+    #[error(transparent)]
+    FileCache(#[from] lighty_file_cache::FileCacheError),
 
-    #[error("Join error: {0}")]
-    JoinError(#[from] tokio::task::JoinError),
-
-    #[error("Server not found: {0}")]
-    ServerNotFound(String),
-
-    #[error("Cache operation failed: {0}")]
-    CacheOperationFailed(String),
-
-    #[error("HTTP request failed: {0}")]
-    HttpError(String),
-
-    #[error("Cloudflare API error: {0}")]
-    CloudflareError(String),
-}
-
-// Convert reqwest errors to CacheError
-impl From<reqwest::Error> for CacheError {
-    fn from(err: reqwest::Error) -> Self {
-        CacheError::HttpError(err.to_string())
-    }
+    #[error(transparent)]
+    Cdn(#[from] lighty_cdn::CdnError),
 }

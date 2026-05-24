@@ -1,14 +1,14 @@
 mod commands;
-mod config_file;
-mod daemon;
 mod errors;
-mod instance_lookup;
-mod paths;
-mod registry;
+mod process;
 mod server;
+mod state;
+mod ui;
 
 use clap::{Parser, Subcommand};
 use errors::CliResult;
+use std::path::PathBuf;
+use ui::format::OutputFormat;
 
 #[derive(Parser)]
 #[command(name = "lighty")]
@@ -27,7 +27,6 @@ enum Commands {
     /// Create a new instance
     Create {
         /// Name of the instance
-        #[arg(short, long)]
         name: String,
 
         /// Directory to create the instance in (defaults to current directory)
@@ -37,15 +36,13 @@ enum Commands {
 
     /// Start an instance
     Start {
-        /// Name of the instance to start
-        #[arg(short, long)]
+        /// Name of the instance (defaults to current directory)
         name: Option<String>,
     },
 
     /// Stop an instance
     Stop {
-        /// Name of the instance to stop
-        #[arg(short, long)]
+        /// Name of the instance (defaults to current directory)
         name: Option<String>,
 
         /// Force kill the process if it doesn't stop gracefully
@@ -55,8 +52,7 @@ enum Commands {
 
     /// Restart an instance
     Restart {
-        /// Name of the instance to restart
-        #[arg(short, long)]
+        /// Name of the instance (defaults to current directory)
         name: Option<String>,
 
         /// Force kill the process if it doesn't stop gracefully
@@ -64,43 +60,44 @@ enum Commands {
         force: bool,
     },
 
-    /// Show status of instances
-    Status {
-        /// Name of a specific instance
-        #[arg(short, long)]
+    /// Show details of an instance
+    Describe {
+        /// Name of the instance (defaults to current directory)
         name: Option<String>,
 
-        /// Output as JSON
-        #[arg(long)]
-        json: bool,
+        /// Output format
+        #[arg(short = 'o', long)]
+        output: Option<OutputFormat>,
     },
 
     /// Show logs of an instance
     Logs {
-        /// Name of the instance
-        #[arg(short, long)]
+        /// Name of the instance (defaults to current directory)
         name: Option<String>,
 
-        /// Follow log output
+        /// Stream new log lines as they arrive
         #[arg(short, long)]
         follow: bool,
 
-        /// Watch log output (alias for --follow)
-        #[arg(short, long)]
-        watch: bool,
-
         /// Number of lines to show from the end
         #[arg(long, default_value = "50")]
-        lines: usize,
+        tail: usize,
     },
 
     /// List all instances
-    List,
+    Get {
+        /// Output format
+        #[arg(short = 'o', long)]
+        output: Option<OutputFormat>,
+
+        /// Re-render as instances change state
+        #[arg(short = 'w', long)]
+        watch: bool,
+    },
 
     /// Remove an instance from the registry
     Remove {
         /// Name of the instance to remove
-        #[arg(short, long)]
         name: String,
 
         /// Also remove log files
@@ -125,8 +122,8 @@ enum Commands {
 
 #[tokio::main]
 async fn main() {
-    if let Err(e) = run().await {
-        eprintln!("Error: {}", e);
+    if let Err(error) = run().await {
+        eprintln!("Error: {}", error);
         std::process::exit(1);
     }
 }
@@ -134,25 +131,17 @@ async fn main() {
 async fn run() -> CliResult<()> {
     let cli = Cli::parse();
 
-    // Check if we're in server mode
     if let Commands::Serve { config } = &cli.command {
-        // Run as server
-        let config_path = std::path::PathBuf::from(config);
+        let config_path = PathBuf::from(config);
         server::run_server(config_path).await?;
         return Ok(());
     }
 
-    // Check if we should suggest install
     match cli.command {
-        Commands::Install => {
-            // Don't suggest install when running install
-        }
-        _ => {
-            commands::install::check_and_suggest_install();
-        }
+        Commands::Install => {}
+        _ => commands::install::check_and_suggest_install(),
     }
 
-    // Run CLI commands
     match cli.command {
         Commands::Serve { .. } => unreachable!(),
         Commands::Install => commands::install::execute(),
@@ -160,14 +149,9 @@ async fn run() -> CliResult<()> {
         Commands::Start { name } => commands::start::execute(name),
         Commands::Stop { name, force } => commands::stop::execute(name, force),
         Commands::Restart { name, force } => commands::restart::execute(name, force),
-        Commands::Status { name, json } => commands::status::execute(name, json),
-        Commands::Logs {
-            name,
-            follow,
-            watch,
-            lines,
-        } => commands::logs::execute(name, follow || watch, lines),
-        Commands::List => commands::list::execute(),
+        Commands::Describe { name, output } => commands::describe::execute(name, output),
+        Commands::Logs { name, follow, tail } => commands::logs::execute(name, follow, tail),
+        Commands::Get { output, watch } => commands::get::execute(output, watch),
         Commands::Remove { name, with_logs } => commands::remove::execute(name, with_logs),
         Commands::Uninstall { force } => commands::uninstall::execute(force),
     }

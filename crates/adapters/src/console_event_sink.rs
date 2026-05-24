@@ -96,6 +96,39 @@ impl EventSink for ConsoleEventSink {
             AppEvent::ContinuousScanEnabled => {
                 println!("  {} Continuous scan", "->".blue());
             }
+            AppEvent::CdnPurgeRequested { server, urls } => {
+                println!(
+                    "  {} CDN purge {} ({} url(s))",
+                    "->".blue(),
+                    server.cyan(),
+                    urls.len().to_string().dimmed()
+                );
+            }
+            AppEvent::CdnPurgeCompleted { server, ok, error } => {
+                if *ok {
+                    println!("  {} CDN purged {}", "ok".green(), server.cyan());
+                } else {
+                    tracing::error!(
+                        "CDN purge failed for {}: {}",
+                        server,
+                        error.as_deref().unwrap_or("unknown error")
+                    );
+                }
+            }
+            AppEvent::CloudflarePurgeRequested { server } => {
+                println!("  {} Cloudflare purge {}", "->".blue(), server.cyan());
+            }
+            AppEvent::CloudflarePurgeCompleted { server, ok, error } => {
+                if *ok {
+                    println!("  {} Cloudflare purged {}", "ok".green(), server.cyan());
+                } else {
+                    tracing::error!(
+                        "Cloudflare purge failed for {}: {}",
+                        server,
+                        error.as_deref().unwrap_or("unknown error")
+                    );
+                }
+            }
             AppEvent::Error { context, error } => {
                 tracing::error!("{}: {}", context, error);
             }

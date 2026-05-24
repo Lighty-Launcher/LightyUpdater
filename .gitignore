@@ -4,16 +4,17 @@
 # Whitelist specific files and directories (use ! to add)
 !.gitignore
 !README.md
+!CONTRIBUTING.md
 !LICENSE
 !Cargo.toml
 !Cargo.lock
 
 # Whitelist directories
 !.github/**
-!crates/
-!docs/
+!.assets/
 !app/
 !cli/
+!crates/
 
 # Exceptions: Always ignore these patterns even if whitelisted
 **/.DS_Store

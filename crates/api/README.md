@@ -27,5 +27,5 @@ Serves a specific file (JAR, mod, asset, etc.) with intelligent caching.
 This crate integrates with:
 - `lighty_cache`: To access version and file cache
 - `lighty_models`: For VersionBuilder structures
-- `lighty_filesystem`: For disk operations
+- `lighty_file_system`: For disk operations
 - `axum`: HTTP framework

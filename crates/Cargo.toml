@@ -1,19 +1,27 @@
 [package]
 name = "lighty-updater"
-version = "2026.2.1"
-edition = "2021"
-description = "Unified interface for LightyUpdater - Minecraft distribution server"
+description = "Unified interface for LightyUpdater — Minecraft distribution server"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
+readme = "../README.md"
+keywords = ["minecraft", "launcher", "server", "distribution"]
+categories = ["games", "web-programming::http-server"]
 
 [lib]
 path = "lib.rs"
 
 [dependencies]
-lighty-models = { path = "models" }
-lighty-events = { path = "events" }
-lighty-utils = { path = "utils" }
-lighty-filesystem = { path = "filesystem" }
-lighty-config = { path = "config" }
-lighty-scanner = { path = "scanner" }
-lighty-cache = { path = "cache" }
-lighty-watcher = { path = "watcher" }
-lighty-api = { path = "api" }
+lighty-models     = { workspace = true }
+lighty-events     = { workspace = true }
+lighty-utils      = { workspace = true }
+lighty-file-system = { workspace = true }
+lighty-config     = { workspace = true }
+lighty-scanner    = { workspace = true }
+lighty-cache      = { workspace = true }
+lighty-watcher    = { workspace = true }
+lighty-api        = { workspace = true }

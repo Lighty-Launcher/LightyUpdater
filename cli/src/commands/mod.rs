@@ -1,10 +1,10 @@
 pub mod create;
+pub mod describe;
+pub mod get;
 pub mod install;
-pub mod list;
 pub mod logs;
 pub mod remove;
 pub mod restart;
 pub mod start;
-pub mod status;
 pub mod stop;
 pub mod uninstall;

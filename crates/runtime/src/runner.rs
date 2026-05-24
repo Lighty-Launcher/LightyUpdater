@@ -3,8 +3,9 @@ use crate::{Result, RuntimeError};
 use lighty_adapters::ConsoleEventSink;
 use lighty_api::AppState;
 use lighty_cache::CacheManager;
+use lighty_cdn::CdnEventSink;
 use lighty_config::StorageBackend as StorageBackendType;
-use lighty_events::{AppEvent, EventBus};
+use lighty_events::{AppEvent, CompositeEventSink, EventBus, EventSink};
 use lighty_storage::{LocalBackend, StorageBackend};
 #[cfg(feature = "s3")]
 use lighty_storage::S3Backend;
@@ -23,13 +24,13 @@ pub async fn run_server_with_default_config(app_version: &str) -> Result<()> {
 pub async fn run_server(config_path: String, app_version: &str) -> Result<()> {
     initialize();
 
-    let events = EventBus::with_sink(true, Arc::new(ConsoleEventSink::new()));
-    events.emit(AppEvent::Starting {
+    let bootstrap_events = EventBus::with_sink(true, Arc::new(ConsoleEventSink::new()));
+    bootstrap_events.emit(AppEvent::Starting {
         version: app_version.to_string(),
     });
 
-    let config = load(&config_path, &events).await?;
-    initialize_folders(&config, &events).await?;
+    let config = load(&config_path, &bootstrap_events).await?;
+    initialize_folders(&config, &bootstrap_events).await?;
 
     let config = Arc::new(tokio::sync::RwLock::new(config));
 
@@ -37,15 +38,14 @@ pub async fn run_server(config_path: String, app_version: &str) -> Result<()> {
     let cdn = initialize_cdn(&config).await;
     let cloudflare = initialize_cloudflare(&config).await;
 
+    let sinks: Vec<Arc<dyn EventSink>> = vec![
+        Arc::new(ConsoleEventSink::new()),
+        Arc::new(CdnEventSink::new(cdn, cloudflare)),
+    ];
+    let events = EventBus::with_sink(true, Arc::new(CompositeEventSink::new(sinks)));
+
     let cache_manager = Arc::new(
-        CacheManager::new(
-            Arc::clone(&config),
-            Arc::clone(&events),
-            Some(storage),
-            cdn,
-            cloudflare,
-        )
-        .await,
+        CacheManager::new(Arc::clone(&config), Arc::clone(&events), Some(storage)).await,
     );
     cache_manager.initialize().await?;
 
@@ -155,11 +155,11 @@ async fn initialize_storage(
 
 async fn initialize_cdn(
     config: &Arc<tokio::sync::RwLock<lighty_config::Config>>,
-) -> Option<Arc<lighty_cache::CdnClient>> {
+) -> Option<Arc<lighty_cdn::CdnClient>> {
     let config_read = config.read().await;
 
     if config_read.cdn.enabled {
-        let client = lighty_cache::CdnClient::new(
+        let client = lighty_cdn::CdnClient::new(
             &config_read.cdn.provider,
             config_read.cdn.zone_id.clone(),
             config_read.cdn.api_token.clone(),
@@ -176,11 +176,11 @@ async fn initialize_cdn(
 
 async fn initialize_cloudflare(
     config: &Arc<tokio::sync::RwLock<lighty_config::Config>>,
-) -> Option<Arc<lighty_cache::CloudflareClient>> {
+) -> Option<Arc<lighty_cdn::CloudflareClient>> {
     let config_read = config.read().await;
 
     if config_read.cloudflare.enabled {
-        let client = lighty_cache::CloudflareClient::new(
+        let client = lighty_cdn::CloudflareClient::new(
             config_read.cloudflare.zone_id.clone(),
             config_read.cloudflare.api_token.clone(),
         );

@@ -1,0 +1,22 @@
+[package]
+name = "lighty-cdn"
+description = "Cloudflare / CDN HTTP clients and the event sink that drives them"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+lighty-events = { workspace = true }
+serde     = { workspace = true }
+thiserror = { workspace = true }
+tokio     = { workspace = true }
+tracing   = { workspace = true }
+reqwest   = { workspace = true }
+
+[dev-dependencies]
+wiremock   = { workspace = true }
+serde_json = { workspace = true }

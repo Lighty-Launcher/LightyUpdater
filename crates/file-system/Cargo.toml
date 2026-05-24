@@ -1,0 +1,18 @@
+[package]
+name = "lighty-file-system"
+description = "Filesystem operations and MIME type detection for LightyUpdater"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+lighty-utils = { workspace = true }
+tokio     = { workspace = true }
+bytes     = { workspace = true }
+thiserror = { workspace = true }
+tracing   = { workspace = true }
+mime_guess = "2.0"

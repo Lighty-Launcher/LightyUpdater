@@ -41,7 +41,6 @@ public issue.
 │   ├── api/                   # Axum HTTP layer
 │   ├── runtime/               # Composition root
 │   └── lib.rs                 # `lighty-updater` re-export facade
-├── docs/architecture/         # ARCHITECTURE_CONTRACT_V1, DEPENDENCY_MATRIX, FEATURES, ...
 ├── Cargo.toml                 # Workspace manifest
 ├── LICENSE
 └── README.md
@@ -176,9 +175,10 @@ Release commits land on `production` with the format
 
 ## Architecture rules
 
-Read [`docs/architecture/ARCHITECTURE_CONTRACT_V1.md`](docs/architecture/ARCHITECTURE_CONTRACT_V1.md)
-and [`docs/architecture/DEPENDENCY_MATRIX.md`](docs/architecture/DEPENDENCY_MATRIX.md)
-before touching layering or adding a new crate.
+Each crate ships its own `docs/` folder with `overview.md`,
+`how-to-use.md`, `exports.md` and optional flow diagrams. Read the
+relevant crate's `overview.md` before changing it — they list the
+public surface and the rules of the road for that layer.
 
 Cross-crate side effects flow through `lighty-events` — do not add
 direct calls from `lighty-rescan` to `lighty-cdn` (or any equivalent

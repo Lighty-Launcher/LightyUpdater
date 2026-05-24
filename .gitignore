@@ -11,8 +11,8 @@
 
 # Whitelist directories
 !.github/**
+!assets/
 !crates/
-!docs/
 !app/
 !cli/
 

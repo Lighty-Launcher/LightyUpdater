@@ -5,7 +5,7 @@ High-performance Minecraft distribution server built with Rust and Axum. Serves 
 [![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-![LightyUpdater Banner](docs/img/banner.png)
+![LightyUpdater Banner](assets/banner.png)
 
 ## Features
 

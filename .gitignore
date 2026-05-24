@@ -4,6 +4,7 @@
 # Whitelist specific files and directories (use ! to add)
 !.gitignore
 !README.md
+!CONTRIBUTING.md
 !LICENSE
 !Cargo.toml
 !Cargo.lock

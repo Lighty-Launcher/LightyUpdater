@@ -21,5 +21,8 @@ pub enum CacheError {
     CacheOperationFailed(String),
 
     #[error(transparent)]
+    FileCache(#[from] lighty_file_cache::FileCacheError),
+
+    #[error(transparent)]
     Cdn(#[from] lighty_cdn::CdnError),
 }

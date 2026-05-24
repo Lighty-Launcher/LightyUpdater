@@ -1,27 +1,19 @@
+use dashmap::DashMap;
 use lighty_config::Config;
 use lighty_events::EventBus;
+use lighty_file_cache::FileCacheManager;
 use lighty_models::VersionBuilder;
-use bytes::Bytes;
-use dashmap::DashMap;
-use moka::future::Cache;
-use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
-use tokio::sync::{RwLock, broadcast};
+use std::sync::Arc;
+use tokio::sync::{broadcast, RwLock};
 use tokio::task::JoinHandle;
 
-/// Trait for updating the version cache (allows decoupling from internal implementation)
 pub trait CacheUpdater: Send + Sync {
-    /// Insert or update a server version in the cache
     fn insert(&self, server_name: String, version: Arc<VersionBuilder>);
-
-    /// Get a server version from the cache
     fn get(&self, server_name: &str) -> Option<Arc<VersionBuilder>>;
-
-    /// Check if a server exists in the cache
     fn contains(&self, server_name: &str) -> bool;
 }
 
-/// Simple cache store wrapper (implements CacheUpdater for DashMap)
 pub struct CacheStore {
     cache: Arc<DashMap<String, Arc<VersionBuilder>>>,
 }
@@ -50,7 +42,6 @@ impl CacheUpdater for CacheStore {
     }
 }
 
-/// Main cache manager coordinating all caching operations
 pub struct CacheManager {
     pub(super) cache: Arc<DashMap<String, Arc<VersionBuilder>>>,
     pub(super) file_cache_manager: Arc<FileCacheManager>,
@@ -64,29 +55,8 @@ pub struct CacheManager {
     pub(super) task_counter: Arc<std::sync::atomic::AtomicUsize>,
 }
 
-/// Manages file caching using Moka LRU cache
-pub struct FileCacheManager {
-    pub(super) cache: Cache<Arc<str>, FileCache>,
-    #[allow(dead_code)]
-    pub(super) shutdown_tx: broadcast::Sender<()>,
-    pub(super) tasks: Arc<DashMap<usize, JoinHandle<()>>>,
-    #[allow(dead_code)]
-    pub(super) task_counter: Arc<std::sync::atomic::AtomicUsize>,
-}
-
-/// Represents a cached file with its data and metadata
-#[derive(Clone)]
-pub struct FileCache {
-    pub data: Bytes,
-    pub sha1: String,
-    pub size: u64,
-    pub mime_type: String,
-}
-
-/// Detects changes between two VersionBuilder instances
 pub struct ChangeDetector;
 
-/// Orchestrates automatic and manual server rescanning
 pub struct RescanOrchestrator {
     pub(super) cache: Arc<dyn CacheUpdater>,
     pub(super) file_cache_manager: Arc<FileCacheManager>,
@@ -99,7 +69,6 @@ pub struct RescanOrchestrator {
     pub(super) server_path_cache: Arc<super::server_path_cache::ServerPathCache>,
 }
 
-/// Constructor input object to keep `RescanOrchestrator::new` compact.
 pub struct RescanOrchestratorDeps {
     pub cache: Arc<dyn CacheUpdater>,
     pub file_cache_manager: Arc<FileCacheManager>,

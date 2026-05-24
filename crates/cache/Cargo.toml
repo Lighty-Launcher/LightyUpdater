@@ -8,22 +8,15 @@ lighty-models = { path = "../models" }
 lighty-config = { path = "../config" }
 lighty-events = { path = "../events" }
 lighty-scanner = { path = "../scanner" }
-lighty-filesystem = { path = "../filesystem" }
 lighty-storage = { path = "../storage" }
 lighty-file-diff = { path = "../file-diff" }
+lighty-file-cache = { path = "../file-cache" }
 lighty-cdn = { path = "../cdn" }
-moka = { workspace = true }
 dashmap = { workspace = true }
 parking_lot = { workspace = true }
 tokio = { workspace = true }
-serde = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
-bytes = { workspace = true }
-sha1 = { workspace = true }
-rayon = { workspace = true }
-walkdir = { workspace = true }
 notify = { workspace = true }
-futures = "0.3"
 chrono = { workspace = true }
-mime_guess = "2.0"
+futures = "0.3"

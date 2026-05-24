@@ -1,7 +1,10 @@
-use super::models::{CacheManager, FileCacheManager, RescanOrchestrator, FileCache, CacheUpdater, CacheStore, RescanOrchestratorDeps};
+use super::models::{
+    CacheManager, CacheStore, CacheUpdater, RescanOrchestrator, RescanOrchestratorDeps,
+};
 use super::errors::CacheError;
 use lighty_config::{Config, ServerConfig};
 use lighty_events::{AppEvent, EventBus};
+use lighty_file_cache::{FileCache, FileCacheManager};
 use lighty_models::VersionBuilder;
 use dashmap::DashMap;
 use std::sync::Arc;

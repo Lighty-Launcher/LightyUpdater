@@ -10,6 +10,7 @@ members = [
     "crates/scanner",
     "crates/file-diff",
     "crates/cdn",
+    "crates/file-cache",
     "crates/cache",
     "crates/storage",
     "crates/watcher",

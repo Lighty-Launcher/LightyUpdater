@@ -31,7 +31,7 @@ public issue.
 │   ├── filesystem/            # FileSystem ops + MIME detection
 │   ├── config/                # Config schema (pure, no I/O)
 │   ├── storage/               # Backend abstraction (local / S3 / R2)
-│   ├── scanner/               # Parallel scan of client/libs/mods/natives/assets
+│   ├── scanner/               # Parallel scan of client/libs/mods/natives/assets/config
 │   ├── file-diff/             # FileDiff::compute (granular change detection)
 │   ├── cdn/                   # Cloudflare / CDN HTTP clients + CdnEventSink
 │   ├── file-cache/            # Moka-backed LRU for served file payloads

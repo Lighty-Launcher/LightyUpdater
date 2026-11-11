@@ -122,6 +122,8 @@ pub struct BatchConfig {
     pub natives: usize,
     #[serde(default = "super::defaults::batch_size_default")]
     pub assets: usize,
+    #[serde(default = "super::defaults::batch_size_default")]
+    pub config: usize,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -146,6 +148,8 @@ pub struct ServerConfig {
     pub enable_natives: bool,
     #[serde(default)]
     pub enable_assets: bool,
+    #[serde(default)]
+    pub enable_config: bool,
     #[serde(default)]
     pub game_args: Vec<String>,
     #[serde(default)]

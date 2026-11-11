@@ -15,6 +15,7 @@ pub(crate) fn validate_config(config: &Config) -> Result<()> {
     ensure_non_zero("cache.batch.mods", config.cache.batch.mods)?;
     ensure_non_zero("cache.batch.natives", config.cache.batch.natives)?;
     ensure_non_zero("cache.batch.assets", config.cache.batch.assets)?;
+    ensure_non_zero("cache.batch.config", config.cache.batch.config)?;
     Ok(())
 }
 

@@ -71,6 +71,14 @@ fn resolve_path_without_base_url(version: &VersionBuilder, url_file_part: &str) 
         }
     }
 
+    if let Some(rest) = url_file_part.strip_prefix("config/") {
+        for config_file in &version.config {
+            if config_file.path == rest {
+                return Some(format!("config/{}", config_file.path));
+            }
+        }
+    }
+
     for asset in &version.assets {
         if let Some(path) = &asset.path {
             if path == url_file_part {

@@ -23,7 +23,7 @@ members = [
 ]
 
 [workspace.package]
-version = "26.5.1"
+version = "26.11.0"
 edition = "2024"
 authors = ["Hamadi <dev.hamadipro@gmail.com>"]
 license = "MIT"
@@ -38,22 +38,22 @@ rust-version = "1.95"
 [workspace.dependencies]
 
 # ---- Internal crates (pinned to workspace version) ----
-lighty-models     = { version = "26.5.1", path = "crates/models" }
-lighty-events     = { version = "26.5.1", path = "crates/events" }
-lighty-adapters   = { version = "26.5.1", path = "crates/adapters" }
-lighty-utils      = { version = "26.5.1", path = "crates/utils" }
-lighty-file-system = { version = "26.5.1", path = "crates/file-system" }
-lighty-config     = { version = "26.5.1", path = "crates/config" }
-lighty-storage    = { version = "26.5.1", path = "crates/storage" }
-lighty-scanner    = { version = "26.5.1", path = "crates/scanner" }
-lighty-file-diff  = { version = "26.5.1", path = "crates/file-diff" }
-lighty-cdn        = { version = "26.5.1", path = "crates/cdn" }
-lighty-file-cache = { version = "26.5.1", path = "crates/file-cache" }
-lighty-rescan     = { version = "26.5.1", path = "crates/rescan" }
-lighty-cache      = { version = "26.5.1", path = "crates/cache" }
-lighty-watcher    = { version = "26.5.1", path = "crates/watcher" }
-lighty-api        = { version = "26.5.1", path = "crates/api" }
-lighty-runtime    = { version = "26.5.1", path = "crates/runtime" }
+lighty-models     = { version = "26.11.0", path = "crates/models" }
+lighty-events     = { version = "26.11.0", path = "crates/events" }
+lighty-adapters   = { version = "26.11.0", path = "crates/adapters" }
+lighty-utils      = { version = "26.11.0", path = "crates/utils" }
+lighty-file-system = { version = "26.11.0", path = "crates/file-system" }
+lighty-config     = { version = "26.11.0", path = "crates/config" }
+lighty-storage    = { version = "26.11.0", path = "crates/storage" }
+lighty-scanner    = { version = "26.11.0", path = "crates/scanner" }
+lighty-file-diff  = { version = "26.11.0", path = "crates/file-diff" }
+lighty-cdn        = { version = "26.11.0", path = "crates/cdn" }
+lighty-file-cache = { version = "26.11.0", path = "crates/file-cache" }
+lighty-rescan     = { version = "26.11.0", path = "crates/rescan" }
+lighty-cache      = { version = "26.11.0", path = "crates/cache" }
+lighty-watcher    = { version = "26.11.0", path = "crates/watcher" }
+lighty-api        = { version = "26.11.0", path = "crates/api" }
+lighty-runtime    = { version = "26.11.0", path = "crates/runtime" }
 
 # ---- Async runtime ----
 tokio   = { version = "1.42.0", features = ["full"] }

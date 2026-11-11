@@ -3,7 +3,7 @@
 High-performance Minecraft distribution server built with Rust and Axum. Serves game files (client, libraries, mods, natives, assets, config) via REST API with fast file resolution, RAM caching, hot-reload, S3/Cloudflare integration, and automatic scanning.
 
 [![Maintained](https://img.shields.io/badge/Maintained-yes-2ea44f.svg)](#)
-[![Version](https://img.shields.io/badge/version-26.5.0-blue.svg)](#)
+[![Version](https://img.shields.io/badge/version-26.11.0-blue.svg)](#)
 [![Documentation](https://img.shields.io/badge/docs-gitbook-blue.svg)](https://hamadi.gitbook.io/lightyupdater)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Rust Version](https://img.shields.io/badge/rust-1.95%2B-red.svg)](https://www.rust-lang.org)

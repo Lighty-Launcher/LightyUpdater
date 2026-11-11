@@ -1933,6 +1933,7 @@ dependencies = [
  "lighty-file-system",
  "lighty-models",
  "mime_guess",
+ "percent-encoding",
  "serde",
  "serde_json",
  "thiserror 2.0.17",

@@ -11,6 +11,8 @@ pub struct VersionBuilder {
     pub natives: Option<Vec<Native>>,
     pub client: Option<Client>,
     pub assets: Vec<Asset>,
+    #[serde(default)]
+    pub config: Vec<ConfigFile>,
     #[serde(skip)]
     pub url_to_path_map: HashMap<String, String>,
 }
@@ -86,6 +88,15 @@ pub struct Mod {
     pub size: Option<u64>,
 }
 
+/// A file of the instance `config/` folder, any type, keyed by its path relative to `config/`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigFile {
+    pub name: String,
+    pub url: String,
+    pub path: String,
+    pub sha1: String,
+    pub size: u64,
+}
 
 impl VersionBuilder {
     /// Builds the url→path lookup map for O(1) file resolution
@@ -123,6 +134,11 @@ impl VersionBuilder {
             if let (Some(url), Some(path)) = (&asset.url, &asset.path) {
                 map.insert(url.clone(), format!("assets/{}", path));
             }
+        }
+
+        // Add config files
+        for config_file in &self.config {
+            map.insert(config_file.url.clone(), format!("config/{}", config_file.path));
         }
 
         self.url_to_path_map = map;

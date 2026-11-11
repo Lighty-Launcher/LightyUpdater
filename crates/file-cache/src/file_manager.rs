@@ -195,6 +195,7 @@ impl FileCacheManager {
                 let path = entry.path();
                 path.extension().is_some_and(|ext| ext == "jar" || ext == "json")
                     || path.starts_with(server_path.join("assets"))
+                    || path.starts_with(server_path.join("config"))
             })
             .map(|entry| entry.path().to_path_buf())
             .collect();

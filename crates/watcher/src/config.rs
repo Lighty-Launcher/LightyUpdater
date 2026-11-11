@@ -39,6 +39,7 @@ impl ConfigWatcher {
             || old.enable_mods != new.enable_mods
             || old.enable_natives != new.enable_natives
             || old.enable_assets != new.enable_assets
+            || old.enable_config != new.enable_config
             || old.game_args != new.game_args
             || old.jvm_args != new.jvm_args
     }

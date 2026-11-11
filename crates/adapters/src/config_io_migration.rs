@@ -140,6 +140,7 @@ fn migrate_cache_section(doc: &mut DocumentMut, added_fields: &mut Vec<String>) 
     ensure_field(batch, "mods", Value::from(default_batch), added_fields);
     ensure_field(batch, "natives", Value::from(default_batch), added_fields);
     ensure_field(batch, "assets", Value::from(default_batch), added_fields);
+    ensure_field(batch, "config", Value::from(default_batch), added_fields);
 
     Ok(())
 }

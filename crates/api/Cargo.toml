@@ -23,5 +23,6 @@ serde_json = { workspace = true }
 chrono     = { workspace = true }
 tracing    = { workspace = true }
 thiserror  = { workspace = true }
+percent-encoding = { workspace = true }
 tokio-util = { version = "0.7", features = ["io"] }
 mime_guess = "2.0"

@@ -1,6 +1,7 @@
 use crate::errors::ApiError;
 use super::models::ParsedRequest;
 use super::validator::validate_path_component;
+use percent_encoding::percent_decode_str;
 
 /// Parses and validates the request path
 pub fn parse_request_path(requested_path: &str) -> Result<ParsedRequest, ApiError> {
@@ -9,7 +10,13 @@ pub fn parse_request_path(requested_path: &str) -> Result<ParsedRequest, ApiErro
         return Err(ApiError::NotFound);
     }
 
-    let parts: Vec<&str> = requested_path.splitn(2, '/').collect();
+    // Clients percent-encode spaces, quotes and brackets in file names; decode
+    // before validating so an encoded `..` is still caught.
+    let decoded_path = percent_decode_str(requested_path)
+        .decode_utf8()
+        .map_err(|_| ApiError::InvalidPath("Path is not valid UTF-8 once decoded".to_string()))?;
+
+    let parts: Vec<&str> = decoded_path.splitn(2, '/').collect();
 
     if parts.len() != 2 {
         tracing::warn!("serve_file: parts.len() = {}, expected 2", parts.len());

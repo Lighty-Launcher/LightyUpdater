@@ -14,6 +14,7 @@ impl ChangeDetector {
         Self::check_mods_changes(old, new, &mut changes);
         Self::check_natives_changes(old, new, &mut changes);
         Self::check_assets_changes(old, new, &mut changes);
+        Self::check_config_changes(old, new, &mut changes);
 
         (!changes.is_empty(), changes)
     }
@@ -124,6 +125,30 @@ impl ChangeDetector {
         }
     }
 
+    fn check_config_changes(
+        old: &VersionBuilder,
+        new: &VersionBuilder,
+        changes: &mut Vec<String>,
+    ) {
+        if !Self::config_has_changed(old, new) {
+            return;
+        }
+
+        let old_count = old.config.len();
+        let new_count = new.config.len();
+
+        if old_count != new_count {
+            let change_msg = if new_count > old_count {
+                format!("config added ({} -> {})", old_count, new_count)
+            } else {
+                format!("config removed ({} -> {})", old_count, new_count)
+            };
+            changes.push(change_msg);
+        } else {
+            changes.push("config updated".to_string());
+        }
+    }
+
     fn client_has_changed(old: &VersionBuilder, new: &VersionBuilder) -> bool {
         match (&old.client, &new.client) {
             (Some(old_client), Some(new_client)) => {
@@ -190,6 +215,21 @@ impl ChangeDetector {
                 old_asset.hash != new_asset.hash || old_asset.size != new_asset.size
             })
     }
+
+    fn config_has_changed(old: &VersionBuilder, new: &VersionBuilder) -> bool {
+        if old.config.len() != new.config.len() {
+            return true;
+        }
+
+        old.config
+            .iter()
+            .zip(new.config.iter())
+            .any(|(old_config, new_config)| {
+                old_config.path != new_config.path
+                    || old_config.sha1 != new_config.sha1
+                    || old_config.size != new_config.size
+            })
+    }
 }
 
 #[cfg(test)]
@@ -207,6 +247,7 @@ mod tests {
             natives: None,
             client: None,
             assets: vec![],
+            config: vec![],
             url_to_path_map: Default::default(),
         }
     }

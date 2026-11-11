@@ -1,4 +1,4 @@
-use super::{assets, client, libraries, mods, natives};
+use super::{assets, client, config, libraries, mods, natives};
 use super::models::ServerScanner;
 use super::errors::ScanError;
 use lighty_config::{ServerConfig, BatchConfig};
@@ -62,7 +62,7 @@ impl ServerScanner {
         buffer_size: usize,
     ) -> Result<VersionBuilder> {
         // Scan all components in parallel
-        let (libraries_result, mods_result, natives_result, client_result, assets_result) = tokio::join!(
+        let (libraries_result, mods_result, natives_result, client_result, assets_result, config_result) = tokio::join!(
             async {
                 if config.enable_libraries {
                     libraries::scan_libraries(server_path, &config.name, storage, batch_config.libraries, buffer_size).await
@@ -98,6 +98,13 @@ impl ServerScanner {
                     Ok(vec![])
                 }
             },
+            async {
+                if config.enable_config {
+                    config::scan_config(server_path, &config.name, storage, batch_config.config, buffer_size).await
+                } else {
+                    Ok(vec![])
+                }
+            },
         );
 
         let mut builder = VersionBuilder {
@@ -116,6 +123,7 @@ impl ServerScanner {
             natives: natives_result?,
             client: client_result?,
             assets: assets_result?,
+            config: config_result?,
             url_to_path_map: HashMap::new(),
         };
 

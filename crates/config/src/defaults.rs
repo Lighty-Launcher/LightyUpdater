@@ -35,6 +35,7 @@ pub fn batch_config() -> super::models::BatchConfig {
         mods: batch_size_default(),
         natives: batch_size_default(),
         assets: batch_size_default(),
+        config: batch_size_default(),
     }
 }
 
@@ -208,6 +209,7 @@ libraries = 100                      # Libraries scan batch size
 mods = 100                           # Mods scan batch size
 natives = 100                        # Natives scan batch size
 assets = 100                         # Assets scan batch size
+config = 100                         # Config files scan batch size
 
 # ===============================================================================
 # HOT-RELOAD CONFIGURATION
@@ -261,7 +263,7 @@ base_url = ""                        # API base URL (e.g., https://api.example.c
 # SERVER DEFINITIONS
 # ===============================================================================
 # Expected folder structure: {base_path}/{name}/client/*.jar, libraries/*.jar,
-# mods/*.jar, natives/*.dll|.so|.dylib, assets/*
+# mods/*.jar, natives/*.dll|.so|.dylib, assets/*, config/*
 # You can duplicate this [[servers]] section to add multiple servers
 
 #[[servers]]
@@ -277,6 +279,7 @@ base_url = ""                        # API base URL (e.g., https://api.example.c
 #enable_mods = true                  # Include mods
 #enable_natives = true               # Include native libraries
 #enable_assets = true                # Include assets
+#enable_config = true                # Include config/ (every file, recursive)
 #game_args = []                      # Additional game arguments
 #jvm_args = []                       # Additional JVM arguments
 "#;

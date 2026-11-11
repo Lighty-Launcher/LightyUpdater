@@ -207,6 +207,7 @@ mod tests {
             natives: None,
             client: None,
             assets: vec![],
+            config: vec![],
             url_to_path_map: Default::default(),
         }
     }

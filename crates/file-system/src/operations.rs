@@ -27,6 +27,8 @@ impl FileSystem {
         let assets_path = abs_path.join("assets");
         Self::create_directory(&assets_path, "Assets directory").await?;
 
+        Self::create_directory(&abs_path.join("config"), "Config directory").await?;
+
         Ok(abs_path)
     }
 

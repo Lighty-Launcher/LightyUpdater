@@ -102,6 +102,7 @@ impl RescanOrchestrator {
                             natives: None,
                             client: None,
                             assets: Vec::new(),
+                            config: Vec::new(),
                             url_to_path_map: std::collections::HashMap::new(),
                         };
                         empty_builder.build_url_map();
@@ -183,6 +184,7 @@ impl RescanOrchestrator {
                         natives: None,
                         client: None,
                         assets: Vec::new(),
+                        config: Vec::new(),
                         url_to_path_map: std::collections::HashMap::new(),
                     };
                     empty_builder.build_url_map();

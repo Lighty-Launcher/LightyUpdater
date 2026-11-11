@@ -31,6 +31,8 @@ pub struct VersionBuilder {
     pub natives:      Option<Vec<Native>>,
     pub client:       Option<Client>,
     pub assets:       Vec<Asset>,
+    #[serde(default)]
+    pub config:       Vec<ConfigFile>,
     #[serde(skip)]
     pub url_to_path_map: HashMap<String, String>,
 }
@@ -87,6 +89,14 @@ pub struct Asset {
     pub size: u64,
     pub url:  Option<String>,
     pub path: Option<String>,
+}
+
+pub struct ConfigFile {
+    pub name: String,
+    pub url:  String,
+    pub path: String,   // relative to config/, served under {server}/config/{path}
+    pub sha1: String,
+    pub size: u64,
 }
 ```
 

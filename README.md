@@ -1,9 +1,9 @@
 # LightyUpdater
 
-High-performance Minecraft distribution server built with Rust and Axum. Serves game files (client, libraries, mods, natives, assets) via REST API with fast file resolution, RAM caching, hot-reload, S3/Cloudflare integration, and automatic scanning.
+High-performance Minecraft distribution server built with Rust and Axum. Serves game files (client, libraries, mods, natives, assets, config) via REST API with fast file resolution, RAM caching, hot-reload, S3/Cloudflare integration, and automatic scanning.
 
 [![Maintained](https://img.shields.io/badge/Maintained-yes-2ea44f.svg)](#)
-[![Version](https://img.shields.io/badge/version-26.5.0-blue.svg)](#)
+[![Version](https://img.shields.io/badge/version-26.11.0-blue.svg)](#)
 [![Documentation](https://img.shields.io/badge/docs-gitbook-blue.svg)](https://hamadi.gitbook.io/lightyupdater)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Rust Version](https://img.shields.io/badge/rust-1.95%2B-red.svg)](https://www.rust-lang.org)
@@ -83,6 +83,7 @@ libraries = 100
 mods = 100
 natives = 100
 assets = 100
+config = 100
 
 # Hot-reload configuration
 [hot-reload.config]
@@ -134,6 +135,7 @@ enable_libraries = true
 enable_mods = true
 enable_natives = true
 enable_assets = true
+enable_config = true
 game_args = ["--width", "1920"]
 jvm_args = ["-Xmx4G"]
 ```
@@ -194,6 +196,15 @@ Retrieve server metadata including file URLs and checksums.
       "sha1": "ghi789...",
       "size": 987654
     }
+  ],
+  "config": [
+    {
+      "name": "main.json",
+      "url": "http://localhost:8080/survival/config/cobblemon/main.json",
+      "path": "cobblemon/main.json",
+      "sha1": "jkl012...",
+      "size": 1234
+    }
   ]
 }
 ```
@@ -206,6 +217,7 @@ Download file (zero-copy from RAM or streamed from disk).
 - `/survival/client.jar` → `updater/survival/client/client.jar`
 - `/survival/OptiFine.jar` → `updater/survival/mods/OptiFine.jar`
 - `/survival/com/mojang/lib.jar` → `updater/survival/libraries/com/mojang/lib.jar`
+- `/survival/config/cobblemon/main.json` → `updater/survival/config/cobblemon/main.json`
 
 ---
 ## Architecture
@@ -221,7 +233,7 @@ Download file (zero-copy from RAM or streamed from disk).
 | `lighty-file-system` | Filesystem operations and folder/materialization helpers. |
 | `lighty-storage` | Storage backend abstraction (`local` / optional `s3`) and cloud upload/delete behavior. |
 | `lighty-adapters` | Integration adapters: `config.toml` load/migration + console event sink implementation. |
-| `lighty-scanner` | Scanning logic for clients/libraries/mods/natives/assets from server directories. |
+| `lighty-scanner` | Scanning logic for clients/libraries/mods/natives/assets/config from server directories. |
 | `lighty-cache` | Core orchestration: scan state, in-memory cache, rescan/update/sync workflows. |
 | `lighty-watcher` | Hot-reload flow for config changes and targeted rescans. |
 | `lighty-api` | HTTP handlers, routing payloads, and transport-level response concerns. |
@@ -289,7 +301,7 @@ Architecture governance docs: `docs/architecture/README.md`
 ### Core Performance
 - **Fast File Resolution**: HashMap-based URL to path mapping
 - **Zero-Copy Serving**: Arc-based Bytes sharing, no data duplication
-- **Parallel Scanning**: All components (client, libraries, mods, natives, assets) scanned concurrently
+- **Parallel Scanning**: All components (client, libraries, mods, natives, assets, config) scanned concurrently
 - **Async I/O**: All I/O operations use Tokio async runtime
 - **Lock-Free Operations**: DashMap for concurrent access, atomic flags where possible
 

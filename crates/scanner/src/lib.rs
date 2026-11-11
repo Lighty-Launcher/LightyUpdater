@@ -2,6 +2,7 @@ mod models;
 mod server;
 mod utils;
 mod assets;
+mod config;
 mod client;
 mod libraries;
 mod mods;

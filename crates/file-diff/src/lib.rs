@@ -24,6 +24,7 @@ pub enum FileType {
     Mod,
     Native,
     Asset,
+    Config,
 }
 
 impl FileDiff {
@@ -43,6 +44,7 @@ impl FileDiff {
             Self::diff_mods(server_name, old, new, &mut added, &mut modified, &mut removed);
             Self::diff_natives(server_name, old, new, &mut added, &mut modified, &mut removed);
             Self::diff_assets(server_name, old, new, &mut added, &mut modified, &mut removed);
+            Self::diff_config(server_name, old, new, &mut added, &mut modified, &mut removed);
         } else {
             Self::add_all_files(server_name, new, &mut added);
         }
@@ -345,6 +347,53 @@ impl FileDiff {
         }
     }
 
+    fn diff_config(
+        server_name: &str,
+        old: &VersionBuilder,
+        new: &VersionBuilder,
+        added: &mut Vec<FileChange>,
+        modified: &mut Vec<FileChange>,
+        removed: &mut Vec<FileChange>,
+    ) {
+        let old_map: HashMap<_, _> = old.config.iter().map(|config_file| (&config_file.path, config_file)).collect();
+        let new_map: HashMap<_, _> = new.config.iter().map(|config_file| (&config_file.path, config_file)).collect();
+
+        for (path, new_config) in &new_map {
+            let remote_key = format!("{}/config/{}", server_name, path);
+            let local_path = format!("{}/config/{}", server_name, path);
+            let url = new_config.url.clone();
+
+            if let Some(old_config) = old_map.get(path) {
+                if old_config.sha1 != new_config.sha1 {
+                    modified.push(FileChange {
+                        file_type: FileType::Config,
+                        remote_key,
+                        local_path,
+                        url,
+                    });
+                }
+            } else {
+                added.push(FileChange {
+                    file_type: FileType::Config,
+                    remote_key,
+                    local_path,
+                    url,
+                });
+            }
+        }
+
+        for (path, old_config) in &old_map {
+            if !new_map.contains_key(path) {
+                removed.push(FileChange {
+                    file_type: FileType::Config,
+                    remote_key: format!("{}/config/{}", server_name, path),
+                    local_path: format!("{}/config/{}", server_name, path),
+                    url: old_config.url.clone(),
+                });
+            }
+        }
+    }
+
     fn add_all_files(server_name: &str, new: &VersionBuilder, added: &mut Vec<FileChange>) {
         if let Some(client) = &new.client {
             added.push(FileChange {
@@ -399,6 +448,15 @@ impl FileDiff {
                 });
             }
         }
+
+        for config_file in &new.config {
+            added.push(FileChange {
+                file_type: FileType::Config,
+                remote_key: format!("{}/config/{}", server_name, config_file.path),
+                local_path: format!("{}/config/{}", server_name, config_file.path),
+                url: config_file.url.clone(),
+            });
+        }
     }
 }
 
@@ -406,7 +464,8 @@ impl FileDiff {
 mod tests {
     use super::*;
     use lighty_models::{
-        Arguments, Asset, Client, JavaVersion, Library, MainClass, Mod, Native, VersionBuilder,
+        Arguments, Asset, Client, ConfigFile, JavaVersion, Library, MainClass, Mod, Native,
+        VersionBuilder,
     };
 
     fn empty_builder() -> VersionBuilder {
@@ -419,6 +478,7 @@ mod tests {
             natives: None,
             client: None,
             assets: vec![],
+            config: vec![],
             url_to_path_map: Default::default(),
         }
     }
@@ -470,6 +530,16 @@ mod tests {
             size: 256,
             url: Some(format!("https://cdn.example/assets/{}", path)),
             path: Some(path.to_string()),
+        }
+    }
+
+    fn config_file(path: &str, sha: &str) -> ConfigFile {
+        ConfigFile {
+            name: path.rsplit('/').next().unwrap_or(path).to_string(),
+            url: format!("https://cdn.example/srv/config/{}", path),
+            path: path.to_string(),
+            sha1: sha.to_string(),
+            size: 128,
         }
     }
 
@@ -555,6 +625,26 @@ mod tests {
         assert_eq!(diff.added.len(), 1);
         assert_eq!(diff.modified.len(), 1);
         assert_eq!(diff.removed.len(), 1);
+    }
+
+    #[test]
+    fn detects_added_modified_removed_config_together() {
+        let mut old = empty_builder();
+        old.config.push(config_file("keep.json", "same"));
+        old.config.push(config_file("cobblemon/change.json", "old"));
+        old.config.push(config_file("gone.toml", "x"));
+        let mut new = empty_builder();
+        new.config.push(config_file("keep.json", "same"));
+        new.config.push(config_file("cobblemon/change.json", "new"));
+        new.config.push(config_file("fresh.toml", "z"));
+
+        let diff = FileDiff::compute("srv", Some(&old), &new);
+
+        assert_eq!(diff.added.len(), 1);
+        assert_eq!(diff.modified.len(), 1);
+        assert_eq!(diff.removed.len(), 1);
+        assert_eq!(diff.modified[0].remote_key, "srv/config/cobblemon/change.json");
+        assert!(matches!(diff.modified[0].file_type, FileType::Config));
     }
 
     #[test]

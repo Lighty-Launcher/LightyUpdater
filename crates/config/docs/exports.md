@@ -54,6 +54,7 @@ pub struct ServerConfig {
     pub enable_mods:      bool,
     pub enable_natives:   bool,
     pub enable_assets:    bool,
+    pub enable_config:    bool,
 }
 ```
 

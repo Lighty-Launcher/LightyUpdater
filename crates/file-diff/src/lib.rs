@@ -1,5 +1,15 @@
-use lighty_models::VersionBuilder;
+use lighty_models::{Mod, VersionBuilder};
 use std::collections::HashMap;
+
+/// Storage key of a library, mod or asset: the scanner publishes these at
+/// `{server}/{relative path}`, without their folder, so uploads must match.
+fn storage_key(server_name: &str, relative_path: &str) -> String {
+    format!("{}/{}", server_name, relative_path)
+}
+
+fn mod_relative_path(mod_file: &Mod) -> &str {
+    mod_file.path.as_deref().unwrap_or(&mod_file.name)
+}
 
 /// Changements détectés entre deux versions
 #[derive(Debug)]
@@ -140,7 +150,7 @@ impl FileDiff {
 
         for (path, new_lib) in &new_map {
             let path_str = path.as_ref().unwrap();
-            let remote_key = format!("{}/libraries/{}", server_name, path_str);
+            let remote_key = storage_key(server_name, path_str);
             let local_path = format!("{}/libraries/{}", server_name, path_str);
             let url = new_lib.url.as_deref().unwrap_or_default().to_string();
 
@@ -169,7 +179,7 @@ impl FileDiff {
                 let url = old_lib.url.as_deref().unwrap_or_default().to_string();
                 removed.push(FileChange {
                     file_type: FileType::Library,
-                    remote_key: format!("{}/libraries/{}", server_name, path_str),
+                    remote_key: storage_key(server_name, path_str),
                     local_path: format!("{}/libraries/{}", server_name, path_str),
                     url,
                 });
@@ -189,7 +199,7 @@ impl FileDiff {
         let new_map: HashMap<_, _> = new.mods.iter().map(|m| (&m.name, m)).collect();
 
         for (name, new_mod) in &new_map {
-            let remote_key = format!("{}/mods/{}", server_name, name);
+            let remote_key = storage_key(server_name, mod_relative_path(new_mod));
             let local_path = format!("{}/mods/{}", server_name, name);
             let url = new_mod.url.as_deref().unwrap_or_default().to_string();
 
@@ -217,7 +227,7 @@ impl FileDiff {
                 let url = old_mod.url.as_deref().unwrap_or_default().to_string();
                 removed.push(FileChange {
                     file_type: FileType::Mod,
-                    remote_key: format!("{}/mods/{}", server_name, name),
+                    remote_key: storage_key(server_name, mod_relative_path(old_mod)),
                     local_path: format!("{}/mods/{}", server_name, name),
                     url,
                 });
@@ -310,7 +320,7 @@ impl FileDiff {
 
         for (path, new_asset) in &new_map {
             let path_str = path.as_ref().unwrap();
-            let remote_key = format!("{}/assets/{}", server_name, path_str);
+            let remote_key = storage_key(server_name, path_str);
             let local_path = format!("{}/assets/{}", server_name, path_str);
             let url = new_asset.url.as_deref().unwrap_or_default().to_string();
 
@@ -339,7 +349,7 @@ impl FileDiff {
                 let url = old_asset.url.as_deref().unwrap_or_default().to_string();
                 removed.push(FileChange {
                     file_type: FileType::Asset,
-                    remote_key: format!("{}/assets/{}", server_name, path_str),
+                    remote_key: storage_key(server_name, path_str),
                     local_path: format!("{}/assets/{}", server_name, path_str),
                     url,
                 });
@@ -409,7 +419,7 @@ impl FileDiff {
                 let url = lib.url.as_deref().unwrap_or_default().to_string();
                 added.push(FileChange {
                     file_type: FileType::Library,
-                    remote_key: format!("{}/libraries/{}", server_name, path),
+                    remote_key: storage_key(server_name, path),
                     local_path: format!("{}/libraries/{}", server_name, path),
                     url,
                 });
@@ -420,7 +430,7 @@ impl FileDiff {
             let url = mod_file.url.as_deref().unwrap_or_default().to_string();
             added.push(FileChange {
                 file_type: FileType::Mod,
-                remote_key: format!("{}/mods/{}", server_name, mod_file.name),
+                remote_key: storage_key(server_name, mod_relative_path(mod_file)),
                 local_path: format!("{}/mods/{}", server_name, mod_file.name),
                 url,
             });
@@ -442,7 +452,7 @@ impl FileDiff {
                 let url = asset.url.as_deref().unwrap_or_default().to_string();
                 added.push(FileChange {
                     file_type: FileType::Asset,
-                    remote_key: format!("{}/assets/{}", server_name, path),
+                    remote_key: storage_key(server_name, path),
                     local_path: format!("{}/assets/{}", server_name, path),
                     url,
                 });
@@ -625,6 +635,21 @@ mod tests {
         assert_eq!(diff.added.len(), 1);
         assert_eq!(diff.modified.len(), 1);
         assert_eq!(diff.removed.len(), 1);
+    }
+
+    // The scanner serves a mod at `{server}/{file}`: an upload elsewhere
+    // leaves the served URL on the old content.
+    #[test]
+    fn modified_mod_uploads_to_the_served_key() {
+        let mut old = empty_builder();
+        old.mods.push(mod_("change.jar", "old"));
+        let mut new = empty_builder();
+        new.mods.push(mod_("change.jar", "new"));
+
+        let diff = FileDiff::compute("srv", Some(&old), &new);
+
+        assert_eq!(diff.modified[0].remote_key, "srv/change.jar");
+        assert_eq!(diff.modified[0].local_path, "srv/mods/change.jar");
     }
 
     #[test]

@@ -8,6 +8,7 @@ const DEFAULT_API_BASE: &str = "https://api.cloudflare.com";
 
 pub struct CloudflareClient {
     api_base: String,
+    public_base_url: String,
     zone_id: String,
     api_token: String,
     client: reqwest::Client,
@@ -24,9 +25,12 @@ struct PurgeResponse {
 }
 
 impl CloudflareClient {
-    pub fn new(zone_id: String, api_token: String) -> Self {
+    /// `public_base_url` is where the server JSON is served: Cloudflare only
+    /// purges absolute URLs.
+    pub fn new(public_base_url: String, zone_id: String, api_token: String) -> Self {
         Self {
             api_base: DEFAULT_API_BASE.to_string(),
+            public_base_url: public_base_url.trim_end_matches('/').to_string(),
             zone_id,
             api_token,
             client: reqwest::Client::new(),
@@ -37,6 +41,7 @@ impl CloudflareClient {
     pub(crate) fn with_api_base(api_base: String, zone_id: String, api_token: String) -> Self {
         Self {
             api_base,
+            public_base_url: "https://updater.example".to_string(),
             zone_id,
             api_token,
             client: reqwest::Client::new(),
@@ -52,7 +57,7 @@ impl CloudflareClient {
             self.api_base, self.zone_id
         );
 
-        let files = vec![format!("/{}.json", server_name)];
+        let files = vec![format!("{}/{}.json", self.public_base_url, server_name)];
         let body = PurgeRequest { files };
 
         for attempt in 0..MAX_RETRIES {
@@ -112,7 +117,7 @@ impl CloudflareClient {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use wiremock::matchers::{header, method, path};
+    use wiremock::matchers::{body_json, header, method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
     #[tokio::test]
@@ -121,6 +126,9 @@ mod tests {
         Mock::given(method("POST"))
             .and(path("/client/v4/zones/zone-1/purge_cache"))
             .and(header("Authorization", "Bearer token-x"))
+            .and(body_json(serde_json::json!({
+                "files": ["https://updater.example/survival.json"]
+            })))
             .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
                 "success": true
             })))

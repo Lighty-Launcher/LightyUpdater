@@ -180,7 +180,14 @@ async fn initialize_cloudflare(
     let config_read = config.read().await;
 
     if config_read.cloudflare.enabled {
+        // An empty `cloudflare.base_url` means the JSON is served from the server's own URL.
+        let public_base_url = if config_read.cloudflare.base_url.is_empty() {
+            config_read.server.base_url.to_string()
+        } else {
+            config_read.cloudflare.base_url.to_string()
+        };
         let client = lighty_cdn::CloudflareClient::new(
+            public_base_url,
             config_read.cloudflare.zone_id.clone(),
             config_read.cloudflare.api_token.clone(),
         );
